@@ -1,3 +1,17 @@
+import kotlin.time.measureTimedValue
+
+val digitsByWord = mapOf(
+    "one" to "1",
+    "two" to "2",
+    "three" to "3",
+    "four" to "4",
+    "five" to "5",
+    "six" to "6",
+    "seven" to "7",
+    "eight" to "8",
+    "nine" to "9"
+)
+
 fun main() {
     fun part1(input: List<String>): Int = input.sumOf { line ->
         line.filter { char -> char.isDigit() }.let { digits ->
@@ -5,25 +19,33 @@ fun main() {
         }
     }
 
-    fun part2(input: List<String>): Int {
-        val replacements = mapOf(
-            "one" to "1",
-            "two" to "2",
-            "three" to "3",
-            "four" to "4",
-            "five" to "5",
-            "six" to "6",
-            "seven" to "7",
-            "eight" to "8",
-            "nine" to "9"
-        )
-        return part1(
-            input.map { line ->
-                line.replace(Regex(replacements.keys.joinToString(separator = "|"))) { match ->
-                    replacements[match.value]!!
-                }
-            }
-        )
+    data class DigitLocation(
+        val digitValue: Int,
+        val location: Int
+    )
+
+    fun String.digitWordLocations() = digitsByWord.keys.flatMap { numberWord ->
+        Regex(numberWord).findAll(this).map { match ->
+            DigitLocation(
+                digitValue = digitsByWord[numberWord]!!.toInt(),
+                location = match.range.first
+            )
+        }
+    }
+
+    fun String.rawDigitLocations() =
+        Regex(digitsByWord.values.joinToString(separator = "|")).findAll(this).map { match ->
+            DigitLocation(
+                digitValue = match.value.toInt(),
+                location = match.range.first
+            )
+        }
+
+    fun part2(input: List<String>) = input.sumOf { line ->
+        (line.digitWordLocations() + line.rawDigitLocations()).let { allDigitLocations ->
+            allDigitLocations.minByOrNull { it.location }!!.digitValue * 10 +
+                allDigitLocations.maxByOrNull { it.location }!!.digitValue
+        }
     }
 
     // test if implementation meets criteria from the description, like:
@@ -33,6 +55,7 @@ fun main() {
     check(part2(testInput2) == 281)
 
     val input = readInput("Day01")
-    part1(input).println()
-    part2(input).println()
+    measureTimedValue { part2(input) }.let {
+        println("Computed ${it.value} in ${it.duration}")
+    }
 }
