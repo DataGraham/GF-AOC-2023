@@ -1,38 +1,40 @@
 import kotlin.time.measureTimedValue
 
-val digitsByWord = mapOf(
-    "one" to "1",
-    "two" to "2",
-    "three" to "3",
-    "four" to "4",
-    "five" to "5",
-    "six" to "6",
-    "seven" to "7",
-    "eight" to "8",
-    "nine" to "9"
+data class DigitWord(
+    val word: String,
+    val digitValue: Int
+) {
+    val regex = Regex(word)
+}
+
+val digitWords = listOf(
+    DigitWord("one", 1),
+    DigitWord("two", 2),
+    DigitWord("three", 3),
+    DigitWord("four", 4),
+    DigitWord("five", 5),
+    DigitWord("six", 6),
+    DigitWord("seven", 7),
+    DigitWord("eight", 8),
+    DigitWord("nine", 9)
 )
+
+val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
 
 data class DigitLocation(
     val digitValue: Int,
     val location: Int
 )
 
-fun String.digitWordLocations() = digitsByWord.keys.flatMap { numberWord ->
-    Regex(numberWord).findAll(this).map { match ->
-        DigitLocation(
-            digitValue = digitsByWord[numberWord]!!.toInt(),
-            location = match.range.first
-        )
+fun String.digitWordLocations() = digitWords.flatMap { digitWord ->
+    digitWord.regex.findAll(this).map { match ->
+        DigitLocation(digitValue = digitWord.digitValue, location = match.range.first)
     }
 }
 
-fun String.rawDigitLocations() =
-    Regex(digitsByWord.values.joinToString(separator = "|")).findAll(this).map { match ->
-        DigitLocation(
-            digitValue = match.value.toInt(),
-            location = match.range.first
-        )
-    }
+fun String.rawDigitLocations() = rawDigitsRegex.findAll(this).map { match ->
+    DigitLocation(digitValue = match.value.toInt(), location = match.range.first)
+}
 
 fun String.digitLocations() = digitWordLocations() + rawDigitLocations()
 
