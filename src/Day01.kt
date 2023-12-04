@@ -12,6 +12,34 @@ val digitsByWord = mapOf(
     "nine" to "9"
 )
 
+data class DigitLocation(
+    val digitValue: Int,
+    val location: Int
+)
+
+fun String.digitWordLocations() = digitsByWord.keys.flatMap { numberWord ->
+    Regex(numberWord).findAll(this).map { match ->
+        DigitLocation(
+            digitValue = digitsByWord[numberWord]!!.toInt(),
+            location = match.range.first
+        )
+    }
+}
+
+fun String.rawDigitLocations() =
+    Regex(digitsByWord.values.joinToString(separator = "|")).findAll(this).map { match ->
+        DigitLocation(
+            digitValue = match.value.toInt(),
+            location = match.range.first
+        )
+    }
+
+fun String.digitLocations() = digitWordLocations() + rawDigitLocations()
+
+fun List<DigitLocation>.firstDigitValue() = minByOrNull { it.location }!!.digitValue
+
+fun List<DigitLocation>.lastDigitValue() = maxByOrNull { it.location }!!.digitValue
+
 fun main() {
     fun part1(input: List<String>): Int = input.sumOf { line ->
         line.filter { char -> char.isDigit() }.let { digits ->
@@ -19,33 +47,8 @@ fun main() {
         }
     }
 
-    data class DigitLocation(
-        val digitValue: Int,
-        val location: Int
-    )
-
-    fun String.digitWordLocations() = digitsByWord.keys.flatMap { numberWord ->
-        Regex(numberWord).findAll(this).map { match ->
-            DigitLocation(
-                digitValue = digitsByWord[numberWord]!!.toInt(),
-                location = match.range.first
-            )
-        }
-    }
-
-    fun String.rawDigitLocations() =
-        Regex(digitsByWord.values.joinToString(separator = "|")).findAll(this).map { match ->
-            DigitLocation(
-                digitValue = match.value.toInt(),
-                location = match.range.first
-            )
-        }
-
     fun part2(input: List<String>) = input.sumOf { line ->
-        (line.digitWordLocations() + line.rawDigitLocations()).let { allDigitLocations ->
-            allDigitLocations.minByOrNull { it.location }!!.digitValue * 10 +
-                allDigitLocations.maxByOrNull { it.location }!!.digitValue
-        }
+        line.digitLocations().run { firstDigitValue() * 10 + lastDigitValue() }
     }
 
     // test if implementation meets criteria from the description, like:
