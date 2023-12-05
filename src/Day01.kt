@@ -1,3 +1,4 @@
+import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
 fun main() {
@@ -16,11 +17,13 @@ fun main() {
 
     val input = readInput("Day01")
     println("Part 1: ${part1(input)}")
-    measureTimedValue { part2(input) }.let {
-        println("Part 2: Computed ${it.value} in ${it.duration}")
-    }
-    measureTimedValue { part2Sequence(input) }.let {
-        println("Part 2: Computed with sequence ${it.value} in ${it.duration}")
+    measurePerformance("Part2", 100) { part2(input) }
+    measurePerformance("Part2 with Sequences", 100) { part2Sequence(input) }
+}
+
+inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
+    measureTime { repeat(reps) { function() } }.let { totalDuration ->
+        println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
     }
 }
 
@@ -43,7 +46,7 @@ fun part2Sequence(input: List<String>): Int {
         }
         println("In $line we found: $digitMatchesString")
         */
-        allDigitMatches.run { first().value.digitValue()* 10 + last().value.digitValue() }
+        allDigitMatches.run { first().value.digitValue() * 10 + last().value.digitValue() }
     }
 }
 
