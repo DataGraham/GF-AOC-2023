@@ -1,15 +1,12 @@
 import kotlin.time.measureTimedValue
 
 fun main() {
-    fun part1(input: List<String>): Int = input.sumOf { line ->
-        line.filter { char -> char.isDigit() }.let { digits ->
-            "${digits.first()}${digits.last()}".toInt()
-        }
-    }
-
-    fun part2(input: List<String>) = input.sumOf { line ->
-        line.digitLocations().run { firstDigitValue() * 10 + lastDigitValue() }
-    }
+    println(
+        Regex("ab|ba").findAllWithOverlap("aba")
+            .toList().joinToString {
+                with(it) { "$value at ${range.first}" }
+            }
+    )
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day01_test")
@@ -22,7 +19,43 @@ fun main() {
     measureTimedValue { part2(input) }.let {
         println("Part 2: Computed ${it.value} in ${it.duration}")
     }
+    measureTimedValue { part2Sequence(input) }.let {
+        println("Part 2: Computed with sequence ${it.value} in ${it.duration}")
+    }
 }
+
+fun part1(input: List<String>): Int = input.sumOf { line ->
+    line.filter { char -> char.isDigit() }.let { digits ->
+        "${digits.first()}${digits.last()}".toInt()
+    }
+}
+
+fun part2(input: List<String>) = input.sumOf { line ->
+    line.digitLocations().run { firstDigitValue() * 10 + lastDigitValue() }
+}
+
+fun part2Sequence(input: List<String>): Int {
+    return input.sumOf { line ->
+        val allDigitMatches = anyDigitRegex.findAllWithOverlap(line)
+        /*
+        val digitMatchesString = allDigitMatches.joinToString(prefix = "\n\t", separator = "\n\t") {
+            with(it) { "$value at ${range.first}" }
+        }
+        println("In $line we found: $digitMatchesString")
+        */
+        allDigitMatches.run { first().value.digitValue()* 10 + last().value.digitValue() }
+    }
+}
+
+fun String.digitValue(): Int {
+    return when {
+        length == 1 && first().isDigit() -> first().digitToInt()
+        // TODO: Optimize using a map of digit words
+        else -> digitWords.first { it.word == this }.digitValue
+    }
+}
+
+fun Regex.findAllWithOverlap(input: String) = generateSequence(find(input)) { find(input, it.range.first + 1) }
 
 fun String.digitLocations() = digitWordLocations() + rawDigitLocations()
 
@@ -47,6 +80,11 @@ val digitWords = listOf("one", "two", "three", "four", "five", "six", "seven", "
     .mapIndexed { i, w -> DigitWord(word = w, digitValue = i + 1) }
 
 val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
+
+val anyDigitRegex = Regex(
+    // TODO: Use the digit value of the DigitWord!?
+    (digitWords.map { it.word } + (0..9).map(Int::toString)).joinToString(separator = "|")
+)
 
 data class DigitLocation(
     val digitValue: Int,
