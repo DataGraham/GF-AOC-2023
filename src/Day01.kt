@@ -1,5 +1,4 @@
 import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
 
 fun main() {
     println(
@@ -19,12 +18,12 @@ fun main() {
     println("Part 1: ${part1(input)}")
     measurePerformance("Part2", 1000) { part2(input) }
     measurePerformance("Part2 with Sequences", 1000) { part2Sequence(input) }
+    measurePerformance("Part2 first/last", 1000) { part2FirstAndLast(input) }
 }
 
 inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
-    measureTime { repeat(reps) { function() } }.let { totalDuration ->
-        println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
-    }
+    val totalDuration = measureTime { repeat(reps) { function() } }
+    println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
 }
 
 fun part1(input: List<String>): Int = input.sumOf { line ->
@@ -47,6 +46,13 @@ fun part2Sequence(input: List<String>): Int {
         println("In $line we found: $digitMatchesString")
         */
         allDigitMatches.run { first().value.digitValue() * 10 + last().value.digitValue() }
+    }
+}
+
+fun part2FirstAndLast(input: List<String>): Int {
+    return input.sumOf { line ->
+        line.findAnyOf(allDigitStrings)!!.second.digitValue() * 10 +
+            line.findLastAnyOf(allDigitStrings)!!.second.digitValue()
     }
 }
 
@@ -86,6 +92,8 @@ val digitsByWord = mapOf(*digitWords.map { it.word to it.digitValue }.toTypedArr
 val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
 
 val anyDigitRegex = Regex(digitWords.joinToString(separator = "|") { "${it.word}|${it.digitValue}" })
+
+val allDigitStrings = digitWords.flatMap { listOf(it.word, it.digitValue.toString()) }
 
 data class DigitLocation(
     val digitValue: Int,
