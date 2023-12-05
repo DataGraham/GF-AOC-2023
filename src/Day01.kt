@@ -50,12 +50,9 @@ fun part2Sequence(input: List<String>): Int {
     }
 }
 
-fun String.digitValue(): Int {
-    return when {
-        length == 1 && first().isDigit() -> first().digitToInt()
-        // TODO: Optimize using a map of digit words
-        else -> digitWords.first { it.word == this }.digitValue
-    }
+fun String.digitValue() = when {
+    length == 1 && first().isDigit() -> first().digitToInt()
+    else -> digitsByWord[this]!!
 }
 
 fun Regex.findAllWithOverlap(input: String) = generateSequence(find(input)) { find(input, it.range.first + 1) }
@@ -81,6 +78,8 @@ data class DigitWord(
 
 val digitWords = listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
     .mapIndexed { i, w -> DigitWord(word = w, digitValue = i + 1) }
+
+val digitsByWord = mapOf(*digitWords.map { it.word to it.digitValue }.toTypedArray())
 
 val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
 
