@@ -50,6 +50,7 @@ fun part2Sequence(input: List<String>): Int {
     }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun String.digitValue() = when {
     length == 1 && first().isDigit() -> first().digitToInt()
     // else -> digitWords.first { it.word == this }.digitValue
