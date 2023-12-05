@@ -84,10 +84,7 @@ val digitWords = listOf("one", "two", "three", "four", "five", "six", "seven", "
 
 val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
 
-val anyDigitRegex = Regex(
-    // TODO: Use the digit value of the DigitWord!?
-    (digitWords.map { it.word } + (0..9).map(Int::toString)).joinToString(separator = "|")
-)
+val anyDigitRegex = Regex(digitWords.joinToString(separator = "|") { "${it.word}|${it.digitValue}" })
 
 data class DigitLocation(
     val digitValue: Int,
