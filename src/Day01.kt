@@ -18,8 +18,9 @@ fun main() {
     check(part2(testInput2) == 281)
 
     val input = readInput("Day01")
+    println("Part 1: ${part1(input)}")
     measureTimedValue { part2(input) }.let {
-        println("Computed ${it.value} in ${it.duration}")
+        println("Part 2: Computed ${it.value} in ${it.duration}")
     }
 }
 
@@ -42,17 +43,8 @@ data class DigitWord(
     val regex = Regex(word)
 }
 
-val digitWords = listOf(
-    DigitWord("one", 1),
-    DigitWord("two", 2),
-    DigitWord("three", 3),
-    DigitWord("four", 4),
-    DigitWord("five", 5),
-    DigitWord("six", 6),
-    DigitWord("seven", 7),
-    DigitWord("eight", 8),
-    DigitWord("nine", 9)
-)
+val digitWords = listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+    .mapIndexed { i, w -> DigitWord(word = w, digitValue = i + 1) }
 
 val rawDigitsRegex = Regex(digitWords.map { it.digitValue }.joinToString(separator = "|"))
 
