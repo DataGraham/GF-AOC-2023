@@ -17,8 +17,8 @@ fun main() {
 
     val input = readInput("Day01")
     println("Part 1: ${part1(input)}")
-    measurePerformance("Part2", 100) { part2(input) }
-    measurePerformance("Part2 with Sequences", 100) { part2Sequence(input) }
+    measurePerformance("Part2", 1000) { part2(input) }
+    measurePerformance("Part2 with Sequences", 1000) { part2Sequence(input) }
 }
 
 inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
@@ -50,8 +50,9 @@ fun part2Sequence(input: List<String>): Int {
     }
 }
 
-fun String.digitValue() = when {
+inline fun String.digitValue() = when {
     length == 1 && first().isDigit() -> first().digitToInt()
+    // else -> digitWords.first { it.word == this }.digitValue
     else -> digitsByWord[this]!!
 }
 
