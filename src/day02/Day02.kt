@@ -4,7 +4,6 @@ import println
 import readInput
 
 fun main() {
-
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day02/Day02_test")
     check(part1(testInput) == 8)
@@ -14,6 +13,7 @@ fun main() {
     // println("Part 2 Answer: ${part2(input)}")
 }
 
+// TODO: Meassure performance difference for sequences?
 fun part1(input: List<String>) = input.indices
     .filter { gameIndex -> input[gameIndex].isPossibleGameString() }
     .sumOf { gameIndex -> gameIndex + 1 }
