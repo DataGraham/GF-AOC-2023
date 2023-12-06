@@ -14,12 +14,9 @@ fun main() {
     part2(input).println()
 }
 
-fun part1(input: List<String>): Int {
-    // TODO: sum of filtered indices instead?
-    return input.foldIndexed(0) { i, acc, line ->
-        acc + if (line.isPossibleGameString()) i + 1 else 0
-    }
-}
+fun part1(input: List<String>) = input.indices
+    .filter { gameIndex -> input[gameIndex].isPossibleGameString() }
+    .sumOf { gameIndex -> gameIndex + 1 }
 
 fun String.isPossibleGameString() =
     // TODO: substringAfter?
