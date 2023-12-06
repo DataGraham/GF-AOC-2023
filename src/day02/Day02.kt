@@ -22,7 +22,6 @@ fun part2(input: List<String>): Int = input.sumOf { gameString -> gameString.gam
 
 private fun String.gamePower(): Int {
     val handfulColourCounts = handfulsFromGame().flatMap { handful -> handful.colourCountsFromHandful() }
-
     val requiredColourCounts: List<Int> =
     // maxByColour.keys.map { colour -> handfulColourCounts.filter { it.colour == colour }.maxOfOrNull { it.count }!! }
         // Don't assume what the set of possible colours is?
