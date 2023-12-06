@@ -1,6 +1,5 @@
 package day02
 
-import println
 import readInput
 
 fun main() {
@@ -18,16 +17,16 @@ fun part1(input: List<String>) = input.indices
     .filter { gameIndex -> input[gameIndex].isPossibleGameString() }
     .sumOf { gameIndex -> gameIndex + 1 }
 
-fun String.isPossibleGameString() =
-    // TODO: substringAfter?
-    substring(startIndex = indexOf(':').takeIf { it != -1 }!! + 1)
-        .split(';')
-        .all { handfulString -> handfulString.isPossibleHandfulString() }
+fun String.isPossibleGameString() = handfulsFromGame().all { handfulString -> handfulString.isPossibleHandfulString() }
+
+// TODO: substringAfter?
+private fun String.handfulsFromGame() =
+    substring(startIndex = indexOf(':').takeIf { it != -1 }!! + 1).split(';')
 
 fun String.isPossibleHandfulString() =
-    split(',')
-        .map(String::trim)
-        .all { colourCountString -> colourCountString.isPossibleColourCountString() }
+    colourCountsFromHandful().all { colourCountString -> colourCountString.isPossibleColourCountString() }
+
+private fun String.colourCountsFromHandful() = split(',').map(String::trim)
 
 val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
 
