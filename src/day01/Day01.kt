@@ -1,4 +1,7 @@
-import kotlin.time.measureTime
+package day01
+
+import measurePerformance
+import readInput
 
 fun main() {
     println(
@@ -14,16 +17,11 @@ fun main() {
     val testInput2 = readInput("Day01_test2")
     check(part2(testInput2) == 281)
 
-    val input = readInput("Day01")
+    val input = readInput("day01")
     println("Part 1: ${part1(input)}")
     measurePerformance("Part2", 1000) { part2(input) }
     measurePerformance("Part2 with Sequences", 1000) { part2Sequence(input) }
     measurePerformance("Part2 first/last", 1000) { part2FirstAndLast(input) }
-}
-
-inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
-    val totalDuration = measureTime { repeat(reps) { function() } }
-    println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
 }
 
 fun part1(input: List<String>): Int = input.sumOf { line ->
@@ -59,7 +57,7 @@ fun part2FirstAndLast(input: List<String>): Int {
 @Suppress("NOTHING_TO_INLINE")
 inline fun String.digitValue() = when {
     length == 1 && first().isDigit() -> first().digitToInt()
-    // else -> digitWords.first { it.word == this }.digitValue
+    // else -> Day01.getDigitWords.first { it.word == this }.Day01.digitValue
     else -> digitsByWord[this]!!
 }
 
