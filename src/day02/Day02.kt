@@ -24,20 +24,21 @@ fun part1(input: List<String>): Int {
 fun String.isPossibleGameString() =
     substring(startIndex = indexOf(':').takeIf { it != -1 }!! + 1)
         .split(';')
-        .flatMap { it.split(',') }
-        .map { it.trim() }
         .all { handful -> handful.isPossibleHandfulString() }
+
+fun String.isPossibleHandfulString() =
+    split(',').all { handful -> handful.trim().isPossibleColourCountString() }
 
 val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
 
-fun String.isPossibleHandfulString(): Boolean {
-    val (countString, colourString) = split(' ')
+fun String.isPossibleColourCountString() =
+    split(' ')
         .takeIf { it.size == 2 }!!
-        .let { it.first() to it.last() }
-    return (countString.toInt() <= maxByColour[colourString]!!).also {
-        println("Handful string $this with $countString $colourString is ${if (it) "possible" else "IMPOSSIBLE"}")
-    }
-}
+        .let { (countString, colourString) ->
+            (countString.toInt() <= maxByColour[colourString]!!).also {
+                println("Handful string $this with $countString $colourString is ${if (it) "possible" else "IMPOSSIBLE"}")
+            }
+        }
 
 fun part2(input: List<String>): Int {
     return input.size
