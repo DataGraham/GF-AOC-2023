@@ -12,12 +12,12 @@ fun main() {
     )
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day01_test")
+    val testInput = readInput("day01/Day01_test")
     check(part1(testInput) == 142)
-    val testInput2 = readInput("Day01_test2")
+    val testInput2 = readInput("day01/Day01_test2")
     check(part2(testInput2) == 281)
 
-    val input = readInput("day01")
+    val input = readInput("day01/day01")
     println("Part 1: ${part1(input)}")
     measurePerformance("Part2", 1000) { part2(input) }
     measurePerformance("Part2 with Sequences", 1000) { part2Sequence(input) }
@@ -55,11 +55,7 @@ fun part2FirstAndLast(input: List<String>): Int {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun String.digitValue() = when {
-    length == 1 && first().isDigit() -> first().digitToInt()
-    // else -> Day01.getDigitWords.first { it.word == this }.Day01.digitValue
-    else -> digitsByWord[this]!!
-}
+inline fun String.digitValue() = singleOrNull()?.digitToIntOrNull() ?: digitsByWord[this]!!
 
 fun Regex.findAllWithOverlap(input: String) = generateSequence(find(input)) { find(input, it.range.first + 1) }
 
