@@ -43,8 +43,13 @@ fun String.isPossibleHandfulString() = colourCountsFromHandful().all { it.isPoss
 
 private fun String.colourCountsFromHandful() =
     split(',')
-        .map { rawColourCountString -> rawColourCountString.trim().split(' ').takeIf { it.size == 2 }!! }
-        .map { (countString, colourString) -> ColourCount(colour = colourString, count = countString.toInt()) }
+        .map(String::trim)
+        .map { rawColourCountString -> colourCountFromString(rawColourCountString) }
+
+private fun colourCountFromString(rawColourCountString: String) =
+    rawColourCountString.split(' ')
+        .takeIf { it.size == 2 }!!
+        .let { (countString, colourString) -> ColourCount(colour = colourString, count = countString.toInt()) }
 
 val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
 
