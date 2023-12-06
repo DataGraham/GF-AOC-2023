@@ -10,8 +10,8 @@ fun main() {
     check(part1(testInput) == 8)
 
     val input = readInput("day02/Day02")
-    part1(input).println()
-    part2(input).println()
+    println("Part 1 Answer: ${part1(input)}")
+    // println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>) = input.indices
@@ -34,11 +34,7 @@ val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
 fun String.isPossibleColourCountString() =
     split(' ')
         .takeIf { it.size == 2 }!!
-        .let { (countString, colourString) ->
-            (countString.toInt() <= maxByColour[colourString]!!).also {
-                println("Handful string $this with $countString $colourString is ${if (it) "possible" else "IMPOSSIBLE"}")
-            }
-        }
+        .let { (countString, colourString) -> countString.toInt() <= maxByColour[colourString]!! }
 
 fun part2(input: List<String>): Int {
     return input.size
