@@ -22,12 +22,15 @@ fun part1(input: List<String>): Int {
 }
 
 fun String.isPossibleGameString() =
+    // TODO: substringAfter?
     substring(startIndex = indexOf(':').takeIf { it != -1 }!! + 1)
         .split(';')
-        .all { handful -> handful.isPossibleHandfulString() }
+        .all { handfulString -> handfulString.isPossibleHandfulString() }
 
 fun String.isPossibleHandfulString() =
-    split(',').all { handful -> handful.trim().isPossibleColourCountString() }
+    split(',')
+        .map(String::trim)
+        .all { colourCountString -> colourCountString.isPossibleColourCountString() }
 
 val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
 
