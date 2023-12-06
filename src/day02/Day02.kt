@@ -21,10 +21,16 @@ fun part1(input: List<String>) = input.indices
 fun part2(input: List<String>): Int = input.sumOf { gameString -> gameString.gamePower() }
 
 private fun String.gamePower(): Int {
-    val colourCounts = handfulsFromGame().flatMap { handful -> handful.colourCountsFromHandful() }
-    return maxByColour.keys.map { colour ->
-        colourCounts.filter { it.colour == colour }.maxOfOrNull { it.count }!!
-    }.reduce { product, count -> product * count }
+    val handfulColourCounts = handfulsFromGame().flatMap { handful -> handful.colourCountsFromHandful() }
+
+    val requiredColourCounts: List<Int> =
+    // maxByColour.keys.map { colour -> handfulColourCounts.filter { it.colour == colour }.maxOfOrNull { it.count }!! }
+        // Don't assume what the set of possible colours is?
+        handfulColourCounts.groupBy(
+            keySelector = { colourCount -> colourCount.colour },
+            valueTransform = { it.count }
+        ).map { countsForThisColour -> countsForThisColour.value.max() }
+    return requiredColourCounts.reduce { product, count -> product * count }
 }
 
 fun String.isPossibleGameString() = handfulsFromGame().all { handfulString -> handfulString.isPossibleHandfulString() }
