@@ -27,3 +27,5 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
 }
 
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
+
+fun Int.toIntRange() = this .. this

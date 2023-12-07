@@ -1,6 +1,7 @@
 package day03
 
 import readInput
+import toIntRange
 
 fun main() {
 
@@ -28,35 +29,30 @@ private fun partNumbersSum(lineIndex: Int, lines: List<String>) =
 
 val captureIntegersRegex = Regex("([0-9]+)")
 
-private fun MatchResult.isPartNumber(lineIndex: Int, lines: List<String>): Boolean {
-    // Check above
-    if (lineIndex > 0)
-        lines[lineIndex - 1].let { previousLine ->
-            if (symbolRegex in previousLine.substring(
-                    (range.first - 1).coerceAtLeast(0)..
-                        (range.last + 1).coerceAtMost(previousLine.lastIndex)
-                )
-            ) return true
-        }
+private fun MatchResult.isPartNumber(lineIndex: Int, lines: List<String>) =
+    LineRange(lineIndex = lineIndex, range = range)
+        .adjacentRanges(lineLength = lines[lineIndex].length, numLines = lines.size)
+        .any { symbolRegex in lines[it.lineIndex].substring(it.range) }
 
-    // Check before
-    if (range.first > 0 && symbolRegex.matches(lines[lineIndex][range.first - 1].toString())) return true
-
-    // Check after
-    if (range.last < lines[lineIndex].lastIndex && symbolRegex.matches(lines[lineIndex][range.last + 1].toString())) return true
-
-    // Check below
-    if (lineIndex < lines.lastIndex)
-        lines[lineIndex + 1].let { nextLine ->
-            if (symbolRegex in nextLine.substring(
-                    (range.first - 1).coerceAtLeast(0)..
-                        (range.last + 1).coerceAtMost(nextLine.lastIndex)
-                )
-            ) return true
-        }
-
-    return false
+private fun LineRange.adjacentRanges(lineLength: Int, numLines: Int): List<LineRange> {
+    val horizontalRange = (range.first - 1).coerceAtLeast(0)..
+        (range.last + 1).coerceAtMost(lineLength - 1)
+    val lineRangeAbove =
+        if (lineIndex > 0) LineRange(lineIndex = lineIndex - 1, range = horizontalRange)
+        else null
+    val lineRangeBefore =
+        if (range.first > 0) LineRange(lineIndex = lineIndex, range = (range.first - 1).toIntRange())
+        else null
+    val lineRangeAfter =
+        if (range.last < lineLength - 1) LineRange(lineIndex = lineIndex, range = (range.last + 1).toIntRange())
+        else null
+    val lineRangeBelow =
+        if (lineIndex < numLines - 1) LineRange(lineIndex = lineIndex + 1, range = horizontalRange)
+        else null
+    return listOfNotNull(lineRangeAbove, lineRangeBefore, lineRangeAfter, lineRangeBelow)
 }
+
+data class LineRange(val lineIndex: Int, val range: IntRange)
 
 val symbolRegex = Regex("[^0-9.]")
 
