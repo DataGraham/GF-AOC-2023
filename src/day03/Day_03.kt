@@ -1,4 +1,5 @@
 package day03
+
 import readInput
 
 fun main() {
@@ -14,10 +15,50 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    return input.foldIndexed(0) { index, sum, line ->
-        sum +  Regex("([0-9]+)").findAll(line).sumOf { it.value.toInt() }
+    return input.foldIndexed(0) { lineIndex, sum, _ ->
+        sum + partNumbersSum(lineIndex = lineIndex, lines = input)
     }.also { println("Calculated $it") }
 }
+
+private fun partNumbersSum(lineIndex: Int, lines: List<String>) =
+    captureIntegersRegex
+        .findAll(lines[lineIndex])
+        .filter { it.isPartNumber(lineIndex = lineIndex, lines = lines) }
+        .sumOf { it.value.toInt() }
+
+val captureIntegersRegex = Regex("([0-9]+)")
+
+private fun MatchResult.isPartNumber(lineIndex: Int, lines: List<String>): Boolean {
+    // Check above
+    if (lineIndex > 0)
+        lines[lineIndex - 1].let { previousLine ->
+            if (symbolRegex in previousLine.substring(
+                    (range.first - 1).coerceAtLeast(0)..
+                        (range.last + 1).coerceAtMost(previousLine.lastIndex)
+                )
+            ) return true
+        }
+
+    // Check before
+    if (range.first > 0 && symbolRegex.matches(lines[lineIndex][range.first - 1].toString())) return true
+
+    // Check after
+    if (range.last < lines[lineIndex].lastIndex && symbolRegex.matches(lines[lineIndex][range.last + 1].toString())) return true
+
+    // Check below
+    if (lineIndex < lines.lastIndex)
+        lines[lineIndex + 1].let { nextLine ->
+            if (symbolRegex in nextLine.substring(
+                    (range.first - 1).coerceAtLeast(0)..
+                        (range.last + 1).coerceAtMost(nextLine.lastIndex)
+                )
+            ) return true
+        }
+
+    return false
+}
+
+val symbolRegex = Regex("[^0-9.]")
 
 fun part2(input: List<String>): Int {
     return input.size
