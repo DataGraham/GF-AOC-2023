@@ -67,8 +67,6 @@ fun String.isPossibleGameString() = handfulsFromGame().all { handfulString -> ha
 
 private fun String.handfulsFromGame() = requireSubstringAfter(':').split(';')
 
-fun String.isPossibleHandfulString() = colourCountsFromHandful().all { it.isPossible() }
-
 private fun String.colourCountsFromHandful() =
     split(',')
         .map(String::trim)
@@ -79,8 +77,10 @@ private fun colourCountFromString(rawColourCountString: String) =
         .takeIf { it.size == 2 }!!
         .let { (countString, colourString) -> ColourCount(colour = colourString, count = countString.toInt()) }
 
-val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
+fun String.isPossibleHandfulString() = colourCountsFromHandful().all { it.isPossible() }
 
 data class ColourCount(val colour: String, val count: Int)
 
 fun ColourCount.isPossible() = count <= maxByColour[colour]!!
+
+val maxByColour = mapOf("red" to 12, "green" to 13, "blue" to 14)
