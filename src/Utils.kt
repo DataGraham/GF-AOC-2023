@@ -25,3 +25,5 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
     val totalDuration = measureTime { repeat(reps) { function() } }
     println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
 }
+
+fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
