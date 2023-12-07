@@ -13,6 +13,7 @@ fun main() {
     println("Part 1 Answer: ${part1(input)}")
     println("Part 1(regex) Answer: ${part1Regex(input)}")
     println("Part 2 Answer: ${part2(input)}")
+    println("Part 2(regex) Answer: ${part2Regex(input)}")
 }
 
 // TODO: Measure performance difference for sequences?
@@ -25,6 +26,8 @@ fun part1Regex(input: List<String>) = input.indices
     .sumOf { gameIndex -> gameIndex + 1 }
 
 fun part2(input: List<String>): Int = input.sumOf { gameString -> gameString.gamePower() }
+
+fun part2Regex(input: List<String>): Int = input.sumOf { gameString -> gameString.gamePowerRegex() }
 
 fun String.isPossibleGameStringRegex() = colourCountsByRegex().all { it.isPossible() }
 
@@ -50,6 +53,15 @@ private fun String.gamePower(): Int {
         ).map { countsForThisColour -> countsForThisColour.value.max() }
     return requiredColourCounts.reduce { product, count -> product * count }
 }
+
+private fun String.gamePowerRegex() =
+    colourCountsByRegex()
+        .groupBy(
+            keySelector = { it.colour },
+            valueTransform = { it.count }
+        )
+        .map { colourCountsEntry -> colourCountsEntry.value.max() }
+        .reduce { product, count -> product * count }
 
 fun String.isPossibleGameString() = handfulsFromGame().all { handfulString -> handfulString.isPossibleHandfulString() }
 
