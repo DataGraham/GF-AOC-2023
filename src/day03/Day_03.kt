@@ -21,6 +21,39 @@ fun part1(input: List<String>): Int {
     }.also { println("Calculated $it") }
 }
 
+fun part2(input: List<String>): Int {
+    val numbersGrid = List(input.size) { MutableList<Int?>(input[it].length) { null } }
+    input.forEachIndexed { lineIndex, line ->
+        captureIntegersRegex
+            .findAll(line)
+            .forEach { numberMatch ->
+                val intHere = numberMatch.value.toInt()
+                numberMatch.range.forEach {
+                    numbersGrid[lineIndex][it] = intHere
+                }
+            }
+    }
+
+    return input.foldIndexed(0) { lineIndex, sum, line ->
+        val starIndices = line.indices.filter { line[it] == '*' }
+        sum + starIndices.sumOf { starIndex ->
+            val adjacentNumbers =
+                LineRange(lineIndex = lineIndex, range = starIndex.toIntRange())
+                    .adjacentRanges(lineLength = input[lineIndex].length, numLines = input.size)
+                    .flatMap { adjacentRange ->
+                        adjacentRange.range.mapNotNull { adjacentLocation ->
+                            numbersGrid[adjacentRange.lineIndex][adjacentLocation]
+                        }
+                    }
+            // TODO: correctly handle duplicate part numbers by checking for 2 numbers by referential equality (===)?!
+            val gearRatio = adjacentNumbers.toSet().run {
+                if (size == 2) reduce { acc, i -> acc * i } else null
+            }
+            gearRatio ?: 0
+        }
+    }
+}
+
 private fun partNumbersSum(lineIndex: Int, lines: List<String>) =
     captureIntegersRegex
         .findAll(lines[lineIndex])
@@ -55,7 +88,3 @@ private fun LineRange.adjacentRanges(lineLength: Int, numLines: Int): List<LineR
 data class LineRange(val lineIndex: Int, val range: IntRange)
 
 val symbolRegex = Regex("[^0-9.]")
-
-fun part2(input: List<String>): Int {
-    return input.size
-}
