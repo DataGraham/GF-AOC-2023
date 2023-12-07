@@ -1,19 +1,25 @@
 /*
-fun Day01.day02.main() {
-    fun Day01.part1(input: List<String>): Int {
-        return input.size
-    }
+package dayXX
 
-    fun Day01.part2(input: List<String>): Int {
-        return input.size
-    }
+import readInput
+
+fun main() {
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day01_test")
-    check(Day01.part1(testInput) == 1)
+    val testInput = readInput("dayXX/DayXX_test")
+    check(part1(testInput) == 1)
+    //check(part2(testInput) == 1)
 
-    val input = readInput("Day01")
-    Day01.part1(input).println()
-    Day01.part2(input).println()
+    val input = readInput("dayXX/DayXX")
+    println("Part 1 Answer: ${day02.part1(input)}")
+    println("Part 2 Answer: ${day02.part2(input)}")
+}
+
+fun part1(input: List<String>): Int {
+    return input.size
+}
+
+fun part2(input: List<String>): Int {
+    return input.size
 }
 */
