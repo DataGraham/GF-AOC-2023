@@ -1,0 +1,40 @@
+package day04
+
+import readInput
+import requireSubstringAfter
+
+fun main() {
+    // test if implementation meets criteria from the description, like:
+    val testInput = readInput("day04/Day04_test")
+    check(part1(testInput) == 13)
+    //check(part2(testInput) == 1)
+
+    val input = readInput("day04/Day04")
+    println("Part 1 Answer: ${day02.part1(input)}")
+    println("Part 2 Answer: ${day02.part2(input)}")
+}
+
+fun part1(input: List<String>): Int {
+    return input.sumOf { line ->
+        line.requireSubstringAfter(':')
+            .split('|')
+            .takeIf { it.size == 2 }!!
+            .map { numbersString ->
+                numbersString
+                    .trim()
+                    .split(' ')
+                    .filter(String::isNotEmpty) // empty strings can result from consecutive delimiters (spaces)
+                    .map(String::toInt)
+            }
+            .let { (winners, mine) ->
+                mine.intersect(winners.toSet()).size.let { winnerCount ->
+                    if (winnerCount == 0) 0
+                    else 1 shl (winnerCount - 1)
+                }
+            }
+    }
+}
+
+fun part2(input: List<String>): Int {
+    return input.size
+}
