@@ -23,6 +23,14 @@ fun part1(input: List<String>): Int {
     }
 }
 
+fun part2(input: List<String>): Int {
+    val copies = IntArray(input.size) { 1 }
+    input.forEachIndexed { index, line ->
+        (index + 1 ..< index + 1 + line.winnerCount()).forEach { copies[it] += copies[index] }
+    }
+    return copies.sum()
+}
+
 private fun String.winnerCount() =
     requireSubstringAfter(':')
         .split('|')
@@ -34,7 +42,3 @@ private fun String.winnerCount() =
                 .filter(String::isNotEmpty) // empty strings can result from consecutive delimiters (spaces)
                 .map(String::toInt)
         }.let { (winners, mine) -> mine.intersect(winners.toSet()).size }
-
-fun part2(input: List<String>): Int {
-    return input.size
-}
