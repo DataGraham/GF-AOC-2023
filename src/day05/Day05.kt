@@ -23,9 +23,29 @@ fun part1(input: List<String>): Int {
         .split(' ')
         .map(String::toInt)
     val mapStringSets = input.drop(1).split { it.isBlank() }
+    val maps = mapStringSets.map { mapStringSet ->
+        mapStringSet.drop(1).map { mapping ->
+            mapping
+                .split(' ')
+                .map(String::toInt)
+                .takeIf { it.size == 3 }!!
+                .let { (destStart, sourceStart, length) ->
+                    MappingRange(
+                        sourceRange = sourceStart ..< sourceStart + length,
+                        destDelta = destStart - sourceStart
+                    )
+                }
+        }
+    }
     return input.size
 }
 
 fun part2(input: List<String>): Int {
     return input.size
+}
+
+data class MappingRange(val sourceRange: IntRange, val destDelta: Int) : Comparable<Int> {
+    override fun compareTo(other: Int): Int {
+        TODO("Not yet implemented")
+    }
 }
