@@ -37,7 +37,11 @@ fun part1(input: List<String>): Int {
                 }
         }
     }
-    return input.size
+    return seeds.minOf { seed ->
+        maps.mapSeedToLocation(seed).also {
+            println("Mapped Seed $seed to location $it")
+        }
+    }
 }
 
 fun part2(input: List<String>): Int {
@@ -48,4 +52,16 @@ data class MappingRange(val sourceRange: IntRange, val destDelta: Int) : Compara
     override fun compareTo(other: Int): Int {
         TODO("Not yet implemented")
     }
+}
+
+fun List<List<MappingRange>>.mapSeedToLocation(seed: Int): Int {
+    // TODO: Use Fold
+    var mappedValue = seed
+    forEach { map ->
+        // TODO: Binary search to find relevant mapping range?
+        mappedValue = map.firstOrNull { mappedValue in it.sourceRange }
+            ?.let { mappedValue + it.destDelta }
+            ?: mappedValue
+    }
+    return mappedValue
 }
