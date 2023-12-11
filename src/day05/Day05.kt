@@ -54,14 +54,10 @@ data class MappingRange(val sourceRange: LongRange, val destDelta: Long) : Compa
     }
 }
 
-fun List<List<MappingRange>>.mapSeedToLocation(seed: Long): Long {
-    // TODO: Use Fold
-    var mappedValue = seed
-    forEach { map ->
+fun List<List<MappingRange>>.mapSeedToLocation(seed: Long) =
+    fold(seed) { mappedValue, mappingRanges ->
         // TODO: Binary search to find relevant mapping range?
-        mappedValue = map.firstOrNull { mappedValue in it.sourceRange }
+        mappingRanges.firstOrNull { mappedValue in it.sourceRange }
             ?.let { mappedValue + it.destDelta }
             ?: mappedValue
     }
-    return mappedValue
-}
