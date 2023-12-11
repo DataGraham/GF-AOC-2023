@@ -29,3 +29,10 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
 
 fun Int.toIntRange() = this .. this
+
+inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
+    fold(mutableListOf(mutableListOf<T>())) { acc, t ->
+        if (isDelimiter(t)) acc.add(mutableListOf())
+        else acc.last().add(t)
+        acc
+    }.filter { it.isNotEmpty() }
