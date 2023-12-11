@@ -69,10 +69,12 @@ class Mapping(private val mappingRanges: List<MappingRange>) {
 
     fun mapInputBinarySearch(input: Long): Long =
         sortedMappingRanges.binarySearch { mappingRange ->
-            when {
-                mappingRange.sourceRange.contains(input) -> 0
-                mappingRange.sourceRange.last < input -> -1
-                else -> 1
+            with(mappingRange.sourceRange) {
+                when {
+                    last < input -> -1
+                    first > input -> 1
+                    else -> 0
+                }
             }
         }.takeIf { rangeIndex -> rangeIndex >= 0 }
             ?.let { rangeIndex -> input + sortedMappingRanges[rangeIndex].destDelta }
