@@ -8,7 +8,7 @@ fun main() {
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day05/Day05_test")
-    check(part1(testInput) == 35)
+    check(part1(testInput) == 35L)
     //check(part2(testInput) == 1)
 
     val input = readInput("day05/Day05")
@@ -16,18 +16,18 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
+fun part1(input: List<String>): Long {
     val seeds = input.first()
         .requireSubstringAfter(':')
         .trim()
         .split(' ')
-        .map(String::toInt)
+        .map(String::toLong)
     val mapStringSets = input.drop(1).split { it.isBlank() }
     val maps = mapStringSets.map { mapStringSet ->
         mapStringSet.drop(1).map { mapping ->
             mapping
                 .split(' ')
-                .map(String::toInt)
+                .map(String::toLong)
                 .takeIf { it.size == 3 }!!
                 .let { (destStart, sourceStart, length) ->
                     MappingRange(
@@ -48,13 +48,13 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-data class MappingRange(val sourceRange: IntRange, val destDelta: Int) : Comparable<Int> {
-    override fun compareTo(other: Int): Int {
+data class MappingRange(val sourceRange: LongRange, val destDelta: Long) : Comparable<Long> {
+    override fun compareTo(other: Long): Int {
         TODO("Not yet implemented")
     }
 }
 
-fun List<List<MappingRange>>.mapSeedToLocation(seed: Int): Int {
+fun List<List<MappingRange>>.mapSeedToLocation(seed: Long): Long {
     // TODO: Use Fold
     var mappedValue = seed
     forEach { map ->
