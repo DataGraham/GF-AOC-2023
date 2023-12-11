@@ -23,22 +23,24 @@ fun part1(input: List<String>): Long {
         .split(' ')
         .map(String::toLong)
     val mapStringSets = input.drop(1).split { it.isBlank() }
-    val maps = mapStringSets.map { mapStringSet ->
-        mapStringSet.drop(1).map { mapping ->
-            mapping
-                .split(' ')
-                .map(String::toLong)
-                .takeIf { it.size == 3 }!!
-                .let { (destStart, sourceStart, length) ->
-                    MappingRange(
-                        sourceRange = sourceStart ..< sourceStart + length,
-                        destDelta = destStart - sourceStart
-                    )
-                }
-        }
+    val mappings = mapStringSets.map { mapStringSet ->
+        Mapping(
+            mapStringSet.drop(1).map { mapping ->
+                mapping
+                    .split(' ')
+                    .map(String::toLong)
+                    .takeIf { it.size == 3 }!!
+                    .let { (destStart, sourceStart, length) ->
+                        MappingRange(
+                            sourceRange = sourceStart ..< sourceStart + length,
+                            destDelta = destStart - sourceStart
+                        )
+                    }
+            }
+        )
     }
     return seeds.minOf { seed ->
-        maps.mapSeedToLocation(seed).also {
+        mappings.mapSeedToLocation(seed).also {
             println("Mapped Seed $seed to location $it")
         }
     }
@@ -54,10 +56,14 @@ data class MappingRange(val sourceRange: LongRange, val destDelta: Long) : Compa
     }
 }
 
-fun List<List<MappingRange>>.mapSeedToLocation(seed: Long) =
-    fold(seed) { mappedValue, mappingRanges ->
-        // TODO: Binary search to find relevant mapping range?
-        mappingRanges.firstOrNull { mappedValue in it.sourceRange }
-            ?.let { mappedValue + it.destDelta }
-            ?: mappedValue
-    }
+class Mapping(private val mappingRanges: List<MappingRange>) {
+    private val sortedMappingRanges by lazy { mappingRanges.sortedBy { it.sourceRange.first } }
+
+    // TODO: Binary search to find relevant mapping range?
+    fun map(input: Long): Long =
+        mappingRanges.firstOrNull { input in it.sourceRange }
+            ?.let { input + it.destDelta }
+            ?: input
+}
+
+fun List<Mapping>.mapSeedToLocation(seed: Long) = fold(seed) { mappedValue, mapping -> mapping.map(mappedValue) }
