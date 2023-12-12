@@ -19,9 +19,9 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1LinearSearch(input: List<String>) = part1(input) { mapInputLinearSearch(it) }
+fun part1LinearSearch(input: List<String>) = part1(input, Mapping::mapInputLinearSearch)
 
-fun part1BinarySearch(input: List<String>) = part1(input) { mapInputBinarySearch(it) }
+fun part1BinarySearch(input: List<String>) = part1(input, Mapping::mapInputBinarySearch)
 
 fun part1(input: List<String>, mappingStrategy: Mapping.(Long) -> Long): Long {
     val seeds = input.first()
@@ -33,8 +33,18 @@ fun part1(input: List<String>, mappingStrategy: Mapping.(Long) -> Long): Long {
     return seeds.minOf { seed -> mappings.mapInput(seed, mappingStrategy) }
 }
 
-fun part2(input: List<String>): Int {
-    return input.size
+fun part2(input: List<String>): Long {
+    val seedRanges = input.first()
+        .requireSubstringAfter(':')
+        .trim()
+        .split(' ')
+        .map(String::toLong)
+        .chunked(2)
+        .map { (start, length) -> start ..< start + length }
+    val mappings = parseMappings(input.drop(1))
+    return seedRanges.minOf { seedRange ->
+        seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
+    }
 }
 
 private fun parseMappings(input: List<String>): List<Mapping> =
