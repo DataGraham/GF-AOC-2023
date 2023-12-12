@@ -1,5 +1,6 @@
 package day05
 
+import kotlinx.coroutines.*
 import measurePerformance
 import readInput
 import requireSubstringAfter
@@ -42,8 +43,14 @@ fun part2(input: List<String>): Long {
         .chunked(2)
         .map { (start, length) -> start ..< start + length }
     val mappings = parseMappings(input.drop(1))
-    return seedRanges.minOf { seedRange ->
-        seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
+    return runBlocking {
+        seedRanges.map { seedRange ->
+            async {
+                withContext(Dispatchers.Default) {
+                    seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
+                }
+            }
+        }.awaitAll().min()
     }
 }
 
