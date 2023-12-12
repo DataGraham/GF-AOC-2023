@@ -43,6 +43,7 @@ fun part2(input: List<String>): Long {
         .chunked(2)
         .map { (start, length) -> start ..< start + length }
     val mappings = parseMappings(input.drop(1))
+    // TODO: Collapse mappings together into a single mapping?
     return runBlocking {
         seedRanges.map { seedRange ->
             async {
