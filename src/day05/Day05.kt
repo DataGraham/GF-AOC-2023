@@ -50,7 +50,7 @@ fun part2(input: List<String>): Long {
                     seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
                 }
             }
-        }.awaitAll().min()
+        }.minOf { it.await() }
     }
 }
 
