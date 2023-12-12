@@ -11,12 +11,12 @@ fun main() {
     val testInput = readInput("day05/Day05_test")
     check(part1LinearSearch(testInput) == 35L)
     check(part1BinarySearch(testInput) == 35L)
-    //check(part2(testInput) == 1)
+    // check(part2(testInput) == 46)
 
     val input = readInput("day05/Day05")
     measurePerformance(label = "Part 1 (Linear Search)", reps = 5000) { part1LinearSearch(input) }
     measurePerformance(label = "Part 1 (Binary Search)", reps = 5000) { part1BinarySearch(input) }
-    // println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1LinearSearch(input: List<String>) = part1(input) { mapInputLinearSearch(it) }
@@ -29,39 +29,36 @@ fun part1(input: List<String>, mappingStrategy: Mapping.(Long) -> Long): Long {
         .trim()
         .split(' ')
         .map(String::toLong)
-    val mapStringSets = input.drop(1).split { it.firstOrNull()?.isDigit() != true }
-    val mappings = mapStringSets.map { mapStringSet ->
-        Mapping(
-            mapStringSet.map { mapping ->
-                mapping
-                    .split(' ')
-                    .map(String::toLong)
-                    .takeIf { it.size == 3 }!!
-                    .let { (destStart, sourceStart, length) ->
-                        MappingRange(
-                            sourceRange = sourceStart ..< sourceStart + length,
-                            destDelta = destStart - sourceStart
-                        )
-                    }
-            }
-        )
-    }
-    return seeds.minOf { seed ->
-        mappings.mapSeedToLocation(seed, mappingStrategy)
-        //.also { println("Mapped Seed $seed to location $it") }
-    }
+    val mappings = parseMappings(input.drop(1))
+    return seeds.minOf { seed -> mappings.mapInput(seed, mappingStrategy) }
 }
 
 fun part2(input: List<String>): Int {
     return input.size
 }
 
+private fun parseMappings(input: List<String>): List<Mapping> =
+    input
+        .split { it.firstOrNull()?.isDigit() != true }
+        .map { mappingStringSet -> Mapping(mappingStringSet.map(::parseMappingRange)) }
+
+private fun parseMappingRange(mappingString: String) =
+    mappingString
+        .split(' ')
+        .map(String::toLong)
+        .takeIf { it.size == 3 }!!
+        .let { (destStart, sourceStart, length) ->
+            MappingRange(
+                sourceRange = sourceStart ..< sourceStart + length,
+                destDelta = destStart - sourceStart
+            )
+        }
+
 data class MappingRange(val sourceRange: LongRange, val destDelta: Long)
 
 class Mapping(private val mappingRanges: List<MappingRange>) {
     private val sortedMappingRanges by lazy { mappingRanges.sortedBy { it.sourceRange.first } }
 
-    // TODO: Binary search to find relevant mapping range?
     fun mapInputLinearSearch(input: Long): Long =
         mappingRanges.firstOrNull { input in it.sourceRange }
             ?.let { input + it.destDelta }
@@ -81,5 +78,5 @@ class Mapping(private val mappingRanges: List<MappingRange>) {
             ?: input
 }
 
-fun List<Mapping>.mapSeedToLocation(seed: Long, mappingStrategy: Mapping.(Long) -> Long) =
-    fold(seed) { mappedValue, mapping -> mapping.mappingStrategy(mappedValue) }
+fun List<Mapping>.mapInput(input: Long, mappingStrategy: Mapping.(Long) -> Long) =
+    fold(input) { mappedValue, mapping -> mapping.mappingStrategy(mappedValue) }
