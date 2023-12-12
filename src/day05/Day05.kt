@@ -29,7 +29,7 @@ fun part1(input: List<String>, mappingStrategy: Mapping.(Long) -> Long): Long {
         .trim()
         .split(' ')
         .map(String::toLong)
-    val mapStringSets = input.drop(1).split { it.isBlank() || !it.first().isDigit() }
+    val mapStringSets = input.drop(1).split { it.firstOrNull()?.isDigit() != true }
     val mappings = mapStringSets.map { mapStringSet ->
         Mapping(
             mapStringSet.map { mapping ->
