@@ -20,7 +20,7 @@ fun main() {
     measurePerformance(label = "Part 1 (Linear Search)", reps = 5000) { part1LinearSearch(input) }
     measurePerformance(label = "Part 1 (Binary Search)", reps = 5000) { part1BinarySearch(input) }
     // println("Part 2 Answer (Each Seed): ${part2MapEachSeed(input)}")
-    measurePerformance(label = "Part 2 (Map Seed Ranges)", reps = 100) { part2MapSeedRanges(input) }
+    measurePerformance(label = "Part 2 (Map Seed Ranges)", reps = 1000) { part2MapSeedRanges(input) }
 }
 
 fun part1LinearSearch(input: List<String>) = part1(input, Mapping::mapInputLinearSearch)
@@ -56,7 +56,7 @@ fun part2MapSeedRanges(input: List<String>): Long {
         inputRanges.flatMap { inputRange ->
             mapping.mapInputRange(inputRange)
         }
-    }.also { println(it.size) }.minOf { it.first }
+    }.minOf { it.first }
 }
 
 private fun parseSeedRanges(seedRangesString: String) = seedRangesString
