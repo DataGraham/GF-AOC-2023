@@ -12,12 +12,13 @@ fun main() {
     val testInput = readInput("day05/Day05_test")
     check(part1LinearSearch(testInput) == 35L)
     check(part1BinarySearch(testInput) == 35L)
-    // check(part2(testInput) == 46)
+    check(part2MapEachSeed(testInput) == 46L)
 
     val input = readInput("day05/Day05")
     measurePerformance(label = "Part 1 (Linear Search)", reps = 5000) { part1LinearSearch(input) }
     measurePerformance(label = "Part 1 (Binary Search)", reps = 5000) { part1BinarySearch(input) }
-    println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer (Each Seed): ${part2MapEachSeed(input)}")
+    // println("Part 2 Answer (Seed Ranges): ${part2MapSeedRanges(input)}")
 }
 
 fun part1LinearSearch(input: List<String>) = part1(input, Mapping::mapInputLinearSearch)
@@ -34,26 +35,31 @@ fun part1(input: List<String>, mappingStrategy: Mapping.(Long) -> Long): Long {
     return seeds.minOf { seed -> mappings.mapInput(seed, mappingStrategy) }
 }
 
-fun part2(input: List<String>): Long {
-    val seedRanges = input.first()
-        .requireSubstringAfter(':')
-        .trim()
-        .split(' ')
-        .map(String::toLong)
-        .chunked(2)
-        .map { (start, length) -> start ..< start + length }
+fun part2MapEachSeed(input: List<String>): Long {
+    val seedRanges = parseSeedRanges(input.first())
     val mappings = parseMappings(input.drop(1))
-    // TODO: Collapse mappings together into a single mapping?
-    return runBlocking {
+    return runBlocking(Dispatchers.Default) {
         seedRanges.map { seedRange ->
             async {
-                withContext(Dispatchers.Default) {
-                    seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
-                }
+                seedRange.minOf { seed -> mappings.mapInput(seed, Mapping::mapInputBinarySearch) }
             }
         }.minOf { it.await() }
     }
 }
+
+fun part2MapSeedRanges(input: List<String>): Long {
+    val seedRanges = parseSeedRanges(input.first())
+    val mappings = parseMappings(input.drop(1))
+    return 0
+}
+
+private fun parseSeedRanges(seedRangesString: String) = seedRangesString
+    .requireSubstringAfter(':')
+    .trim()
+    .split(' ')
+    .map(String::toLong)
+    .chunked(2)
+    .map { (start, length) -> start ..< start + length }
 
 private fun parseMappings(input: List<String>): List<Mapping> =
     input
