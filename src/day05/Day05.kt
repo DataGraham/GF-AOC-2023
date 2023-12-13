@@ -5,6 +5,8 @@ import measurePerformance
 import readInput
 import requireSubstringAfter
 import split
+import kotlin.math.max
+import kotlin.math.min
 
 fun main() {
 
@@ -17,8 +19,8 @@ fun main() {
     val input = readInput("day05/Day05")
     measurePerformance(label = "Part 1 (Linear Search)", reps = 5000) { part1LinearSearch(input) }
     measurePerformance(label = "Part 1 (Binary Search)", reps = 5000) { part1BinarySearch(input) }
-    println("Part 2 Answer (Each Seed): ${part2MapEachSeed(input)}")
-    // println("Part 2 Answer (Seed Ranges): ${part2MapSeedRanges(input)}")
+    // println("Part 2 Answer (Each Seed): ${part2MapEachSeed(input)}")
+    measurePerformance(label = "Part 2 (Map Seed Ranges)", reps = 100) { part2MapSeedRanges(input) }
 }
 
 fun part1LinearSearch(input: List<String>) = part1(input, Mapping::mapInputLinearSearch)
@@ -50,7 +52,11 @@ fun part2MapEachSeed(input: List<String>): Long {
 fun part2MapSeedRanges(input: List<String>): Long {
     val seedRanges = parseSeedRanges(input.first())
     val mappings = parseMappings(input.drop(1))
-    return 0
+    return mappings.fold(seedRanges) { inputRanges, mapping ->
+        inputRanges.flatMap { inputRange ->
+            mapping.mapInputRange(inputRange)
+        }
+    }.also { println(it.size) }.minOf { it.first }
 }
 
 private fun parseSeedRanges(seedRangesString: String) = seedRangesString
@@ -100,7 +106,45 @@ class Mapping(private val mappingRanges: List<MappingRange>) {
         }.takeIf { rangeIndex -> rangeIndex >= 0 }
             ?.let { rangeIndex -> input + sortedMappingRanges[rangeIndex].destDelta }
             ?: input
+
+    fun mapInputRange(inputRange: LongRange): List<LongRange> {
+        return sortedMappingRanges.fold(
+            RangeMappingState(
+                mappedRanges = emptyList(),
+                unmappedInput = inputRange
+            )
+        ) { state, mappingRange ->
+            val result = mappingRange.mapInputRange(state.unmappedInput ?: return@fold state)
+            RangeMappingState(
+                mappedRanges = state.mappedRanges + listOfNotNull(result.unmappedPrefix, result.mappedRange),
+                unmappedInput = result.unmappedSuffix
+            )
+        }.let { finalState ->
+            finalState.mappedRanges + listOfNotNull(finalState.unmappedInput)
+        }
+    }
+
+    private fun MappingRange.mapInputRange(inputRange: LongRange): RangeMappingResult = RangeMappingResult(
+        unmappedPrefix = (inputRange.first..min(sourceRange.first - 1, inputRange.last))
+            .takeIf { !it.isEmpty() },
+        mappedRange = (max(inputRange.first, sourceRange.first)..min(inputRange.last, sourceRange.last))
+            .takeIf { !it.isEmpty() }
+            ?.let { mappedInputRange -> mappedInputRange.first + destDelta..mappedInputRange.last + destDelta },
+        unmappedSuffix = (max(inputRange.first, sourceRange.last + 1)..inputRange.last)
+            .takeIf { !it.isEmpty() }
+    )
 }
+
+data class RangeMappingState(
+    val mappedRanges: List<LongRange>,
+    val unmappedInput: LongRange?
+)
+
+data class RangeMappingResult(
+    val unmappedPrefix: LongRange?,
+    val mappedRange: LongRange?,
+    val unmappedSuffix: LongRange?
+)
 
 fun List<Mapping>.mapInput(input: Long, mappingStrategy: Mapping.(Long) -> Long) =
     fold(input) { mappedValue, mapping -> mapping.mappingStrategy(mappedValue) }
