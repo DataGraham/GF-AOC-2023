@@ -17,7 +17,10 @@ fun main() {
 fun part1(input: List<String>): Int {
     val hands = input.map { line ->
         line.split(' ').let { (cardsString, bidString) ->
-            Hand(cards = cardsString, bid = bidString.toInt())
+            Hand(
+                cards = cardsString.map(Char::cardValue),
+                bid = bidString.toInt()
+            )
         }
     }.apply { joinToString(separator = "\n").println() }
     return input.size
@@ -27,4 +30,14 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-data class Hand(val cards: String, val bid: Int)
+data class Hand(val cards: List<Int>, val bid: Int)
+
+private fun Char.cardValue() = digitToIntOrNull() ?: faceValues[this]!!
+
+private val faceValues = mapOf(
+    'T' to 10,
+    'J' to 11,
+    'Q' to 12,
+    'K' to 13,
+    'A' to 14
+)
