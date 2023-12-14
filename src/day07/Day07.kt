@@ -23,11 +23,9 @@ fun part1(input: List<String>) = input
             )
         }
     }
-    .apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
+    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
     .sorted()
-    .apply {
-        joinToString(separator = "\n").println()
-    }
+    //.apply { joinToString(separator = "\n").println() }
     .mapIndexed { index, hand -> hand.bid * (index + 1) }
     .sum()
 
