@@ -1,6 +1,5 @@
 package day06
 
-import println
 import readInput
 import requireSubstringAfter
 
@@ -18,8 +17,10 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     val times = extractRaceNumbers(input[0])
-    val distances = extractRaceNumbers(input[1])
-    return input.size
+    val recordDistances = extractRaceNumbers(input[1])
+    return times.zip(recordDistances).map { (time, recordDistance) ->
+        (0 .. time).count { holdTime -> holdTime * (time - holdTime) > recordDistance }
+    }.reduce { waysToWinAll, waysToWinThisRace -> waysToWinAll * waysToWinThisRace }
 }
 
 fun part2(input: List<String>): Int {
