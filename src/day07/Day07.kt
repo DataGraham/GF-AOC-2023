@@ -41,3 +41,33 @@ private val faceValues = mapOf(
     'K' to 13,
     'A' to 14
 )
+
+enum class HandType {
+    FiveOfAKind {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().contains(5) // TODO: cache (lazy?) frequencies in a Hand object
+    },
+    FourOfAKind {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().contains(4)
+    },
+    FullHouse {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().toSet() == setOf(3, 2)
+    },
+    ThreeOfAKind {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().contains(3)
+    },
+    TwoPair {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().count { it == 2 } == 2
+    },
+    HighCard {
+        override fun isFoundInCards(cards: List<Int>) = true
+    };
+
+    abstract fun isFoundInCards(cards: List<Int>): Boolean
+}
+
+private fun List<Int>.frequencies() = groupingBy { it }.eachCount().values
