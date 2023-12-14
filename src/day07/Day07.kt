@@ -1,6 +1,5 @@
 package day07
 
-import println
 import readInput
 
 fun main() {
@@ -17,10 +16,7 @@ fun main() {
 fun part1(input: List<String>) = input
     .map { line ->
         line.split(' ').let { (cardsString, bidString) ->
-            Hand(
-                cards = cardsString.map(Char::cardValue),
-                bid = bidString.toInt()
-            )
+            Hand(cardsString = cardsString, bid = bidString.toInt())
         }
     }
     //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
@@ -29,19 +25,42 @@ fun part1(input: List<String>) = input
     .mapIndexed { index, hand -> hand.bid * (index + 1) }
     .sum()
 
-data class Hand(val cards: List<Int>, val bid: Int) : Comparable<Hand> {
-    val cardFrequencies by lazy { cards.groupingBy { it }.eachCount().values }
-    val type by lazy { HandType.entries.last { handType -> handType.isFoundInHand(this) } }
+data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
+    val naturalCardValues by lazy { cardsString.map(Char::naturalCardValue) }
+    val naturalFrequencies by lazy { naturalCardValues.groupingBy { it }.eachCount().values }
+    val naturalType by lazy { HandType.entries.last { handType -> handType.isFoundInFrequencies(naturalFrequencies) } }
+
+    val wildCardValues by lazy { cardsString.map(Char::wildCardValue) }
+    /** Frequencies of cards if jokers act as the most populous non-joker rank */
+    val wildFrequencies by lazy {
+        val nonJokerFrequencies = cardsString.filter { it != 'J' }.groupingBy { it }.eachCount().values
+        // TODO: I don't think this would handle a hand of all jokers
+        val maxNonJokerFrequency = nonJokerFrequencies.max()
+        val firstIndexOfMaxFrequency = nonJokerFrequencies.indexOf(maxNonJokerFrequency)
+        val jokerCount = cardsString.count { it == 'J' }
+        nonJokerFrequencies.mapIndexed { index, frequency ->
+            if (index == firstIndexOfMaxFrequency) frequency + jokerCount
+            else frequency
+        }
+    }
+    val wildType by lazy { HandType.entries.last { handType -> handType.isFoundInFrequencies(wildFrequencies) } }
 
     @OptIn(ExperimentalStdlibApi::class)
     val relativeValue: Int by lazy {
-        cards.joinToString(separator = "") { it.toHexString(hexNumberFormat) }.toInt(16)
+        naturalCardValues.joinToString(separator = "") { it.toHexString(hexNumberFormat) }.toInt(16)
     }
 
     override fun compareTo(other: Hand) =
-        type.compareTo(other.type).takeIf { it != 0 }
+        naturalType.compareTo(other.naturalType).takeIf { it != 0 }
         // ?: relativeValue.compareTo(other.relativeValue)
-            ?: cards.zip(other.cards).firstNotNullOfOrNull { (thisCard, otherCard) ->
+            ?: naturalCardValues.zip(other.naturalCardValues).firstNotNullOfOrNull { (thisCard, otherCard) ->
+                thisCard.compareTo(otherCard).takeIf { cardComparison -> cardComparison != 0 }
+            } ?: 0
+
+    fun compareToWild(other: Hand) =
+        wildType.compareTo(other.wildType).takeIf { it != 0 }
+        // ?: relativeValue.compareTo(other.relativeValue)
+            ?: wildCardValues.zip(other.wildCardValues).firstNotNullOfOrNull { (thisCard, otherCard) ->
                 thisCard.compareTo(otherCard).takeIf { cardComparison -> cardComparison != 0 }
             } ?: 0
 
@@ -51,12 +70,12 @@ data class Hand(val cards: List<Int>, val bid: Int) : Comparable<Hand> {
             number { removeLeadingZeros = true }
         }
     }
-
 }
 
-private fun Char.cardValue() = digitToIntOrNull() ?: faceValues[this]!!
+private fun Char.naturalCardValue() = digitToIntOrNull() ?: naturalFaceValues[this]!!
+private fun Char.wildCardValue() = digitToIntOrNull() ?: wildFaceValues[this]!!
 
-private val faceValues = mapOf(
+private val naturalFaceValues = mapOf(
     'T' to 10,
     'J' to 11,
     'Q' to 12,
@@ -64,33 +83,42 @@ private val faceValues = mapOf(
     'A' to 14
 )
 
+private val wildFaceValues = naturalFaceValues + ('J' to 1)
+
 enum class HandType {
     HighCard {
-        override fun isFoundInHand(hand: Hand) = true
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = true
     },
     OnePair {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(2)
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.contains(2)
     },
     TwoPair {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.count { it == 2 } == 2
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.count { it == 2 } == 2
     },
     ThreeOfAKind {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(3)
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.contains(3)
     },
     FullHouse {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.toSet() == setOf(3, 2)
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.toSet() == setOf(3, 2)
     },
     FourOfAKind {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(4)
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.contains(4)
     },
     FiveOfAKind {
-        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(5)
+        override fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean = frequencies.contains(5)
     };
 
-    abstract fun isFoundInHand(hand: Hand): Boolean
-
+    abstract fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean
 }
 
-fun part2(input: List<String>): Int {
-    return input.size
-}
+fun part2(input: List<String>) = input
+    .map { line ->
+        line.split(' ').let { (cardsString, bidString) ->
+            Hand(cardsString = cardsString, bid = bidString.toInt())
+        }
+    }
+    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
+    .sortedWith(Hand::compareToWild)
+    //.apply { joinToString(separator = "\n").println() }
+    .mapIndexed { index, hand -> hand.bid * (index + 1) }
+    .sum()
