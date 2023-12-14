@@ -14,23 +14,44 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    val hands = input.map { line ->
+fun part1(input: List<String>) = input
+    .map { line ->
         line.split(' ').let { (cardsString, bidString) ->
             Hand(
                 cards = cardsString.map(Char::cardValue),
                 bid = bidString.toInt()
             )
         }
-    }.apply { joinToString(separator = "\n") { "$it of type ${it.cards.handType()}" }.println() }
-    return input.size
-}
+    }
+    .apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
+    .sorted()
+    .apply {
+        joinToString(separator = "\n").println()
+    }
+    .mapIndexed { index, hand -> hand.bid * (index + 1) }
+    .sum()
 
-fun part2(input: List<String>): Int {
-    return input.size
-}
+data class Hand(val cards: List<Int>, val bid: Int) : Comparable<Hand> {
+    val cardFrequencies by lazy { cards.groupingBy { it }.eachCount().values }
+    val type by lazy { HandType.entries.last { handType -> handType.isFoundInHand(this) } }
+    @OptIn(ExperimentalStdlibApi::class)
+    val relativeValue: Int by lazy {
+        cards.joinToString(separator = "") { it.toHexString(hexNumberFormat) }.toInt(16)
+    }
 
-data class Hand(val cards: List<Int>, val bid: Int)
+    override fun compareTo(other: Hand) =
+        type.compareTo(other.type).takeIf { it != 0 }
+            // TODO: Or zip the cards of the two hands and compare the first non-equal pair?
+            ?: relativeValue.compareTo(other.relativeValue)
+
+    companion object {
+        @OptIn(ExperimentalStdlibApi::class)
+        val hexNumberFormat = HexFormat {
+            number { removeLeadingZeros = true }
+        }
+    }
+
+}
 
 private fun Char.cardValue() = digitToIntOrNull() ?: faceValues[this]!!
 
@@ -43,32 +64,31 @@ private val faceValues = mapOf(
 )
 
 enum class HandType {
-    FiveOfAKind {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(5)
-    },
-    FourOfAKind {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(4)
-    },
-    FullHouse {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().toSet() == setOf(3, 2)
-    },
-    ThreeOfAKind {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(3)
-    },
-    TwoPair {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().count { it == 2 } == 2
+    HighCard {
+        override fun isFoundInHand(hand: Hand) = true
     },
     OnePair {
-        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(2)
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(2)
     },
-    HighCard {
-        override fun isFoundInCards(cards: List<Int>) = true
+    TwoPair {
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.count { it == 2 } == 2
+    },
+    ThreeOfAKind {
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(3)
+    },
+    FullHouse {
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.toSet() == setOf(3, 2)
+    },
+    FourOfAKind {
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(4)
+    },
+    FiveOfAKind {
+        override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(5)
     };
+    abstract fun isFoundInHand(hand: Hand): Boolean
 
-    abstract fun isFoundInCards(cards: List<Int>): Boolean
 }
 
-// TODO: cache (lazy?) frequencies in a Hand object
-private fun List<Int>.frequencies() = groupingBy { it }.eachCount().values
-
-private fun List<Int>.handType() = HandType.entries.first { handType -> handType.isFoundInCards(this) }
+fun part2(input: List<String>): Int {
+    return input.size
+}
