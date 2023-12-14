@@ -32,6 +32,7 @@ fun part1(input: List<String>) = input
 data class Hand(val cards: List<Int>, val bid: Int) : Comparable<Hand> {
     val cardFrequencies by lazy { cards.groupingBy { it }.eachCount().values }
     val type by lazy { HandType.entries.last { handType -> handType.isFoundInHand(this) } }
+
     @OptIn(ExperimentalStdlibApi::class)
     val relativeValue: Int by lazy {
         cards.joinToString(separator = "") { it.toHexString(hexNumberFormat) }.toInt(16)
@@ -39,8 +40,10 @@ data class Hand(val cards: List<Int>, val bid: Int) : Comparable<Hand> {
 
     override fun compareTo(other: Hand) =
         type.compareTo(other.type).takeIf { it != 0 }
-            // TODO: Or zip the cards of the two hands and compare the first non-equal pair?
-            ?: relativeValue.compareTo(other.relativeValue)
+        // ?: relativeValue.compareTo(other.relativeValue)
+            ?: cards.zip(other.cards).firstNotNullOfOrNull { (thisCard, otherCard) ->
+                thisCard.compareTo(otherCard).takeIf { cardComparison -> cardComparison != 0 }
+            } ?: 0
 
     companion object {
         @OptIn(ExperimentalStdlibApi::class)
@@ -83,6 +86,7 @@ enum class HandType {
     FiveOfAKind {
         override fun isFoundInHand(hand: Hand) = hand.cardFrequencies.contains(5)
     };
+
     abstract fun isFoundInHand(hand: Hand): Boolean
 
 }
