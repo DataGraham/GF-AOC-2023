@@ -20,7 +20,7 @@ fun part1(input: List<String>): Int {
     val recordDistances = extractRaceNumbers(input[1])
     return raceTimes.zip(recordDistances).map { (raceTime, recordDistance) ->
         (0 .. raceTime).count { holdTime -> holdTime * (raceTime - holdTime) > recordDistance }
-    }.reduce { waysToWinAll, waysToWinThisRace -> waysToWinAll * waysToWinThisRace }
+    }.reduce(Int::times)
 }
 
 fun part2(input: List<String>): Int {
