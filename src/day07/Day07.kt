@@ -44,28 +44,22 @@ private val faceValues = mapOf(
 
 enum class HandType {
     FiveOfAKind {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().contains(5) // TODO: cache (lazy?) frequencies in a Hand object
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(5)
     },
     FourOfAKind {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().contains(4)
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(4)
     },
     FullHouse {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().toSet() == setOf(3, 2)
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().toSet() == setOf(3, 2)
     },
     ThreeOfAKind {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().contains(3)
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(3)
     },
     TwoPair {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().count { it == 2 } == 2
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().count { it == 2 } == 2
     },
     OnePair {
-        override fun isFoundInCards(cards: List<Int>) =
-            cards.frequencies().contains(2)
+        override fun isFoundInCards(cards: List<Int>) = cards.frequencies().contains(2)
     },
     HighCard {
         override fun isFoundInCards(cards: List<Int>) = true
@@ -74,6 +68,7 @@ enum class HandType {
     abstract fun isFoundInCards(cards: List<Int>): Boolean
 }
 
+// TODO: cache (lazy?) frequencies in a Hand object
 private fun List<Int>.frequencies() = groupingBy { it }.eachCount().values
 
 private fun List<Int>.handType() = HandType.entries.first { handType -> handType.isFoundInCards(this) }
