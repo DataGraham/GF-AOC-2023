@@ -22,7 +22,7 @@ fun part1(input: List<String>): Int {
                 bid = bidString.toInt()
             )
         }
-    }.apply { joinToString(separator = "\n").println() }
+    }.apply { joinToString(separator = "\n") { "$it of type ${it.cards.handType()}" }.println() }
     return input.size
 }
 
@@ -63,6 +63,10 @@ enum class HandType {
         override fun isFoundInCards(cards: List<Int>) =
             cards.frequencies().count { it == 2 } == 2
     },
+    OnePair {
+        override fun isFoundInCards(cards: List<Int>) =
+            cards.frequencies().contains(2)
+    },
     HighCard {
         override fun isFoundInCards(cards: List<Int>) = true
     };
@@ -71,3 +75,5 @@ enum class HandType {
 }
 
 private fun List<Int>.frequencies() = groupingBy { it }.eachCount().values
+
+private fun List<Int>.handType() = HandType.entries.first { handType -> handType.isFoundInCards(this) }
