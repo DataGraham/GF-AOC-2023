@@ -25,16 +25,30 @@ fun part1(input: List<String>) = input
     .mapIndexed { index, hand -> hand.bid * (index + 1) }
     .sum()
 
-data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
-    val naturalCardValues by lazy { cardsString.map(Char::naturalCardValue) }
-    val naturalFrequencies by lazy { naturalCardValues.groupingBy { it }.eachCount().values }
-    val naturalType by lazy { HandType.entries.last { handType -> handType.isFoundInFrequencies(naturalFrequencies) } }
+fun part2(input: List<String>) = input
+    .map { line ->
+        line.split(' ').let { (cardsString, bidString) ->
+            Hand(cardsString = cardsString, bid = bidString.toInt())
+        }
+    }
+    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
+    .sortedWith(Hand::compareToWild)
+    //.apply { joinToString(separator = "\n").println() }
+    .mapIndexed { index, hand -> hand.bid * (index + 1) }
+    .sum()
 
-    val wildCardValues by lazy { cardsString.map(Char::wildCardValue) }
+data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
+    private val naturalCardValues by lazy { cardsString.map(Char::naturalCardValue) }
+    private val naturalFrequencies by lazy { naturalCardValues.groupingBy { it }.eachCount().values }
+    private val naturalType by lazy {
+        HandType.entries.last { handType -> handType.isFoundInFrequencies(naturalFrequencies) }
+    }
+    private val wildCardValues by lazy { cardsString.map(Char::wildCardValue) }
+
     /** Frequencies of cards if jokers act as the most populous non-joker rank */
-    val wildFrequencies by lazy {
+    private val wildFrequencies by lazy {
         val nonJokerFrequencies = cardsString.filter { it != 'J' }.groupingBy { it }.eachCount().values
-        // TODO: I don't think this would handle a hand of all jokers
+            .takeIf { it.isNotEmpty() } ?: listOf(0)
         val maxNonJokerFrequency = nonJokerFrequencies.max()
         val firstIndexOfMaxFrequency = nonJokerFrequencies.indexOf(maxNonJokerFrequency)
         val jokerCount = cardsString.count { it == 'J' }
@@ -43,7 +57,9 @@ data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
             else frequency
         }
     }
-    val wildType by lazy { HandType.entries.last { handType -> handType.isFoundInFrequencies(wildFrequencies) } }
+    private val wildType by lazy {
+        HandType.entries.last { handType -> handType.isFoundInFrequencies(wildFrequencies) }
+    }
 
     @OptIn(ExperimentalStdlibApi::class)
     val relativeValue: Int by lazy {
@@ -110,15 +126,3 @@ enum class HandType {
 
     abstract fun isFoundInFrequencies(frequencies: Collection<Int>): Boolean
 }
-
-fun part2(input: List<String>) = input
-    .map { line ->
-        line.split(' ').let { (cardsString, bidString) ->
-            Hand(cardsString = cardsString, bid = bidString.toInt())
-        }
-    }
-    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
-    .sortedWith(Hand::compareToWild)
-    //.apply { joinToString(separator = "\n").println() }
-    .mapIndexed { index, hand -> hand.bid * (index + 1) }
-    .sum()
