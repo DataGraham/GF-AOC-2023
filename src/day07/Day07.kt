@@ -6,36 +6,26 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day07/Day07_test")
     check(part1(testInput) == 6440)
-    //check(part2(testInput) == 1)
+    check(part2(testInput) == 5905)
 
     val input = readInput("day07/Day07")
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = input
-    .map { line ->
-        line.split(' ').let { (cardsString, bidString) ->
-            Hand(cardsString = cardsString, bid = bidString.toInt())
-        }
-    }
-    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
-    .sorted()
-    //.apply { joinToString(separator = "\n").println() }
-    .mapIndexed { index, hand -> hand.bid * (index + 1) }
-    .sum()
+fun part1(input: List<String>) = calculateWinnings(input, Comparator.naturalOrder())
+fun part2(input: List<String>) = calculateWinnings(input, Hand::compareToWild)
 
-fun part2(input: List<String>) = input
-    .map { line ->
-        line.split(' ').let { (cardsString, bidString) ->
-            Hand(cardsString = cardsString, bid = bidString.toInt())
+fun calculateWinnings(input: List<String>, handRanker: Comparator<Hand>) =
+    input
+        .map { line ->
+            line.split(' ').let { (cardsString, bidString) ->
+                Hand(cardsString = cardsString, bid = bidString.toInt())
+            }
         }
-    }
-    //.apply { joinToString(separator = "\n") { "$it of type ${it.type}" }.println() }
-    .sortedWith(Hand::compareToWild)
-    //.apply { joinToString(separator = "\n").println() }
-    .mapIndexed { index, hand -> hand.bid * (index + 1) }
-    .sum()
+        .sortedWith(handRanker)
+        .mapIndexed { index, hand -> hand.bid * (index + 1) }
+        .sum()
 
 data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
     private val naturalCardValues by lazy { cardsString.map(Char::naturalCardValue) }
@@ -75,7 +65,6 @@ data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
 
     fun compareToWild(other: Hand) =
         wildType.compareTo(other.wildType).takeIf { it != 0 }
-        // ?: relativeValue.compareTo(other.relativeValue)
             ?: wildCardValues.zip(other.wildCardValues).firstNotNullOfOrNull { (thisCard, otherCard) ->
                 thisCard.compareTo(otherCard).takeIf { cardComparison -> cardComparison != 0 }
             } ?: 0
