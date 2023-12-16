@@ -47,6 +47,7 @@ data class Hand(val cardsString: String, val bid: Int) : Comparable<Hand> {
             else frequency
         }
     }
+
     private val wildType by lazy {
         HandType.entries.last { handType -> handType.isFoundInFrequencies(wildFrequencies) }
     }
