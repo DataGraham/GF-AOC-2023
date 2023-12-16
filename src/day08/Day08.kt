@@ -1,5 +1,6 @@
 package day08
 
+import println
 import readInput
 import toInfiniteSequence
 import java.lang.IllegalArgumentException
@@ -27,12 +28,12 @@ fun part1(input: List<String>): Int {
 fun part2(input: List<String>): Int {
     val networkConnectionsByStart = getNetworkConnectionsByStart(input)
     val initialLocations = networkConnectionsByStart.keys.filter { it.last() == 'A' }
-    val locationsSequence = input.getEndlessDirections().scan(initialLocations) { currentLocations, direction ->
-        currentLocations.map { location ->
-            networkConnectionsByStart.move(from = location, direction = direction)
-        }
-    }
-    return locationsSequence.indexOfFirst { locations -> locations.all { it.last() == 'Z' } }
+    val pathLengths = initialLocations.map { initialLocation ->
+        input.getEndlessDirections().scan(initialLocation) { currentLocation, direction ->
+            networkConnectionsByStart.move(from = currentLocation, direction = direction)
+        }.indexOfFirst { it.last() == 'Z' }
+    }.also { it.println() }
+    return 0
 }
 
 private fun List<String>.getEndlessDirections() = first().toList().toInfiniteSequence()
