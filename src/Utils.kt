@@ -36,3 +36,6 @@ inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
         else acc.last().add(t)
         acc
     }.filter { it.isNotEmpty() }
+
+
+fun <T> Collection<T>.toInfiniteSequence() = generateSequence(this) { it }.flatten()
