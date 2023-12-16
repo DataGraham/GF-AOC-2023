@@ -1,6 +1,5 @@
 package day08
 
-import println
 import readInput
 import toInfiniteSequence
 import java.lang.IllegalArgumentException
@@ -18,26 +17,21 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val endlessDirections = input.first().toCharArray().toList().toInfiniteSequence()
-    val networkConnectionsByStart = mapOf(
-        *input
-            .drop(2)
-            .map { line ->
-                NetworkConnection.parse(line).let { connection -> connection.start to connection }
-            }
-            .toTypedArray()
-    )
-    var location = "AAA"
-    val locations = endlessDirections.map { direction ->
+    val endlessDirections = input.first().toList().toInfiniteSequence()
+    val networkConnectionsByStart = input
+        .drop(2)
+        .map { line -> NetworkConnection.parseFromString(line) }
+        .associateBy { it.start }
+    val locations = endlessDirections.scan("AAA") { location, direction ->
         networkConnectionsByStart[location]!!.let {
             when (direction) {
                 'L' -> it.left
                 'R' -> it.right
                 else -> throw IllegalArgumentException("Invalid direction: $direction")
-            }.apply { location = this }
+            }
         }
     }
-    return locations.indexOf("ZZZ") + 1
+    return locations.indexOf("ZZZ")
 }
 
 fun part2(input: List<String>): Int {
@@ -52,10 +46,9 @@ data class NetworkConnection(
     companion object {
         private val connectionRegex = Regex("""([A-Z]+) = \(([A-Z]+), ([A-Z]+)\)""")
 
-        fun parse(line: String) = connectionRegex
+        fun parseFromString(line: String) = connectionRegex
             .matchEntire(line)!!
             .let { matchResult -> matchResult.groups.drop(1).map { it!!.value } }
-            .also { it.println() }
             .let { (start, left, right) ->
                 NetworkConnection(start = start, left = left, right = right)
             }
