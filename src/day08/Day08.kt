@@ -17,26 +17,39 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val endlessDirections = input.first().toList().toInfiniteSequence()
-    val networkConnectionsByStart = input
-        .drop(2)
-        .map { line -> NetworkConnection.parseFromString(line) }
-        .associateBy { it.start }
-    val locations = endlessDirections.scan("AAA") { location, direction ->
-        networkConnectionsByStart[location]!!.let {
-            when (direction) {
-                'L' -> it.left
-                'R' -> it.right
-                else -> throw IllegalArgumentException("Invalid direction: $direction")
-            }
-        }
+    val networkConnectionsByStart = getNetworkConnectionsByStart(input)
+    val locations = input.getEndlessDirections().scan("AAA") { location, direction ->
+        networkConnectionsByStart.move(from = location, direction = direction)
     }
     return locations.indexOf("ZZZ")
 }
 
 fun part2(input: List<String>): Int {
-    return input.size
+    val networkConnectionsByStart = getNetworkConnectionsByStart(input)
+    val initialLocations = networkConnectionsByStart.keys.filter { it.last() == 'A' }
+    val locationsSequence = input.getEndlessDirections().scan(initialLocations) { currentLocations, direction ->
+        currentLocations.map { location ->
+            networkConnectionsByStart.move(from = location, direction = direction)
+        }
+    }
+    return locationsSequence.indexOfFirst { locations -> locations.all { it.last() == 'Z' } }
 }
+
+private fun List<String>.getEndlessDirections() = first().toList().toInfiniteSequence()
+
+private fun getNetworkConnectionsByStart(input: List<String>) = input
+    .drop(2)
+    .map { line -> NetworkConnection.parseFromString(line) }
+    .associateBy { it.start }
+
+fun Map<String, NetworkConnection>.move(from: String, direction: Char) =
+    this[from]!!.let {
+        when (direction) {
+            'L' -> it.left
+            'R' -> it.right
+            else -> throw IllegalArgumentException("Invalid direction: $direction")
+        }
+    }
 
 data class NetworkConnection(
     val start: String,
