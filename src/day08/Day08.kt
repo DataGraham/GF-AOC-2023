@@ -33,6 +33,12 @@ fun part2(input: List<String>): Int {
             networkConnectionsByStart.move(from = currentLocation, direction = direction)
         }.indexOfFirst { it.last() == 'Z' }
     }.also { it.println() }
+    // TODO: Generate a sequence of prime numbers:
+    //  https://www.tutorialspoint.com/kotlin-program-to-display-all-prime-numbers-from-1-to-n
+    //  Or more complex but faster, for large numbers anyway: https://en.wikipedia.org/wiki/AKS_primality_test
+    // TODO: Compute the prime factorization of each path length
+    // TODO: For each prime factor that appears, take only the maximum power
+    // TODO: Return the product of these powers (the LCM)
     return 0
 }
 
