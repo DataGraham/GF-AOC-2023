@@ -32,6 +32,9 @@ fun part2(input: List<String>): Long {
             networkConnectionsByStart.move(from = currentLocation, direction = direction)
         }.indexOfFirst { it.last() == 'Z' }
     }
+    // TODO: But wait, doesn't this assume that the directions will always send
+    //  an endpoint location (ends with Z) back to the initial location (starts with A)
+    //  that lead to it?
     return lcm(pathLengths)
 }
 
