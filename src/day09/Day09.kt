@@ -6,7 +6,7 @@ fun main() {
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day09/Day09_test")
-    check(part1(testInput) == 1)
+    check(part1(testInput) == 114)
     //check(part2(testInput) == 1)
 
     val input = readInput("day09/Day09")
@@ -15,9 +15,18 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    return input.size
+    return input.sumOf { line -> predictNextValue(line) }
 }
 
 fun part2(input: List<String>): Int {
     return input.size
 }
+
+private fun predictNextValue(line: String): Int {
+    val history = line.split(' ').map(String::toInt)
+    val derivatives = generateSequence(history) { it.differences() }
+        .takeWhile { derivative -> !derivative.all { it == 0 } }
+    return derivatives.sumOf { it.last() }
+}
+
+private fun Collection<Int>.differences() = zip(drop(1)).map { (first, second) -> second - first }
