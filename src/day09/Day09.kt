@@ -3,29 +3,33 @@ package day09
 import readInput
 
 fun main() {
-
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day09/Day09_test")
     check(part1(testInput) == 114)
-    //check(part2(testInput) == 1)
+    check(part2(testInput) == 2)
 
     val input = readInput("day09/Day09")
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    return input.sumOf { line -> predictNextValue(line) }
-}
+fun part1(input: List<String>) = input.sumOf { line -> predictNextValue(line) }
 
-fun part2(input: List<String>): Int {
-    return input.size
-}
+fun part2(input: List<String>) = input.sumOf { line -> predictPreviousValue(line) }
 
 private fun predictNextValue(line: String): Int {
     val history = parseHistory(line)
     val derivatives = history.getDerivatives()
     return derivatives.sumOf { it.last() }
+}
+
+private fun predictPreviousValue(line: String): Int {
+    val history = parseHistory(line)
+    val derivatives = history.getDerivatives()
+    return derivatives.toList()
+        .asReversed()
+        .map { it.first() }
+        .fold(0) { acc, first -> first - acc }
 }
 
 private fun List<Int>.getDerivatives() = generateSequence(this) { it.differences() }
