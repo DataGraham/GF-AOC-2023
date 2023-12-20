@@ -19,20 +19,20 @@ fun part2(input: List<String>) = input.sumOf { line -> predictPreviousValue(line
 
 private fun predictNextValue(line: String): Int {
     val history = parseHistory(line)
-    val derivatives = history.getDerivatives()
+    val derivatives = history.derivatives()
     return derivatives.sumOf { it.last() }
 }
 
 private fun predictPreviousValue(line: String): Int {
     val history = parseHistory(line)
-    val derivatives = history.getDerivatives()
+    val derivatives = history.derivatives()
     return derivatives.toList()
         .asReversed()
         .map { it.first() }
         .fold(0) { acc, first -> first - acc }
 }
 
-private fun List<Int>.getDerivatives() = generateSequence(this) { it.differences() }
+private fun List<Int>.derivatives() = generateSequence(this) { it.differences() }
     .takeWhile { derivative -> !derivative.all { it == 0 } }
 
 private fun parseHistory(line: String) = line.split(' ').map(String::toInt)
