@@ -38,6 +38,8 @@ fun part1(input: List<String>): Int {
         }
     }
 
+    // TODO: Or just pick a direction and go until you get back to the start,
+    //  and then just like divide by 2?
     val (firstPath, secondPath) = startDirections.map { direction ->
         generateSequence(
             startPosition to
