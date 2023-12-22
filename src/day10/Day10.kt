@@ -11,24 +11,15 @@ fun main() {
     check(part1(readInput("day10/Day10_test2")) == 8)
     //check(part2(testInput) == 1)
 
-    //    val input = readInput("day10/Day10")
-    //    println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("day10/Day10")
+    println("Part 1 Answer: ${part1(input)}")
     //    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
-    val pipes = input.mapIndexed { row, line ->
-        line.mapIndexed { col, char ->
+    val pipes = input.map { line ->
+        line.map { char ->
             PipeShape.entries.firstOrNull { it.character == char }
-            //                ?: if (char == 'S') {
-            //                    val possibleStartLocation = Position(row = row, col = col)
-            //                    val connectedDirections = Direction.entries.filter { direction ->
-            //                        (possibleStartLocation move direction).let { adjacentPosition ->
-            //                            pipes[adjacentPosition].
-            //                        }
-            //                    }.toSet()
-            //                    PipeShape.entries.first { shape -> shape.connections == connectedDirections }
-            //                } else null
         }
     }
 
