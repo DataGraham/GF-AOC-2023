@@ -21,8 +21,8 @@ fun part1(input: List<String>): Int {
     val pipes = parsePipeShapes(input)
     val startPosition = findStartPosition(input)
     val startDirection = findStartDirection(startPosition, pipes)
-    val loop = loopSequence(startPosition, startDirection, pipes)
-    return (loop.toList().size + 1) / 2
+    val loop = findLoop(startPosition, startDirection, pipes)
+    return loop.size / 2
 }
 
 fun part2(input: List<String>): Int {
@@ -31,22 +31,32 @@ fun part2(input: List<String>): Int {
     //  Starting with outside, flip in/out when the position includes north or south
     //  and it's the opposite of the previous north/south.
     //  While we're inside, any position with NO direction (not on the loop) is inside.
+
+    val pipes = parsePipeShapes(input)
+    val startPosition = findStartPosition(input)
+    val startDirection = findStartDirection(startPosition, pipes)
+    val loop = findLoop(startPosition, startDirection, pipes)
+
     return input.size
 }
 
-private fun loopSequence(
+private fun findLoop(
     startPosition: Position,
     startDirection: Direction,
     pipes: List<List<PipeShape?>>
-) = generateSequence(
-    startPosition to (startPosition move startDirection)
-) { (previous, current) ->
-    current to (
-        pipes[current]!!.connections
-            .map { direction -> current move direction }
-            .first { adjacent -> adjacent != previous }
-        )
-}.takeWhile { (_, current) -> current != startPosition }
+) =
+    generateSequence(
+        startPosition to (startPosition move startDirection)
+    ) { (previous, current) ->
+        current to (
+            pipes[current]!!.connections
+                .map { direction -> current move direction }
+                .first { adjacent -> adjacent != previous }
+            )
+    }.takeWhile { (_, current) ->
+        current != startPosition
+    }.toList()
+        .let { most -> most + (most.last().second to startPosition) }
 
 private fun findStartDirection(
     startPosition: Position,
