@@ -1,14 +1,15 @@
 package day10
 
 import day10.Direction.*
+import println
 import readInput
 import java.lang.IndexOutOfBoundsException
 import kotlin.math.abs
 
 fun main() {
     // test if implementation meets criteria from the description, like:
-    check(part1(readInput("day10/Day10_test")) == 4)
-    check(part1(readInput("day10/Day10_test2")) == 8)
+    check(part1(readInput("day10/Day10_test")).also { it.println() } == 4)
+    check(part1(readInput("day10/Day10_test2")).also { it.println() } == 8)
     //check(part2(testInput) == 1)
 
     val input = readInput("day10/Day10")
@@ -30,7 +31,7 @@ fun part1(input: List<String>): Int {
         }
     }
 
-    val startDirections = Direction.entries.filter { direction ->
+    val startDirection = Direction.entries.first { direction ->
         (startPosition move direction).let { adjacentPosition ->
             pipes[adjacentPosition]?.connections?.any { backDirection ->
                 adjacentPosition move backDirection == startPosition
@@ -38,25 +39,14 @@ fun part1(input: List<String>): Int {
         }
     }
 
-    // TODO: Or just pick a direction and go until you get back to the start,
-    //  and then just like divide by 2?
-    val (firstPath, secondPath) = startDirections.map { direction ->
-        generateSequence(
-            startPosition to
-                (startPosition move direction)
-        ) { (previous, current) ->
-            current to (
-                pipes[current]!!.connections
-                    .map { direction -> current move direction }
-                    .first { adjacent -> adjacent != previous }
-                )
-        }
-    }
-
-    return firstPath.zip(secondPath).takeWhile { (firstPathState, secondPathState) ->
-        firstPathState.second != secondPathState.second &&
-            !(firstPathState.second isAdjacentTo secondPathState.second)
-    }.toList().size + 1
+    val loop = generateSequence(startPosition to (startPosition move startDirection)) { (previous, current) ->
+        current to (
+            pipes[current]!!.connections
+                .map { direction -> current move direction }
+                .first { adjacent -> adjacent != previous }
+            )
+    }.takeWhile { (_, current) -> current != startPosition }
+    return (loop.toList().size + 1) / 2
 }
 
 fun part2(input: List<String>): Int {
