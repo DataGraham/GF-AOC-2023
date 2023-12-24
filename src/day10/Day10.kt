@@ -26,12 +26,11 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    // TODO: Compute incoming and outgoing direction for each position that is part of the loop.
-    // TODO: Scan each row
+    // Compute incoming and outgoing direction for each position that is part of the loop.
+    // Scan each row:
     //  Starting with outside, flip in/out when the position includes north or south
     //  and it's the opposite of the previous north/south.
     //  While we're inside, any position with NO direction (not on the loop) is inside.
-
     val pipes = parsePipeShapes(input)
     val startPosition = findStartPosition(input)
     val startDirection = findStartDirection(startPosition, pipes)
@@ -55,6 +54,8 @@ fun part2(input: List<String>): Int {
             if (northSouthHere != null && northSouthHere != northSouthDirection) !inside to northSouthHere
             else inside to northSouthDirection // otherwise no change
         }.map { (inside, _) -> inside }
+        // Count the columns in this row which "would be inside" and are not part of the loop.
+        // These are the columns within this row that are actually enclosed by the loop.
         pipes[row].indices.count { col ->
             wouldBeInside[col] && positionDirections[Position(row, col)] == null
         }
