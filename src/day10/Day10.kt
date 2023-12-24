@@ -36,6 +36,16 @@ fun part2(input: List<String>): Int {
     val startPosition = findStartPosition(input)
     val startDirection = findStartDirection(startPosition, pipes)
     val loop = findLoop(startPosition, startDirection, pipes)
+    val positionDirections = loop.flatMap { (previous, current) ->
+        val direction = previous - current
+        listOf(
+            previous to direction,
+            current to direction
+        )
+    }.groupBy { it.first }
+        .mapValues { it.value.map { (_, direction) -> direction } }
+
+    
 
     return input.size
 }
@@ -109,6 +119,14 @@ infix fun Position.move(direction: Direction) = Position(
 val adjacentDeltas = setOf(0, 1)
 infix fun Position.isAdjacentTo(other: Position) =
     setOf(abs(row - other.row), abs(col - other.col)) == adjacentDeltas
+
+operator fun Position.minus(other: Position): Direction {
+    val rowDelta = other.row - row
+    val colDelta = other.col - col
+    return Direction.entries.first {
+        it.rowDelta == rowDelta && it.colDelta == colDelta
+    }
+}
 
 operator fun List<List<PipeShape?>>.get(position: Position) = try {
     this[position.row][position.col]
