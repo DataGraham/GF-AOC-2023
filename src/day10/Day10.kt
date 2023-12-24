@@ -18,35 +18,50 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val pipes = input.map { line ->
-        line.map { char ->
-            PipeShape.entries.firstOrNull { it.character == char }
-        }
-    }
+    val pipes = parsePipeShapes(input)
+    val startPosition = findStartPosition(input)
+    val startDirection = findStartDirection(startPosition, pipes)
+    val loop = loopSequence(startPosition, startDirection, pipes)
+    return (loop.toList().size + 1) / 2
+}
 
-    val startPosition = input.indices.firstNotNullOf { row ->
+private fun loopSequence(
+    startPosition: Position,
+    startDirection: Direction,
+    pipes: List<List<PipeShape?>>
+) = generateSequence(
+    startPosition to (startPosition move startDirection)
+) { (previous, current) ->
+    current to (
+        pipes[current]!!.connections
+            .map { direction -> current move direction }
+            .first { adjacent -> adjacent != previous }
+        )
+}.takeWhile { (_, current) -> current != startPosition }
+
+private fun findStartDirection(
+    startPosition: Position,
+    pipes: List<List<PipeShape?>>
+) = entries.first { direction ->
+    (startPosition move direction).let { adjacentPosition ->
+        pipes[adjacentPosition]?.connections?.any { backDirection ->
+            adjacentPosition move backDirection == startPosition
+        } == true
+    }
+}
+
+private fun findStartPosition(input: List<String>) =
+    input.indices.firstNotNullOf { row ->
         input[row].indices.firstNotNullOfOrNull { col ->
             if (input[row][col] == 'S') Position(row = row, col = col)
             else null
         }
     }
 
-    val startDirection = Direction.entries.first { direction ->
-        (startPosition move direction).let { adjacentPosition ->
-            pipes[adjacentPosition]?.connections?.any { backDirection ->
-                adjacentPosition move backDirection == startPosition
-            } == true
-        }
+private fun parsePipeShapes(input: List<String>) = input.map { line ->
+    line.map { char ->
+        PipeShape.entries.firstOrNull { it.character == char }
     }
-
-    val loop = generateSequence(startPosition to (startPosition move startDirection)) { (previous, current) ->
-        current to (
-            pipes[current]!!.connections
-                .map { direction -> current move direction }
-                .first { adjacent -> adjacent != previous }
-            )
-    }.takeWhile { (_, current) -> current != startPosition }
-    return (loop.toList().size + 1) / 2
 }
 
 fun part2(input: List<String>): Int {
