@@ -10,11 +10,11 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     check(part1(readInput("day10/Day10_test")).also { it.println() } == 4)
     check(part1(readInput("day10/Day10_test2")).also { it.println() } == 8)
-    //check(part2(testInput) == 1)
+    check(part2(readInput("day10/Day10_test3")).also { it.println() } == 10)
 
     val input = readInput("day10/Day10")
     println("Part 1 Answer: ${part1(input)}")
-    //    println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
@@ -45,9 +45,20 @@ fun part2(input: List<String>): Int {
     }.groupBy { it.first }
         .mapValues { it.value.map { (_, direction) -> direction } }
 
-    
-
-    return input.size
+    return pipes.indices.sumOf { row ->
+        val wouldBeInside = pipes[row].indices.scan(
+            (false to null as Direction?)
+        ) { (inside, northSouthDirection), col ->
+            val here = Position(row = row, col = col)
+            val northSouthHere = positionDirections[here]?.firstOrNull { it in listOf(North, South) }
+            // If we see a different north/south, then flip direction and inside-ness,
+            if (northSouthHere != null && northSouthHere != northSouthDirection) !inside to northSouthHere
+            else inside to northSouthDirection // otherwise no change
+        }.map { (inside, _) -> inside }
+        pipes[row].indices.count { col ->
+            wouldBeInside[col] && positionDirections[Position(row, col)] == null
+        }
+    }
 }
 
 private fun findLoop(
