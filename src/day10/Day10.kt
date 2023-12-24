@@ -25,6 +25,15 @@ fun part1(input: List<String>): Int {
     return (loop.toList().size + 1) / 2
 }
 
+fun part2(input: List<String>): Int {
+    // TODO: Compute incoming and outgoing direction for each position that is part of the loop.
+    // TODO: Scan each row
+    //  Starting with outside, flip in/out when the position includes north or south
+    //  and it's the opposite of the previous north/south.
+    //  While we're inside, any position with NO direction (not on the loop) is inside.
+    return input.size
+}
+
 private fun loopSequence(
     startPosition: Position,
     startDirection: Direction,
@@ -62,10 +71,6 @@ private fun parsePipeShapes(input: List<String>) = input.map { line ->
     line.map { char ->
         PipeShape.entries.firstOrNull { it.character == char }
     }
-}
-
-fun part2(input: List<String>): Int {
-    return input.size
 }
 
 enum class PipeShape(val character: Char, val connections: Set<Direction>) {
