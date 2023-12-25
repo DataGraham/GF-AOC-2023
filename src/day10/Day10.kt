@@ -46,8 +46,15 @@ fun part2(input: List<String>): Int {
         .mapValues { it.value.map { (_, direction) -> direction } }
 
     val wouldBeInside = pipes.indices.map { row ->
+        // wouldBeInside used to have rows longer than the input by 1,
+        // but everything at the start (starting with "initial" at zero) was correct;
+        // it was just that there was an extra element at the end.
+        // It turns out that looking at each piece of pipe only affects the next position to the right,
+        // and not the position of the pipe itself (it could never be "inside" in the first place since it's pipe).
+        // Therefor, we don't need to look at the pipes in the last column of each row,
+        // since they can only affect what's off the right end of the "grid" (which can only be "oustide" anyway).
         pipes[row].indices.dropLast(1).scan(
-            (false to null as Direction?)
+            initial = (false to null as Direction?)
         ) { (inside, northSouthDirection), col ->
             val here = Position(row = row, col = col)
             val northSouthHere = positionDirections[here]?.firstOrNull { it in listOf(North, South) }
