@@ -1,6 +1,5 @@
 package day11
 
-import println
 import readInput
 
 fun main() {
@@ -15,16 +14,7 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    // Expand the galaxy
-    // 1. Replace each empty row with two empty rows
-    // 2. Detect empty columns, then, in each row, replace characters in those columns with two copies.
-
-    val expandedRows = input.flatMap { row ->
-        List(if (row.all { it == EMPTY }) 2 else 1) { row }
-    }
-
-    expandedRows.joinToString(separator = "\n").println()
-
+    val expandedUniverse = expand(universe = input)
     return input.size
 }
 
@@ -34,3 +24,20 @@ fun part2(input: List<String>): Int {
 
 const val EMPTY = '.'
 const val GALAXY = '#'
+
+fun expand(universe: List<String>): List<String> {
+    // Expand the galaxy
+    // 1. Replace each empty row with two empty rows
+    val expandedRows = universe.flatMap { row ->
+        List(if (row.all { it == EMPTY }) 2 else 1) { row }
+    }
+    // 2. Detect empty columns, then, in each row, replace characters in those columns with two copies.
+    val emptyColumns = universe.first().indices.filter { col ->
+        universe.indices.all { row -> universe[row][col] == EMPTY }
+    }.toSet()
+    return expandedRows.map { row ->
+        row.mapIndexed { col, char ->
+            "$char".repeat(if (col in emptyColumns) 2 else 1)
+        }.joinToString(separator = "")
+    }
+}
