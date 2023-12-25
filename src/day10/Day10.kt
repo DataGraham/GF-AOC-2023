@@ -1,6 +1,7 @@
 package day10
 
 import day10.Direction.*
+import dropLast
 import println
 import readInput
 import java.lang.IndexOutOfBoundsException
@@ -45,7 +46,7 @@ fun part2(input: List<String>): Int {
         .mapValues { it.value.map { (_, direction) -> direction } }
 
     val wouldBeInside = pipes.indices.map { row ->
-        pipes[row].indices.scan(
+        pipes[row].indices.dropLast(1).scan(
             (false to null as Direction?)
         ) { (inside, northSouthDirection), col ->
             val here = Position(row = row, col = col)
@@ -60,15 +61,14 @@ fun part2(input: List<String>): Int {
     val blueBackground = "$escape[106m"
     val grayBackground = "$escape[100m"
     val reset = "$escape[0m"
-    val output = pipes.indices.joinToString(separator = "\n") { row ->
-        pipes[row].indices.map { col ->
+    pipes.indices.joinToString(separator = "\n") { row ->
+        pipes[row].indices.joinToString(separator = "") { col ->
             val here = Position(row, col)
             val char = if (positionDirections[here] != null) pipes[here]?.niceCharacter ?: ' '
             else ' '
             if (wouldBeInside[row][col] && positionDirections[here] == null) "$blueBackground$char$reset" else "$char"
-        }.joinToString(separator = "")
-    }
-    output.println()
+        }
+    }.println()
 
     wouldBeInside.joinToString(separator = "\n") { row ->
         row.joinToString(separator = "") {
