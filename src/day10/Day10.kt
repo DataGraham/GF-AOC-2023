@@ -44,6 +44,20 @@ fun part2(input: List<String>): Int {
     }.groupBy { it.first }
         .mapValues { it.value.map { (_, direction) -> direction } }
 
+    pipes.indices.joinToString(separator = "\n") { row ->
+        String(
+            pipes[row].indices.map { col ->
+                val here = Position(row, col)
+                if (positionDirections[here] != null) pipes[here]?.niceCharacter?: ' '
+                else ' '
+            }.toCharArray()
+        )
+    }.println()
+
+    pipes.joinToString(separator = "\n") {
+        it.joinToString(separator = "") { it?.niceCharacter?.toString() ?: " " }
+    }.println()
+
     return pipes.indices.sumOf { row ->
         val wouldBeInside = pipes[row].indices.scan(
             (false to null as Direction?)
@@ -105,13 +119,13 @@ private fun parsePipeShapes(input: List<String>) = input.map { line ->
     }
 }
 
-enum class PipeShape(val character: Char, val connections: Set<Direction>) {
-    NorthSouth('|', setOf(North, South)),
-    EastWest('-', setOf(East, West)),
-    NorthEast('L', setOf(North, East)),
-    NorthWest('J', setOf(North, West)),
-    SouthWest('7', setOf(South, West)),
-    SouthEast('F', setOf(South, East))
+enum class PipeShape(val character: Char, val niceCharacter: Char, val connections: Set<Direction>) {
+    NorthSouth('|', '┃', setOf(North, South)),
+    EastWest('-', '━', setOf(East, West)),
+    NorthEast('L', '┗', setOf(North, East)),
+    NorthWest('J', '┛', setOf(North, West)),
+    SouthWest('7', '┓', setOf(South, West)),
+    SouthEast('F', '┏', setOf(South, East))
 }
 
 enum class Direction(val rowDelta: Int, val colDelta: Int) {
