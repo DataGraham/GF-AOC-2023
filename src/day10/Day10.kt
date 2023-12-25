@@ -44,22 +44,8 @@ fun part2(input: List<String>): Int {
     }.groupBy { it.first }
         .mapValues { it.value.map { (_, direction) -> direction } }
 
-    pipes.indices.joinToString(separator = "\n") { row ->
-        String(
-            pipes[row].indices.map { col ->
-                val here = Position(row, col)
-                if (positionDirections[here] != null) pipes[here]?.niceCharacter?: ' '
-                else ' '
-            }.toCharArray()
-        )
-    }.println()
-
-    pipes.joinToString(separator = "\n") {
-        it.joinToString(separator = "") { it?.niceCharacter?.toString() ?: " " }
-    }.println()
-
-    return pipes.indices.sumOf { row ->
-        val wouldBeInside = pipes[row].indices.scan(
+    val wouldBeInside = pipes.indices.map { row ->
+        pipes[row].indices.scan(
             (false to null as Direction?)
         ) { (inside, northSouthDirection), col ->
             val here = Position(row = row, col = col)
@@ -68,10 +54,34 @@ fun part2(input: List<String>): Int {
             if (northSouthHere != null && northSouthHere != northSouthDirection) !inside to northSouthHere
             else inside to northSouthDirection // otherwise no change
         }.map { (inside, _) -> inside }
+    }
+
+    val escape = "\u001b"
+    val blueBackground = "$escape[106m"
+    val grayBackground = "$escape[100m"
+    val reset = "$escape[0m"
+    val output = pipes.indices.joinToString(separator = "\n") { row ->
+        pipes[row].indices.map { col ->
+            val here = Position(row, col)
+            val char = if (positionDirections[here] != null) pipes[here]?.niceCharacter ?: ' '
+            else ' '
+            if (wouldBeInside[row][col] && positionDirections[here] == null) "$blueBackground$char$reset" else "$char"
+        }.joinToString(separator = "")
+    }
+    output.println()
+
+    wouldBeInside.joinToString(separator = "\n") { row ->
+        row.joinToString(separator = "") {
+            val colour = if (it) blueBackground else grayBackground
+            "$colour $reset"
+        }
+    }.println()
+
+    return pipes.indices.sumOf { row ->
         // Count the columns in this row which "would be inside" and are not part of the loop.
         // These are the columns within this row that are actually enclosed by the loop.
         pipes[row].indices.count { col ->
-            wouldBeInside[col] && positionDirections[Position(row, col)] == null
+            wouldBeInside[row][col] && positionDirections[Position(row, col)] == null
         }
     }
 }
