@@ -34,15 +34,14 @@ fun part2(input: List<String>): Long {
     val emptyColumnsBefore = input.first().indices.dropLast(1).scan(0) { before, col ->
         if (input.isColumnEmpty(col)) before + 1 else before
     }
-    val galaxyLocations = galaxyLocations(input)
-    val expandedGalaxyLocations = galaxyLocations.map { (row, col) ->
+    val expandedGalaxyLocations = galaxyLocations(input).map { (row, col) ->
         // TODO: Reduce multiplications by including it above (as an offset rather than empty-before count)
         row + (emptyRowsBefore[row] * (EXPANSION_FACTOR - 1)) to
             col + (emptyColumnsBefore[col] * (EXPANSION_FACTOR - 1))
     }
     return expandedGalaxyLocations.indices.sumOf { galaxyIndex ->
-        galaxyLocations[galaxyIndex].let { galaxy ->
-            galaxyLocations.drop(galaxyIndex + 1).sumOf { otherGalaxy ->
+        expandedGalaxyLocations[galaxyIndex].let { galaxy ->
+            expandedGalaxyLocations.drop(galaxyIndex + 1).sumOf { otherGalaxy ->
                 (galaxy manhattanDistanceTo otherGalaxy).toLong()
             }
         }
