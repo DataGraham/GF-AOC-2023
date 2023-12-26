@@ -9,8 +9,8 @@ fun main() {
     check(part1(readInput("day11/Day11_test")).also { it.println() } == 374)
     //check(part2(testInput) == 1)
 
-    //    val input = readInput("day11/Day11")
-    //    println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("day11/Day11")
+    println("Part 1 Answer: ${part1(input)}")
     //    println("Part 2 Answer: ${part2(input)}")
 }
 
@@ -19,17 +19,14 @@ fun part1(input: List<String>): Int {
     return galaxyLocations.indices.sumOf { galaxyIndex ->
         val galaxy = galaxyLocations[galaxyIndex]
         galaxyLocations.indices.drop(galaxyIndex + 1).sumOf { otherGalaxyIndex ->
-            val otherGalaxy = galaxyLocations[otherGalaxyIndex]
-            abs(galaxy.first - otherGalaxy.first) +
-                abs(galaxy.second - otherGalaxy.second)
-            /*.also { distance ->
-                println("$galaxyIndex ($galaxy) and $otherGalaxyIndex ($otherGalaxy) are $distance apart")
-            }*/
+            galaxy manhattanDistanceTo galaxyLocations[otherGalaxyIndex]
         }
     }
 }
 
 fun part2(input: List<String>): Int {
+    // TODO: Yeah, we're going to have to perform expansion on the galaxy locations,
+    //  rather than the entire input.
     return input.size
 }
 
@@ -59,3 +56,6 @@ private fun galaxyLocations(universe: List<String>) =
             if (universe[row][col] == GALAXY) (row to col) else null
         }
     }
+
+private infix fun Pair<Int, Int>.manhattanDistanceTo(other: Pair<Int, Int>) =
+    abs(first - other.first) + abs(second - other.second)
