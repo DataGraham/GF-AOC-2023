@@ -29,19 +29,17 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-const val EMPTY = '.'
-const val GALAXY = '#'
+const val EMPTY_CHARACTER = '.'
+const val GALAXY_CHARACTER = '#'
 
 fun expand(universe: List<String>): List<String> {
     // Expand the galaxy
     // 1. Replace each empty row with two empty rows
     val expandedRows = universe.flatMap { row ->
-        List(if (row.all { it == EMPTY }) 2 else 1) { row }
+        List(if (row.isEmptyRow) 2 else 1) { row }
     }
     // 2. Detect empty columns, then, in each row, replace characters in those columns with two copies.
-    val emptyColumns = universe.first().indices.filter { col ->
-        universe.indices.all { row -> universe[row][col] == EMPTY }
-    }.toSet()
+    val emptyColumns = universe.first().indices.filter { col -> universe.isColumnEmpty(col) }.toSet()
     return expandedRows.map { row ->
         row.mapIndexed { col, char ->
             "$char".repeat(if (col in emptyColumns) 2 else 1)
@@ -49,10 +47,14 @@ fun expand(universe: List<String>): List<String> {
     }
 }
 
+val String.isEmptyRow get() = all { it == EMPTY_CHARACTER }
+
+fun List<String>.isColumnEmpty(col: Int) = all { row -> row[col] == EMPTY_CHARACTER }
+
 private fun galaxyLocations(universe: List<String>) =
     universe.indices.flatMap { row ->
         universe[row].indices.mapNotNull { col ->
-            if (universe[row][col] == GALAXY) (row to col) else null
+            if (universe[row][col] == GALAXY_CHARACTER) (row to col) else null
         }
     }
 
