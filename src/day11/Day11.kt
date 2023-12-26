@@ -4,7 +4,6 @@ import dropLast
 import println
 import readInput
 import kotlin.math.abs
-import kotlin.math.exp
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -26,8 +25,6 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Long {
-    // TODO: Yeah, we're going to have to perform expansion on the galaxy locations,
-    //  rather than the entire input.
     val emptyRowsBefore = input.dropLast(1).scan(0) { before, row ->
         if (row.isEmptyRow) before + 1 else before
     }
