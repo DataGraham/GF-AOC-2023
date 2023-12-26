@@ -1,21 +1,32 @@
 package day11
 
+import println
 import readInput
+import kotlin.math.abs
 
 fun main() {
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("day11/Day11_test")
-    check(part1(testInput) == 1)
+    check(part1(readInput("day11/Day11_test")).also { it.println() } == 374)
     //check(part2(testInput) == 1)
 
-//    val input = readInput("day11/Day11")
-//    println("Part 1 Answer: ${part1(input)}")
-//    println("Part 2 Answer: ${part2(input)}")
+    //    val input = readInput("day11/Day11")
+    //    println("Part 1 Answer: ${part1(input)}")
+    //    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
-    val expandedUniverse = expand(universe = input)
-    return input.size
+    val galaxyLocations = galaxyLocations(expand(universe = input))
+    return galaxyLocations.indices.sumOf { galaxyIndex ->
+        val galaxy = galaxyLocations[galaxyIndex]
+        galaxyLocations.indices.drop(galaxyIndex + 1).sumOf { otherGalaxyIndex ->
+            val otherGalaxy = galaxyLocations[otherGalaxyIndex]
+            abs(galaxy.first - otherGalaxy.first) +
+                abs(galaxy.second - otherGalaxy.second)
+            /*.also { distance ->
+                println("$galaxyIndex ($galaxy) and $otherGalaxyIndex ($otherGalaxy) are $distance apart")
+            }*/
+        }
+    }
 }
 
 fun part2(input: List<String>): Int {
@@ -41,3 +52,10 @@ fun expand(universe: List<String>): List<String> {
         }.joinToString(separator = "")
     }
 }
+
+private fun galaxyLocations(universe: List<String>) =
+    universe.indices.flatMap { row ->
+        universe[row].indices.mapNotNull { col ->
+            if (universe[row][col] == GALAXY) (row to col) else null
+        }
+    }
