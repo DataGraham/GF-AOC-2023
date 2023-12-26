@@ -17,9 +17,8 @@ fun main() {
 fun part1(input: List<String>): Int {
     val galaxyLocations = galaxyLocations(expand(universe = input))
     return galaxyLocations.indices.sumOf { galaxyIndex ->
-        val galaxy = galaxyLocations[galaxyIndex]
-        galaxyLocations.indices.drop(galaxyIndex + 1).sumOf { otherGalaxyIndex ->
-            galaxy manhattanDistanceTo galaxyLocations[otherGalaxyIndex]
+        galaxyLocations[galaxyIndex].let { galaxy ->
+            galaxyLocations.drop(galaxyIndex + 1).sumOf { otherGalaxy -> galaxy manhattanDistanceTo otherGalaxy }
         }
     }
 }
