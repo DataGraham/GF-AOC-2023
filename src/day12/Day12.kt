@@ -4,6 +4,9 @@ import println
 import readInput
 
 fun main() {
+    //val problemLine = "###?#?????#????? 6,1,1,1,1"
+    //part1(listOf(problemLine))
+
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day12/Day12_test")
     check(part1(testInput).also { it.println() } == 21)
@@ -21,7 +24,7 @@ fun part2(input: List<String>): Int {
 }
 
 fun arrangementCount(line: String): Int {
-    line.println()
+    // line.println()
     val lineInfo = parseLine(line)
     val arrangements = nonWorkingRunStarts(lineInfo)
     arrangements.forEach { nonWorkingRunStarts ->
@@ -52,7 +55,7 @@ fun arrangementCount(line: String): Int {
                 else -> "."
             }
         }
-        statesString.println()
+        // statesString.println()
     }
     return arrangements.size
 }
@@ -71,9 +74,10 @@ fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
         // Non-working run length,
         nonWorkingRunLength = lineInfo.nonWorkingRuns.first(),
         // state slice
-        working = lineInfo.working.dropLast(
-            lineInfo.nonWorkingRuns.drop(1).run { sum() + size }
-        )
+        working = lineInfo.working
+            // TODO: This makes it more efficient, but we generate invalid positions
+            //  because we can't see that the remainder might start with a known false (broken/#)
+            // .dropLast(lineInfo.nonWorkingRuns.drop(1).run { sum() + size })
     )
     return firstRunPositions.flatMap { firstRunPosition ->
         val remainderOffset = firstRunPosition + lineInfo.nonWorkingRuns.first() + 1
@@ -88,19 +92,28 @@ fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
     }
 }
 
+private fun Boolean?.toChar() = when (this) {
+    true -> "."
+    false -> "#"
+    null -> "?"
+}
+
 fun possibleStartPositions(nonWorkingRunLength: Int, working: List<Boolean?>): List<Int> {
+    // println("Within ${working.joinToString(separator = "") { it.toChar() }}, a run of $nonWorkingRunLength...")
     // Slide across, and it's valid IFF:
     return (0..working.size - nonWorkingRunLength).filter { hypotheticalStart ->
         // Is it valid (true/false):
 
         //  Everything before, if any, is not false
-        (0 ..< hypotheticalStart).none { working[it] == false } &&
+        val isValid = (0 ..< hypotheticalStart).none { working[it] == false } &&
             //  everything within the run is not true
             (hypotheticalStart ..< hypotheticalStart + nonWorkingRunLength).none { working[it] == true } &&
             //  The space after (if it exists), is not false
             (hypotheticalStart + nonWorkingRunLength).let { positionAfter ->
                 positionAfter > working.lastIndex || working[positionAfter] != false
             }
+        // println("Could start at $hypotheticalStart? $isValid")
+        isValid
     }
 }
 
