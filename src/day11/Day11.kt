@@ -5,6 +5,7 @@ import measurePerformance
 import println
 import readInput
 import kotlin.math.abs
+import kotlin.time.measureTimedValue
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -14,7 +15,8 @@ fun main() {
     val input = readInput("day11/Day11")
     println("Part 1 Answer: ${part1(input)}")
     // Part 2 (counts) Computed 635832237682 in average of 874 microseconds
-    measurePerformance("Part 2 (counts)", 10000) { part2(input) }
+    // Part 2 (offsets) Computed 635832237682 in average of 848 microseconds
+    measurePerformance("Part 2 (offsets)", 10000) { part2(input) }
 }
 
 fun part1(input: List<String>): Int {
@@ -26,22 +28,33 @@ fun part1(input: List<String>): Int {
     }
 }
 
+private fun <T> reportTime(label: String, block: () -> T) = measureTimedValue(block).run {
+    println("$label takes $duration")
+    value
+}
+
 fun part2(input: List<String>): Long {
-    val emptyRowsBefore = input.dropLast(1).scan(0) { before, row ->
-        if (row.isEmptyRow) before + 1 else before
+    val rowOffsets = reportTime("Row offsets") {
+        input.dropLast(1).scan(0) { before, row ->
+            if (row.isEmptyRow) before + (EXPANSION_FACTOR - 1) else before
+        }
     }
-    val emptyColumnsBefore = input.first().indices.dropLast(1).scan(0) { before, col ->
-        if (input.isColumnEmpty(col)) before + 1 else before
+    val columnOffsets = reportTime("Column offsets") {
+        input.first().indices.dropLast(1).scan(0) { before, col ->
+            if (input.isColumnEmpty(col)) before + (EXPANSION_FACTOR - 1) else before
+        }
     }
-    val expandedGalaxyLocations = galaxyLocations(input).map { (row, col) ->
-        // TODO: Reduce multiplications by including it above (as an offset rather than empty-before count)
-        row + (emptyRowsBefore[row] * (EXPANSION_FACTOR - 1)) to
-            col + (emptyColumnsBefore[col] * (EXPANSION_FACTOR - 1))
+    val expandedGalaxyLocations = reportTime("Expanding") {
+        galaxyLocations(input).map { (row, col) ->
+            row + rowOffsets[row] to col + columnOffsets[col]
+        }
     }
-    return expandedGalaxyLocations.indices.sumOf { galaxyIndex ->
-        expandedGalaxyLocations[galaxyIndex].let { galaxy ->
-            expandedGalaxyLocations.drop(galaxyIndex + 1).sumOf { otherGalaxy ->
-                (galaxy manhattanDistanceTo otherGalaxy).toLong()
+    return reportTime("Distances") {
+        expandedGalaxyLocations.indices.sumOf { galaxyIndex ->
+            expandedGalaxyLocations[galaxyIndex].let { galaxy ->
+                expandedGalaxyLocations.drop(galaxyIndex + 1).sumOf { otherGalaxy ->
+                    (galaxy manhattanDistanceTo otherGalaxy).toLong()
+                }
             }
         }
     }
