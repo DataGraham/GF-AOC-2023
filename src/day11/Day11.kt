@@ -1,6 +1,7 @@
 package day11
 
 import dropLast
+import measurePerformance
 import println
 import readInput
 import kotlin.math.abs
@@ -12,7 +13,8 @@ fun main() {
 
     val input = readInput("day11/Day11")
     println("Part 1 Answer: ${part1(input)}")
-    println("Part 2 Answer: ${part2(input)}")
+    // Part 2 (counts) Computed 635832237682 in average of 874 microseconds
+    measurePerformance("Part 2 (counts)", 10000) { part2(input) }
 }
 
 fun part1(input: List<String>): Int {
