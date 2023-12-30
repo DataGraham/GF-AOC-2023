@@ -75,10 +75,6 @@ fun arrangementCount(lineInfo: LineInfo): Int {
         nonWorkingRunLength = lineInfo.nonWorkingRuns.first(),
         // state slice
         working = lineInfo.working,
-        // TODO: This makes it more efficient, but we generate invalid positions
-        //  because we can't see that the remainder might start with a known false (broken/#)
-        //  BUT can I still pass this in as an upper-bound of what to consider?
-        // .dropLast(minRemainderSpace)
         upperBoundEndPosition = lineInfo.working.lastIndex - minRemainderSpace
     )
     return firstRunPositions.sumOf { firstRunPosition ->
@@ -108,10 +104,6 @@ fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
         // state slice
         working = lineInfo.working,
         upperBoundEndPosition = lineInfo.working.lastIndex - minRemainderSpace
-        // TODO: This makes it more efficient, but we generate invalid positions
-        //  because we can't see that the remainder might start with a known false (broken/#)
-        //  BUT can I still pass this in as an upper-bound of what to consider?
-        // .dropLast(lineInfo.nonWorkingRuns.drop(1).run { sum() + size })
     )
     return firstRunPositions.flatMap { firstRunPosition ->
         val remainderOffset = firstRunPosition + lineInfo.nonWorkingRuns.first() + 1
