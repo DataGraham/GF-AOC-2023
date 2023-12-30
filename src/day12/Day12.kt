@@ -2,6 +2,7 @@ package day12
 
 import println
 import readInput
+import kotlin.math.min
 
 fun main() {
     //val problemLine = "###?#?????#????? 6,1,1,1,1"
@@ -13,6 +14,13 @@ fun main() {
     check(part2(testInput).also { it.println() } == 525152)
 
     val input = readInput("day12/Day12")
+//    input.forEach { line ->
+//        line.println()
+//        val part1 = arrangementCount(parseLine(line))
+//        val part2 = arrangementCount(unfoldAndParseLine(line))
+//        val fifthPower = List(5) { part1 }.reduce { acc, i -> acc * i }
+//        println("Part1: $part1, Part2: $part2, FifthPower: $fifthPower")
+//    }
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")
 }
@@ -75,6 +83,7 @@ fun arrangementCount(lineInfo: LineInfo): Int {
         nonWorkingRunLength = lineInfo.nonWorkingRuns.first(),
         // state slice
         working = lineInfo.working,
+        // TODO: Nor could it start beyond the first known-working (true/.)
         upperBoundEndPosition = lineInfo.working.lastIndex - minRemainderSpace
     )
     return firstRunPositions.sumOf { firstRunPosition ->
@@ -127,7 +136,11 @@ private fun Boolean?.toChar() = when (this) {
 fun possibleStartPositions(nonWorkingRunLength: Int, working: List<Boolean?>, upperBoundEndPosition: Int): List<Int> {
     // println("Within ${working.joinToString(separator = "") { it.toChar() }}, a run of $nonWorkingRunLength...")
     // Slide across, and it's valid IFF:
-    return (0..(upperBoundEndPosition + 1) - nonWorkingRunLength).filter { hypotheticalStart ->
+    val maxStartPosition = min(
+        (upperBoundEndPosition + 1) - nonWorkingRunLength,
+        working.indexOfFirst { it == false }.takeIf { it != -1 } ?: Int.MAX_VALUE
+    )
+    return (0..maxStartPosition).filter { hypotheticalStart ->
         // Is it valid (true/false):
 
         //  Everything before, if any, is not false
