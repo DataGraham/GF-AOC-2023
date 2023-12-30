@@ -20,7 +20,42 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-fun arrangementCount(line: String) = nonWorkingRunStarts(parseLine(line)).size
+fun arrangementCount(line: String): Int {
+    line.println()
+    val lineInfo = parseLine(line)
+    val arrangements = nonWorkingRunStarts(lineInfo)
+    arrangements.forEach { nonWorkingRunStarts ->
+        val states = lineInfo.working.toMutableList()
+        nonWorkingRunStarts.forEachIndexed { runIndex, nonWorkingRunStart ->
+            (nonWorkingRunStart ..< nonWorkingRunStart + lineInfo.nonWorkingRuns[runIndex])
+                .forEach { i -> states[i] = false }
+        }
+        // TODO: 8405 is too many, so I must be generating some invalid arrangements
+        // TODO: Run a validity post-check (non-working run lengths are correct, and all non-? match)
+        //  (and print them out in red?)
+        // TODO: Well, here is one that generates an invalid arrangement:
+        /*
+        ###?#?????#????? 6,1,1,1,1
+        ######.#..#.#.#.
+        ######.#..#.#..#
+        ######.#..#..#.#
+        ######..#.#.#.#.
+        ######..#.#.#..#
+        ######..#.#..#.#
+        ######...###.#.#
+        */
+        val statesString = states.joinToString(separator = "") { state ->
+            when (state) {
+                true -> "."
+                false -> "#"
+                // Assume all unknowns are working since we've placed all the non-working runs
+                else -> "."
+            }
+        }
+        statesString.println()
+    }
+    return arrangements.size
+}
 
 fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
     // Recursion base case:
@@ -41,13 +76,14 @@ fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
         )
     )
     return firstRunPositions.flatMap { firstRunPosition ->
+        val remainderOffset = firstRunPosition + lineInfo.nonWorkingRuns.first() + 1
         nonWorkingRunStarts(
             LineInfo(
-                working = lineInfo.working.drop(firstRunPosition + lineInfo.nonWorkingRuns.first() + 1),
+                working = lineInfo.working.drop(remainderOffset),
                 nonWorkingRuns = lineInfo.nonWorkingRuns.drop(1)
             )
         ).map { remainingRunStarts ->
-            listOf(firstRunPosition) + remainingRunStarts
+            listOf(firstRunPosition) + remainingRunStarts.map { it + remainderOffset }
         }
     }
 }
