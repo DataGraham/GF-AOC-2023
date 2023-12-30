@@ -7,11 +7,11 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day12/Day12_test")
     check(part1(testInput).also { it.println() } == 21)
-    //check(part2(testInput) == 1)
+    // check(part2(testInput) == 1)
 
     val input = readInput("day12/Day12")
     println("Part 1 Answer: ${part1(input)}")
-    println("Part 2 Answer: ${part2(input)}")
+    // println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>) = input.sumOf { line -> arrangementCount(line) }
@@ -20,14 +20,17 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-fun arrangementCount(line: String) = arrangementCount(parseLine(line))
+fun arrangementCount(line: String) = nonWorkingRunStarts(parseLine(line)).size
 
-fun arrangementCount(lineInfo: LineInfo): Int {
+fun nonWorkingRunStarts(lineInfo: LineInfo): List<List<Int>> {
     // Recursion base case:
     // Once there are no more broken runs to place,
     // there simply must be no more definitely-broken states.
     if (lineInfo.nonWorkingRuns.isEmpty()) {
-        return if (false in lineInfo.working) 0 else 1
+        return if (false in lineInfo.working)
+            emptyList() // there are no arrangements that work
+        else
+            listOf(emptyList()) // there is exactly one arrangement with no non-working runs
     }
     val firstRunPositions = possibleStartPositions(
         // Non-working run length,
@@ -37,13 +40,15 @@ fun arrangementCount(lineInfo: LineInfo): Int {
             lineInfo.nonWorkingRuns.drop(1).run { sum() + size }
         )
     )
-    return firstRunPositions.sumOf { firstRunPosition ->
-        arrangementCount(
+    return firstRunPositions.flatMap { firstRunPosition ->
+        nonWorkingRunStarts(
             LineInfo(
                 working = lineInfo.working.drop(firstRunPosition + lineInfo.nonWorkingRuns.first() + 1),
                 nonWorkingRuns = lineInfo.nonWorkingRuns.drop(1)
             )
-        )
+        ).map { remainingRunStarts ->
+            listOf(firstRunPosition) + remainingRunStarts
+        }
     }
 }
 
