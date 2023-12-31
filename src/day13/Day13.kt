@@ -1,5 +1,6 @@
 package day13
 
+import printLines
 import println
 import readInput
 import split
@@ -26,10 +27,13 @@ fun part1(input: List<String>): Int {
 fun part2(input: List<String>): Int {
     val patterns = input.split { it.isBlank() }
     return patterns.sumOf { pattern ->
+        println("Pattern:")
+        pattern.printLines()
         val originalMirror =
             pattern.rowsAboveHorizontalMirror()?.let { Mirror(it, false) }
                 ?: pattern.transposed().rowsAboveHorizontalMirror()?.let { Mirror(it, true) }
                 ?: throw IllegalArgumentException("No mirror found")
+        println("...has mirror $originalMirror")
         pattern.withIndex().firstNotNullOf { (rowIndex, row) ->
             // Produce pattern with flipped state at each row
             // Find the first of them that has a DIFFERENT mirror position
@@ -43,7 +47,11 @@ fun part2(input: List<String>): Int {
                     ?.let { Mirror(it, true) }
                     ?.takeIf { it != originalMirror }
                     ?.offset
-                horizontalSummary ?: verticalSummary
+                (horizontalSummary ?: verticalSummary)?.also { newMirrorSummary ->
+                    println("With fixed smudge at ($rowIndex, $colIndex), this:")
+                    toggledPattern.printLines()
+                    println("...has a new mirror summary $newMirrorSummary")
+                }
             }
         }
     }
@@ -51,10 +59,8 @@ fun part2(input: List<String>): Int {
 
 private fun List<String>.toggledAt(targetRow: Int, targetCol: Int) =
     mapIndexed { index, line ->
-        if (index == targetRow)
-            line.toggledAt(targetCol)
-        else
-            line
+        if (index == targetRow) line.toggledAt(targetCol)
+        else line
     }
 
 private fun String.toggledAt(index: Int) =

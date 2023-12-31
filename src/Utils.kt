@@ -41,3 +41,5 @@ inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
 fun <T> Collection<T>.toInfiniteSequence() = generateSequence(this) { it }.flatten()
 
 fun IntRange.dropLast(n: Int) = start .. last - n
+
+fun List<String>.printLines() = joinToString(separator = "\n").println()
