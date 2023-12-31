@@ -52,12 +52,15 @@ fun part2(input: List<String>): Int {
 private fun List<String>.toggledAt(targetRow: Int, targetCol: Int) =
     mapIndexed { index, line ->
         if (index == targetRow)
-            line.substring(0 ..< targetCol) +
-                line[targetCol].toggled() +
-                line.substring(startIndex = targetCol + 1)
+            line.toggledAt(targetCol)
         else
             line
     }
+
+private fun String.toggledAt(index: Int) =
+    substring(0 ..< index) +
+        this[index].toggled() +
+        substring(startIndex = index + 1)
 
 private fun Char.toggled() = when (this) {
     '.' -> '#'
