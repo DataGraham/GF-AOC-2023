@@ -7,54 +7,20 @@ import split
 
 fun main() {
     // test if implementation meets criteria from the description, like:
-    /*
     val testInput = readInput("day13/Day13_test")
     check(part1(testInput).also { it.println() } == 405)
     check(part2(testInput).also { it.println() } == 400)
 
     val input = readInput("day13/Day13")
     println("Part 1 Answer: ${part1(input)}")
-    // println("Part 2 Answer: ${part2(input)}")
-    */
-    val problemPattern = """
-        #..#..##.#.
-        #..#..##.#.
-        ......#..##
-        ##########.
-        ..####.#.##
-        #.#.##....#
-        ..#.##....#
-        ..####.#.##
-        ##########.
-        ......#..##
-        #..#..##.#.        
-    """.trimIndent().split("\n")
-
-
-    val problemPatternToggled = """
-        #..#..##.#.
-        #..#..##.#.
-        ......#..##
-        ##########.
-        ..####.#.##
-        ..#.##....#
-        ..#.##....#
-        ..####.#.##
-        ##########.
-        ......#..##
-        #..#..##.#.        
-    """.trimIndent().split("\n")
-
-    problemPatternToggled.rowsAboveHorizontalMirror().println()
-
-    part2(problemPattern)
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
     val patterns = input.split { it.isBlank() }
     return patterns.sumOf { pattern ->
-        (pattern.rowsAboveHorizontalMirror() ?: 0) * 100 +
-            (pattern.transposed().rowsAboveHorizontalMirror() ?: 0)
+        (pattern.horizontalMirrorOffsets().firstOrNull() ?: 0) * 100 +
+            (pattern.transposed().horizontalMirrorOffsets().firstOrNull() ?: 0)
     }
 }
 
@@ -64,8 +30,8 @@ fun part2(input: List<String>): Int {
         println("Pattern:")
         pattern.printLines()
         val originalMirror =
-            pattern.rowsAboveHorizontalMirror()?.let { Mirror(it, false) }
-                ?: pattern.transposed().rowsAboveHorizontalMirror()?.let { Mirror(it, true) }
+            pattern.horizontalMirrorOffsets().firstOrNull()?.let { Mirror(it, false) }
+                ?: pattern.transposed().horizontalMirrorOffsets().firstOrNull()?.let { Mirror(it, true) }
                 ?: throw IllegalArgumentException("No mirror found")
         println("...has mirror $originalMirror")
         pattern.withIndex().firstNotNullOf { (rowIndex, row) ->
@@ -75,13 +41,13 @@ fun part2(input: List<String>): Int {
                 val toggledPattern = pattern.toggledAt(targetRow = rowIndex, targetCol = colIndex)
                 // TODO: The problem is that I find THE FIRST mirror, but reject it if it matches the original
                 //  Instead, I must find ALL mirrors, and take among them the first that IS different
-                val horizontalSummary = toggledPattern.rowsAboveHorizontalMirror()
-                    ?.let { Mirror(it, false) }
-                    ?.takeIf { it != originalMirror }
+                val horizontalSummary = toggledPattern.horizontalMirrorOffsets()
+                    .map { Mirror(it, false) }
+                    .firstOrNull { it != originalMirror }
                     ?.let { it.offset * 100 }
-                val verticalSummary = toggledPattern.transposed().rowsAboveHorizontalMirror()
-                    ?.let { Mirror(it, true) }
-                    ?.takeIf { it != originalMirror }
+                val verticalSummary = toggledPattern.transposed().horizontalMirrorOffsets()
+                    .map { Mirror(it, true) }
+                    .firstOrNull { it != originalMirror }
                     ?.offset
                 (horizontalSummary ?: verticalSummary)?.also { newMirrorSummary ->
                     println("With fixed smudge at ($rowIndex, $colIndex), this:")
@@ -111,8 +77,8 @@ private fun Char.toggled() = when (this) {
 
 data class Mirror(val offset: Int, val isVertical: Boolean)
 
-private fun List<String>.rowsAboveHorizontalMirror(): Int? {
-    return indices.drop(1).firstOrNull { rowsBefore ->
+private fun List<String>.horizontalMirrorOffsets(): List<Int> {
+    return indices.drop(1).filter { rowsBefore ->
         (rowsBefore..lastIndex).all { lowerLineIndex ->
             val matchingLineIndex = rowsBefore - 1 - (lowerLineIndex - rowsBefore)
             matchingLineIndex < 0 || this[lowerLineIndex] == this[matchingLineIndex]
