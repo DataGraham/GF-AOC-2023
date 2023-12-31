@@ -7,13 +7,47 @@ import split
 
 fun main() {
     // test if implementation meets criteria from the description, like:
+    /*
     val testInput = readInput("day13/Day13_test")
     check(part1(testInput).also { it.println() } == 405)
     check(part2(testInput).also { it.println() } == 400)
 
     val input = readInput("day13/Day13")
     println("Part 1 Answer: ${part1(input)}")
-    println("Part 2 Answer: ${part2(input)}")
+    // println("Part 2 Answer: ${part2(input)}")
+    */
+    val problemPattern = """
+        #..#..##.#.
+        #..#..##.#.
+        ......#..##
+        ##########.
+        ..####.#.##
+        #.#.##....#
+        ..#.##....#
+        ..####.#.##
+        ##########.
+        ......#..##
+        #..#..##.#.        
+    """.trimIndent().split("\n")
+
+
+    val problemPatternToggled = """
+        #..#..##.#.
+        #..#..##.#.
+        ......#..##
+        ##########.
+        ..####.#.##
+        ..#.##....#
+        ..#.##....#
+        ..####.#.##
+        ##########.
+        ......#..##
+        #..#..##.#.        
+    """.trimIndent().split("\n")
+
+    problemPatternToggled.rowsAboveHorizontalMirror().println()
+
+    part2(problemPattern)
 }
 
 fun part1(input: List<String>): Int {
@@ -39,6 +73,8 @@ fun part2(input: List<String>): Int {
             // Find the first of them that has a DIFFERENT mirror position
             row.indices.firstNotNullOfOrNull { colIndex ->
                 val toggledPattern = pattern.toggledAt(targetRow = rowIndex, targetCol = colIndex)
+                // TODO: The problem is that I find THE FIRST mirror, but reject it if it matches the original
+                //  Instead, I must find ALL mirrors, and take among them the first that IS different
                 val horizontalSummary = toggledPattern.rowsAboveHorizontalMirror()
                     ?.let { Mirror(it, false) }
                     ?.takeIf { it != originalMirror }
