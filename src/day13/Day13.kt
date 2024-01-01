@@ -39,8 +39,6 @@ fun part2(input: List<String>): Int {
             // Find the first of them that has a DIFFERENT mirror position
             row.indices.firstNotNullOfOrNull { colIndex ->
                 val toggledPattern = pattern.toggledAt(targetRow = rowIndex, targetCol = colIndex)
-                // TODO: The problem is that I find THE FIRST mirror, but reject it if it matches the original
-                //  Instead, I must find ALL mirrors, and take among them the first that IS different
                 val horizontalSummary = toggledPattern.horizontalMirrorOffsets()
                     .map { Mirror(it, false) }
                     .firstOrNull { it != originalMirror }
