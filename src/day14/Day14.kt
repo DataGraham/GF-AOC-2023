@@ -38,6 +38,7 @@ fun part2(input: List<String>): Int {
     // TODO: I need to find a longer cycle: https://www.youtube.com/watch?v=PvrxZaH_eZ4
     //  then I can figure out a (hopefully much lower) number of spins
     //  that will put us in a state identical to the state after 1 billion spins.
+    //  <distance-to-cycle-x> + (1 billion - x) % cycle_length (I think)
     return stableState.transposed().sumOf { column -> column.columnLoad() }
 }
 
