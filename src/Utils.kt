@@ -28,7 +28,7 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
 
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
 
-fun Int.toIntRange() = this .. this
+fun Int.toIntRange() = this..this
 
 inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
     fold(mutableListOf(mutableListOf<T>())) { acc, t ->
@@ -37,9 +37,12 @@ inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
         acc
     }.filter { it.isNotEmpty() }
 
-
 fun <T> Collection<T>.toInfiniteSequence() = generateSequence(this) { it }.flatten()
 
-fun IntRange.dropLast(n: Int) = start .. last - n
+fun IntRange.dropLast(n: Int) = start..last - n
 
 fun List<String>.printLines() = joinToString(separator = "\n").println()
+
+fun List<String>.transposed() = first().indices.map { col ->
+    map { line -> line[col] }.joinToString(separator = "")
+}

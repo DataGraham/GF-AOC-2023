@@ -4,6 +4,7 @@ import printLines
 import println
 import readInput
 import split
+import transposed
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -83,8 +84,3 @@ private fun List<String>.horizontalMirrorOffsets(): List<Int> {
         }
     }
 }
-
-private fun List<String>.transposed() =
-    first().indices.map { col ->
-        map { line -> line[col] }.joinToString(separator = "")
-    }
