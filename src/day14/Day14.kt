@@ -15,6 +15,19 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
+    // Make a string for each column
+
+    // Split by '#' into substrings of:
+    //  only 'O' round rocks and '.' empty spaces
+    //  consecutive sequences of '#' (cube rocks)
+
+    // Map each 'O/.' substring to a string with all 'O' first, followed by all '.'
+    // i.e. just count occurrences of each character and put all 'O' first.
+
+    // Now put the substrings back together
+
+    // For each string, sum for each 'O' its index from the end + 1
+
     return input.size
 }
 
