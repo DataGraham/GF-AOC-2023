@@ -1,6 +1,5 @@
 package day14
 
-import printLines
 import println
 import readInput
 import transposed
@@ -9,7 +8,7 @@ fun main() {
     check(
         listOf("abc", "def") == listOf("abc", "def")
     )
-    
+
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day14/Day14_test")
     check(part1(testInput).also { it.println() } == 136)
@@ -30,15 +29,19 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>): Int {
     val stableState =
-        generateSequence(input to input.cycled()) { (_, current) ->
-            current.printLines()
-            println()
-            current to current.cycled()
+        generateSequence(input to input.spun()) { (_, current) ->
+            // current.printLines()
+            println("Load is ${current.transposed().sumOf { it.columnLoad() }}")
+            // println()
+            current to current.spun()
         }.first { (previous, current) -> previous == current }.first
+    // TODO: I need to find a longer cycle: https://www.youtube.com/watch?v=PvrxZaH_eZ4
+    //  then I can figure out a (hopefully much lower) number of spins
+    //  that will put us in a state identical to the state after 1 billion spins.
     return stableState.transposed().sumOf { column -> column.columnLoad() }
 }
 
-private fun List<String>.cycled(): List<String> {
+private fun List<String>.spun(): List<String> {
     val tiltedNorth = transposed().map { column -> column.tilted(towardsEnd = false) }
     val tiltedWest = tiltedNorth.transposed().map { row -> row.tilted(towardsEnd = false) }
     val tiltedSouth = tiltedWest.transposed().map { column -> column.tilted(towardsEnd = true) }
