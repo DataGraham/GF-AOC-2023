@@ -46,3 +46,41 @@ fun List<String>.printLines() = joinToString(separator = "\n").println()
 fun List<String>.transposed() = first().indices.map { col ->
     map { line -> line[col] }.joinToString(separator = "")
 }
+
+data class CycleInfo<T>(
+    val distanceToStart: Int,
+    val startValue: T,
+    val length: Int
+)
+
+/** See: [YouTube](https://www.youtube.com/watch?v=PvrxZaH_eZ4) */
+fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
+    var slow = initial
+    var fast = initial
+    do {
+        slow = slow.next()
+        fast = fast.next().next()
+    } while (slow != fast)
+
+    slow = initial
+    var distanceToStart = 0
+    while (slow != fast) {
+        slow = slow.next()
+        fast = fast.next()
+        ++distanceToStart
+    }
+    val startValue = slow
+
+    var lengthFinder = startValue
+    var length = 0
+    do {
+        lengthFinder = lengthFinder.next()
+        ++length
+    } while (lengthFinder != startValue)
+
+    return CycleInfo(
+        distanceToStart = distanceToStart,
+        startValue = startValue,
+        length = length
+    )
+}

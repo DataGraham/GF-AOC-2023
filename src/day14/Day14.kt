@@ -1,5 +1,6 @@
 package day14
 
+import findCycle
 import println
 import readInput
 import transposed
@@ -28,49 +29,16 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    // TODO: I need to find a longer cycle: https://www.youtube.com/watch?v=PvrxZaH_eZ4
     val cycle = findCycle(input) { spun() }
     //  then I can figure out a (hopefully much lower) number of spins
     //  that will put us in a state identical to the state after 1 billion spins.
     //  <distance-to-cycle-x> + (1 billion - x) % cycle_length (I think)
-    val spinsEquivalentToOneBillion = cycle.distanceToStart + (1000000000 - cycle.distanceToStart) % cycle.length
-    return generateSequence(input) { it.spun() }.take(spinsEquivalentToOneBillion + 1).last().transposed().sumOf { it.columnLoad() }
-}
-
-data class CycleInfo<T>(
-    val distanceToStart: Int,
-    val startValue: T,
-    val length: Int
-)
-
-fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
-    var slow = initial
-    var fast = initial
-    do {
-        slow = slow.next()
-        fast = fast.next().next()
-    } while (slow != fast)
-    slow = initial
-    var distanceToStart = 0
-    while (slow != fast) {
-        slow = slow.next()
-        fast = fast.next()
-        ++distanceToStart
-    }
-    val startValue = slow
-
-    var lengthFinder = startValue
-    var length = 0
-    do {
-        lengthFinder = lengthFinder.next()
-        ++length
-    } while (lengthFinder != startValue)
-
-    return CycleInfo(
-        distanceToStart = distanceToStart,
-        startValue = startValue,
-        length = length
-    )
+    val spinsEquivalentToTotal = cycle.distanceToStart + (TOTAL_SPINS - cycle.distanceToStart) % cycle.length
+    return generateSequence(input) { it.spun() }
+        .take(spinsEquivalentToTotal + 1) // one more element than spins
+        .last()
+        .transposed()
+        .sumOf { column -> column.columnLoad() }
 }
 
 private fun List<String>.spun(): List<String> {
@@ -85,6 +53,8 @@ private const val ROUND_ROCK = 'O'
 private const val CUBE_ROCK = '#'
 private const val EMPTY_SPACE = '.'
 private val areasRegex = Regex("[$ROUND_ROCK$EMPTY_SPACE]+|$CUBE_ROCK+")
+
+private const val TOTAL_SPINS = 1000000000
 
 private fun String.tilted(towardsEnd: Boolean): String {
     // Split by '#' into substrings of:
