@@ -42,6 +42,42 @@ fun part2(input: List<String>): Int {
     return stableState.transposed().sumOf { column -> column.columnLoad() }
 }
 
+data class CycleInfo<T>(
+    val distanceToStart: Int,
+    val startValue: T,
+    val length: Int
+)
+
+fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
+    var slow = initial
+    var fast = initial
+    do {
+        slow = slow.next()
+        fast = fast.next().next()
+    } while (slow != fast)
+    slow = initial
+    var distanceToStart = 0
+    while (slow != fast) {
+        slow = slow.next()
+        fast = fast.next()
+        ++distanceToStart
+    }
+    val startValue = slow
+
+    var lengthFinder = startValue
+    var length = 0
+    do {
+        lengthFinder = lengthFinder.next()
+        ++length
+    } while (lengthFinder != startValue)
+
+    return CycleInfo(
+        distanceToStart = distanceToStart,
+        startValue = startValue,
+        length = length
+    )
+}
+
 private fun List<String>.spun(): List<String> {
     val tiltedNorth = transposed().map { column -> column.tilted(towardsEnd = false) }
     val tiltedWest = tiltedNorth.transposed().map { row -> row.tilted(towardsEnd = false) }
