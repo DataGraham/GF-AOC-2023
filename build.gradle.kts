@@ -16,4 +16,7 @@ tasks {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
+
+    implementation("com.google.truth:truth:1.2.0")
 }
