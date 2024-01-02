@@ -28,18 +28,13 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    val stableState =
-        generateSequence(input to input.spun()) { (_, current) ->
-            // current.printLines()
-            println("Load is ${current.transposed().sumOf { it.columnLoad() }}")
-            // println()
-            current to current.spun()
-        }.first { (previous, current) -> previous == current }.first
     // TODO: I need to find a longer cycle: https://www.youtube.com/watch?v=PvrxZaH_eZ4
+    val cycle = findCycle(input) { spun() }
     //  then I can figure out a (hopefully much lower) number of spins
     //  that will put us in a state identical to the state after 1 billion spins.
     //  <distance-to-cycle-x> + (1 billion - x) % cycle_length (I think)
-    return stableState.transposed().sumOf { column -> column.columnLoad() }
+    val spinsEquivalentToOneBillion = cycle.distanceToStart + (1000000000 - cycle.distanceToStart) % cycle.length
+    return generateSequence(input) { it.spun() }.take(spinsEquivalentToOneBillion + 1).last().transposed().sumOf { it.columnLoad() }
 }
 
 data class CycleInfo<T>(
