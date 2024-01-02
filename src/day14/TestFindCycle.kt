@@ -20,4 +20,26 @@ class TestFindCycle {
         val cycle = findCycle(0) { nextIndex[this] }
         assertThat(cycle).isEqualTo(expectedCycle)
     }
+
+    @Test
+    fun findMinimalCycle() {
+        val expectedCycle = CycleInfo(
+            distanceToStart = 0,
+            startValue = 0,
+            length = 1
+        )
+        val cycle = findCycle(0) { 0 }
+        assertThat(cycle).isEqualTo(expectedCycle)
+    }
+
+    @Test
+    fun findSemiMinimalCycle() {
+        val expectedCycle = CycleInfo(
+            distanceToStart = 0,
+            startValue = false,
+            length = 2
+        )
+        val cycle = findCycle(false) { !this }
+        assertThat(cycle).isEqualTo(expectedCycle)
+    }
 }
