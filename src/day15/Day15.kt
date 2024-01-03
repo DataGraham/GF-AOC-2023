@@ -24,12 +24,16 @@ fun part2(input: String): Int {
     val boxes = List(256) { mutableListOf<Lens>() }
     val steps = input.split(',').map { Step.fromString(it) }
     steps.forEach { step -> step.performOnBoxes(boxes) }
-    return boxes.withIndex().sumOf { (boxIndex, lenses) ->
-        lenses.withIndex().sumOf { (lensIndex, lens) ->
-            (boxIndex + 1) * (lensIndex + 1) * lens.focalLength
-        }
-    }
+    return focussingPower(boxes)
 }
+
+private fun focussingPower(boxes: List<MutableList<Lens>>) =
+    boxes.withIndex().sumOf { indexedBox -> focussingPower(indexedBox) }
+
+private fun focussingPower(indexedBox: IndexedValue<MutableList<Lens>>) =
+    indexedBox.value.withIndex().sumOf { (lensIndex, lens) ->
+        (indexedBox.index + 1) * (lensIndex + 1) * lens.focalLength
+    }
 
 private fun String.holidayAsciiStringHelper() = fold(0) { hash, c -> ((hash + c.code) * 17) % 256 }
 
