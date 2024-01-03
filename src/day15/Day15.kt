@@ -21,7 +21,7 @@ fun part1(input: String): Int {
 }
 
 fun part2(input: String): Int {
-    val boxes = List(9) { mutableListOf<Lens>() }
+    val boxes = List(256) { mutableListOf<Lens>() }
     val steps = input.split(',').map { Step.fromString(it) }
     steps.forEach { step ->
         val box = boxes[step.boxIndex]
