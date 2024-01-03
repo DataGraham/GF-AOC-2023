@@ -23,17 +23,7 @@ fun part1(input: String): Int {
 fun part2(input: String): Int {
     val boxes = List(256) { mutableListOf<Lens>() }
     val steps = input.split(',').map { Step.fromString(it) }
-    steps.forEach { step ->
-        val box = boxes[step.boxIndex]
-        val indexOfMatchingLabel = box.indexOfFirst { lens -> lens.label == step.label }.takeIf { it != -1 }
-        when (step) {
-            is Step.Add ->
-                if (indexOfMatchingLabel != null) box[indexOfMatchingLabel] = step.lens
-                else box += step.lens
-            is Step.Remove ->
-                if (indexOfMatchingLabel != null) box.removeAt(indexOfMatchingLabel)
-        }
-    }
+    steps.forEach { step -> step.performOnBoxes(boxes) }
     return boxes.withIndex().sumOf { (boxIndex, lenses) ->
         lenses.withIndex().sumOf { (lensIndex, lens) ->
             (boxIndex + 1) * (lensIndex + 1) * lens.focalLength
@@ -52,17 +42,32 @@ sealed class Step {
     abstract val boxIndex: Int
     abstract val label: String
 
+    fun performOnBoxes(boxes: List<MutableList<Lens>>) {
+        val box = boxes[boxIndex]
+        val indexOfMatchingLabel = box.indexOfFirst { lens -> lens.label == label }.takeIf { it != -1 }
+        performOnBox(box = box, indexOfMatchingLabel = indexOfMatchingLabel)
+    }
+
+    abstract fun performOnBox(box: MutableList<Lens>, indexOfMatchingLabel: Int?)
+
     data class Add(
         override val boxIndex: Int,
         val lens: Lens,
     ) : Step() {
         override val label: String get() = lens.label
+        override fun performOnBox(box: MutableList<Lens>, indexOfMatchingLabel: Int?) =
+            if (indexOfMatchingLabel != null) box[indexOfMatchingLabel] = lens
+            else box += lens
     }
 
     data class Remove(
         override val boxIndex: Int,
         override val label: String
-    ) : Step()
+    ) : Step() {
+        override fun performOnBox(box: MutableList<Lens>, indexOfMatchingLabel: Int?) {
+            if (indexOfMatchingLabel != null) box.removeAt(indexOfMatchingLabel)
+        }
+    }
 
     companion object {
         fun fromString(string: String): Step {
