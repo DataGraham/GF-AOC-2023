@@ -25,64 +25,26 @@ fun part1(input: List<String>): Int {
     }
     val initialBeams = listOf(Beam(Position(0, -1), East))
     val beamsSequence = generateSequence(initialBeams) { beams ->
-        beams.flatMap<Beam, Beam> { beam ->
+        beams.flatMap { beam ->
             val nextPosition = beam.nextPosition
+
+            // Are we headed of the grid?
             if (nextPosition.row !in entryDirections.indices ||
                 nextPosition.col !in entryDirections[nextPosition.row].indices
             ) return@flatMap emptyList<Beam>()
+
+            // Have we entered this position going in this direction already?
             val entryDirectionsHere = entryDirections[nextPosition.row][nextPosition.col]
             if (beam.direction in entryDirectionsHere) return@flatMap emptyList<Beam>()
             entryDirectionsHere += beam.direction
 
             // Outgoing beams
-            when (input[nextPosition.row][nextPosition.col]) {
-                '.' -> listOf(Beam(nextPosition, beam.direction))
-
-                '\\' -> listOf(
-                    Beam(
-                        nextPosition,
-                        when (beam.direction) {
-                            North -> West
-                            South -> East
-                            East -> South
-                            West -> North
-                        }
-                    )
-                )
-
-                '/' -> listOf(
-                    Beam(
-                        nextPosition,
-                        when (beam.direction) {
-                            North -> East
-                            South -> West
-                            East -> North
-                            West -> South
-                        }
-                    )
-                )
-
-                '|' -> when (beam.direction) {
-                    North, South -> listOf(Beam(nextPosition, beam.direction))
-                    East, West -> listOf(
-                        Beam(nextPosition, North),
-                        Beam(nextPosition, South)
-                    )
-                }
-
-                '-' -> when (beam.direction) {
-                    East, West -> listOf(Beam(nextPosition, beam.direction))
-                    North, South -> listOf(
-                        Beam(nextPosition, East),
-                        Beam(nextPosition, West)
-                    )
-                }
-
-                else -> throw IllegalArgumentException()
-            }
+            input[nextPosition.row][nextPosition.col]
+                .exitDirections(entryDirection = beam.direction)
+                .map { exitDirection -> Beam(nextPosition, exitDirection) }
         }
     }
-    beamsSequence.takeWhile { beams -> beams.isNotEmpty() }.last()
+    beamsSequence.find { beams -> beams.isEmpty() }
     return entryDirections.sumOf { row ->
         row.count { directions -> directions.isNotEmpty() }
     }
@@ -90,6 +52,40 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>): Int {
     return input.size
+}
+
+fun Char.exitDirections(entryDirection: Direction): List<Direction> = when (this) {
+    '.' -> listOf(entryDirection)
+
+    '\\' -> listOf(
+        when (entryDirection) {
+            North -> West
+            South -> East
+            East -> South
+            West -> North
+        }
+    )
+
+    '/' -> listOf(
+            when (entryDirection) {
+                North -> East
+                South -> West
+                East -> North
+                West -> South
+            }
+        )
+
+    '|' -> when (entryDirection) {
+        North, South -> listOf(entryDirection)
+        East, West -> listOf(North, South)
+    }
+
+    '-' -> when (entryDirection) {
+        East, West -> listOf(entryDirection)
+        North, South -> listOf(East, West)
+    }
+
+    else -> throw IllegalArgumentException()
 }
 
 data class Position(val row: Int, val col: Int)
