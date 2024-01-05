@@ -4,26 +4,45 @@ import day16.Direction.*
 import println
 import readInput
 import java.lang.IllegalArgumentException
-import kotlin.math.E
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day16/Day16_test")
     check(part1(testInput).also { it.println() } == 46)
-    //check(part2(testInput).also { it.println() } == 1)
+    check(part2(testInput).also { it.println() } == 51)
 
     val input = readInput("day16/Day16")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
+    return tilesEnergized(input, Beam(Position(0, -1), East))
+}
+
+fun part2(input: List<String>): Int {
+    val initialBeams =
+        input.indices.flatMap { row ->
+            listOf(
+                Beam(Position(row, -1), East),
+                Beam(Position(row, input[row].length), West)
+            )
+        } + input.first().indices.flatMap { col ->
+            listOf(
+                Beam(Position(-1, col), South),
+                Beam(Position(input.size, col), North)
+            )
+        }
+    return initialBeams.maxOf { initialBeam -> tilesEnergized(input, initialBeam) }
+}
+
+private fun tilesEnergized(input: List<String>, initialBeam: Beam): Int {
     val entryDirections = Array(input.size) {
         Array(input.first().length) {
             HashSet<Direction>()
         }
     }
-    val initialBeams = listOf(Beam(Position(0, -1), East))
+    val initialBeams = listOf(initialBeam)
     val beamsSequence = generateSequence(initialBeams) { beams ->
         beams.flatMap { beam ->
             val nextPosition = beam.nextPosition
@@ -50,10 +69,6 @@ fun part1(input: List<String>): Int {
     }
 }
 
-fun part2(input: List<String>): Int {
-    return input.size
-}
-
 fun Char.exitDirections(entryDirection: Direction): List<Direction> = when (this) {
     '.' -> listOf(entryDirection)
 
@@ -67,13 +82,13 @@ fun Char.exitDirections(entryDirection: Direction): List<Direction> = when (this
     )
 
     '/' -> listOf(
-            when (entryDirection) {
-                North -> East
-                South -> West
-                East -> North
-                West -> South
-            }
-        )
+        when (entryDirection) {
+            North -> East
+            South -> West
+            East -> North
+            West -> South
+        }
+    )
 
     '|' -> when (entryDirection) {
         North, South -> listOf(entryDirection)
