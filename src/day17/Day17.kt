@@ -15,6 +15,15 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
+    val heatLoss = input.map { line ->
+        line.map { char -> char.digitToInt() }
+    }
+    val start = Node(
+        position = Position(0, 0),
+        direction = null,
+        straightMoveCount = 0
+    )
+
     return input.size
 }
 
@@ -22,14 +31,28 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
+fun <T> leastPathCost(
+    start: T,
+    edges: T.() -> List<Edge<T>>,
+    isEnd: T.() -> Boolean
+): Int {
+    val visitedNodeCosts = mutableMapOf(start to 0)
+    
+    return 0
+}
+
+data class Edge<T>(val destination: T, val cost: Int)
+
+const val MAX_STRAIGHT_MOVES = 3
+
 data class Node(
     val position: Position,
-    val direction: Direction,
+    val direction: Direction?,
     val straightMoveCount: Int
 )
 
 infix fun Node.move(moveDirection: Direction) = Node(
-    position = position move direction,
+    position = position move moveDirection,
     direction = moveDirection,
     straightMoveCount = if (moveDirection == direction) straightMoveCount + 1 else 1
 )
