@@ -37,7 +37,9 @@ fun <T> leastPathCost(
     isEnd: T.() -> Boolean
 ): Int {
     val visitedNodeCosts = mutableMapOf(start to 0)
-    
+    // TODO: "unvisited nodes" is not all theoretically possible nodes,
+    //  but rather discovered, reachable "nodes TO-BE visited".
+    // TODO: Return min cost among all "endish" nodes
     return 0
 }
 
