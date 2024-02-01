@@ -2,6 +2,7 @@ package day17
 
 import println
 import readInput
+import java.util.PriorityQueue
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -36,12 +37,51 @@ fun <T> leastPathCost(
     edges: T.() -> List<Edge<T>>,
     isEnd: T.() -> Boolean
 ): Int {
-    val visitedNodeCosts = mutableMapOf(start to 0)
+    val visitedNodes = mutableSetOf<T>()
+    val leastKnownDistance = mutableMapOf(start to 0)
+
     // TODO: "unvisited nodes" is not all theoretically possible nodes,
     //  but rather discovered, reachable "nodes TO-BE visited".
+    val nodesToVisit = PriorityQueue<NodeToVisit<T>>(compareBy { it.distance })
+    nodesToVisit += NodeToVisit(node = start, distance = 0)
+
+    while (nodesToVisit.isNotEmpty()) {
+        val nodeToVisit = nodesToVisit.remove()
+        nodeToVisit.node.edges()
+            .filter { it.destination !in visitedNodes }
+            .forEach { edge ->
+                leastKnownDistance.compute(edge.destination) { adjacentNode: T, previousDistance: Int? ->
+                    val newDistance = nodeToVisit.distance + edge.cost
+                    // If no previous distance:
+                    if (previousDistance == null) {
+                        // Set this distance and insert into queue with this distance
+                        nodesToVisit += NodeToVisit(adjacentNode, newDistance)
+                        newDistance
+                    } else {
+                        // If previous distance is less or equal:
+                        if (previousDistance <= newDistance) {
+                            // Do nothing
+                            previousDistance
+                        } else { // If previous distance is greater:
+                            // Remove with old distance from priority queue and re-add with new, lower distance
+                            nodesToVisit -= NodeToVisit(node = adjacentNode, distance = previousDistance)
+                            nodesToVisit += NodeToVisit(node = adjacentNode, distance = newDistance)
+                            // Set distance
+                            newDistance
+                        }
+                    }
+                }
+                visitedNodes += nodeToVisit.node
+            }
+    }
     // TODO: Return min cost among all "endish" nodes
-    return 0
+    return leastKnownDistance.filter { it.key.isEnd() }.minOf { it.value }
 }
+
+data class NodeToVisit<T>(
+    val node: T,
+    val distance: Int
+)
 
 data class Edge<T>(val destination: T, val cost: Int)
 
