@@ -19,19 +19,40 @@ fun part1(input: List<String>): Int {
     val heatLoss = input.map { line ->
         line.map { char -> char.digitToInt() }
     }
-    val start = Node(
-        position = Position(0, 0),
-        direction = null,
-        straightMoveCount = 0
+    val endPosition = Position(row = heatLoss.lastIndex, col = heatLoss.last().lastIndex)
+    fun Position.isValid() = row in heatLoss.indices && col in heatLoss[row].indices
+    return leastPathCost(
+        start = Node(
+            position = Position(0, 0),
+            direction = null,
+            straightMoveCount = 0
+        ),
+        edges = {
+            Direction.entries.mapNotNull { direction ->
+                (this move direction)
+                    .takeIf { it.position.isValid() && it.straightMoveCount <= MAX_STRAIGHT_MOVES }
+                    ?.let { destination ->
+                        Edge(
+                            destination = destination,
+                            cost = heatLoss[destination.position.row][destination.position.col]
+                        )
+                    }
+            }
+        },
+        isEnd = { position == endPosition }
     )
-
-    return input.size
 }
 
 fun part2(input: List<String>): Int {
     return input.size
 }
 
+/**
+ * @param start Starting "node".
+ * @param edges Returns list of edges leading from the given node.
+ * @param isEnd Identifies whether a node qualifies as a desired destination. Need not identify a unique node.
+ * @return Cost of lowest-cost path from start "node" to ANY end "node"
+ * */
 fun <T> leastPathCost(
     start: T,
     edges: T.() -> List<Edge<T>>,
@@ -40,13 +61,17 @@ fun <T> leastPathCost(
     val visitedNodes = mutableSetOf<T>()
     val leastKnownDistance = mutableMapOf(start to 0)
 
-    // TODO: "unvisited nodes" is not all theoretically possible nodes,
+    // "unvisited nodes" is not all theoretically possible nodes,
     //  but rather discovered, reachable "nodes TO-BE visited".
     val nodesToVisit = PriorityQueue<NodeToVisit<T>>(compareBy { it.distance })
     nodesToVisit += NodeToVisit(node = start, distance = 0)
 
     while (nodesToVisit.isNotEmpty()) {
         val nodeToVisit = nodesToVisit.remove()
+
+        // No need to explore connections leading FROM an "end" node.
+        if (nodeToVisit.node.isEnd()) continue
+
         nodeToVisit.node.edges()
             .filter { it.destination !in visitedNodes }
             .forEach { edge ->
@@ -74,7 +99,8 @@ fun <T> leastPathCost(
                 visitedNodes += nodeToVisit.node
             }
     }
-    // TODO: Return min cost among all "endish" nodes
+
+    // Return min cost among all "endish" nodes
     return leastKnownDistance.filter { it.key.isEnd() }.minOf { it.value }
 }
 
