@@ -7,12 +7,34 @@ import java.util.PriorityQueue
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day17/Day17_test")
+
+    // Check that given solution actually has a heat-loss cost of 102
+    val testSolution = readInput("day17/Day17_solution")
+    check(
+        heatLoss(
+            solution = testSolution,
+            input = testInput
+        ).also { it.println() } == 102
+    )
+
     check(part1(testInput).also { it.println() } == 102)
     //check(part2(testInput).also { it.println() } == 1)
 
     val input = readInput("day17/Day17")
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")
+}
+
+fun heatLoss(solution: List<String>, input: List<String>): Int {
+    val pathCharacters = setOf('>', '<', '^', 'v')
+    return solution.withIndex().sumOf { (lineIndex, solutionLine) ->
+        solutionLine.withIndex().sumOf { (column, solutionCharacter) ->
+            when (solutionCharacter) {
+                in pathCharacters -> input[lineIndex][column].digitToInt()
+                else -> 0
+            }
+        }
+    }
 }
 
 fun part1(input: List<String>): Int {
