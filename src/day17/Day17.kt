@@ -82,6 +82,7 @@ fun <T> leastPathCost(
 ): Int {
     val visitedNodes = mutableSetOf<T>()
     val leastKnownDistance = mutableMapOf(start to 0)
+    val nodeBefore = mutableMapOf<T, T>()
 
     // "unvisited nodes" is not all theoretically possible nodes,
     //  but rather discovered, reachable "nodes TO-BE visited".
@@ -103,6 +104,7 @@ fun <T> leastPathCost(
                     if (previousDistance == null) {
                         // Set this distance and insert into queue with this distance
                         nodesToVisit += NodeToVisit(adjacentNode, newDistance)
+                        nodeBefore[adjacentNode] = nodeToVisit.node
                         newDistance
                     } else {
                         // If previous distance is less or equal:
@@ -113,17 +115,21 @@ fun <T> leastPathCost(
                             // Remove with old distance from priority queue and re-add with new, lower distance
                             nodesToVisit -= NodeToVisit(node = adjacentNode, distance = previousDistance)
                             nodesToVisit += NodeToVisit(node = adjacentNode, distance = newDistance)
+                            nodeBefore[adjacentNode] = nodeToVisit.node
                             // Set distance
                             newDistance
                         }
                     }
                 }
-                visitedNodes += nodeToVisit.node
             }
+        visitedNodes += nodeToVisit.node
     }
 
     // Return min cost among all "endish" nodes
-    return leastKnownDistance.filter { it.key.isEnd() }.minOf { it.value }
+    val endNodes = leastKnownDistance.filter { it.key.isEnd() }
+    val leastCostEndNode = endNodes.minBy { it.value }
+    val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
+    return leastCostEndNode.value
 }
 
 data class NodeToVisit<T>(
