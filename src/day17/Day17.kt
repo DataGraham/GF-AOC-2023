@@ -129,6 +129,7 @@ fun <T> leastPathCost(
     val endNodes = leastKnownDistance.filter { it.key.isEnd() }
     val leastCostEndNode = endNodes.minBy { it.value }
     val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
+     pathBack.reversed().joinToString(separator = "\n").println()
     return leastCostEndNode.value
 }
 
