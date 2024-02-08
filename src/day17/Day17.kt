@@ -22,7 +22,7 @@ fun main() {
 
     val input = readInput("day17/Day17")
     println("Part 1 Answer: ${part1(input)}")
-    println("Part 2 Answer: ${part2(input)}")
+    // println("Part 2 Answer: ${part2(input)}")
 }
 
 fun heatLoss(solution: List<String>, input: List<String>): Int {
