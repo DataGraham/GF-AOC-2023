@@ -50,16 +50,18 @@ fun part1(input: List<String>): Int {
             straightMoveCount = 0
         ),
         edges = {
-            Direction.entries.mapNotNull { direction ->
-                (this move direction)
-                    .takeIf { it.position.isValid() && it.straightMoveCount <= MAX_STRAIGHT_MOVES }
-                    ?.let { destination ->
-                        Edge(
-                            destination = destination,
-                            cost = heatLoss[destination.position.row][destination.position.col]
-                        )
-                    }
-            }
+            Direction.entries
+                .filter { it != direction?.opposite }
+                .mapNotNull { direction ->
+                    (this move direction)
+                        .takeIf { it.position.isValid() && it.straightMoveCount <= MAX_STRAIGHT_MOVES }
+                        ?.let { destination ->
+                            Edge(
+                                destination = destination,
+                                cost = heatLoss[destination.position.row][destination.position.col]
+                            )
+                        }
+                }
         },
         isEnd = { position == endPosition }
     )
@@ -129,7 +131,7 @@ fun <T> leastPathCost(
     val endNodes = leastKnownDistance.filter { it.key.isEnd() }
     val leastCostEndNode = endNodes.minBy { it.value }
     val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
-     pathBack.reversed().joinToString(separator = "\n").println()
+    pathBack.reversed().joinToString(separator = "\n").println()
     return leastCostEndNode.value
 }
 
@@ -162,6 +164,14 @@ enum class Direction(val rowDelta: Int, val colDelta: Int) {
     East(rowDelta = 0, colDelta = 1),
     West(rowDelta = 0, colDelta = -1);
 }
+
+val Direction.opposite
+    get() = when (this) {
+        Direction.North -> Direction.South
+        Direction.South -> Direction.North
+        Direction.East -> Direction.West
+        Direction.West -> Direction.East
+    }
 
 infix fun Position.move(direction: Direction) = Position(
     row = row + direction.rowDelta,
