@@ -1,5 +1,6 @@
 package day17
 
+import day01.anyDigitRegex
 import println
 import readInput
 import java.util.PriorityQueue
@@ -77,13 +78,6 @@ fun part2(input: List<String>): Int {
     }
     val endPosition = Position(row = heatLoss.lastIndex, col = heatLoss.last().lastIndex)
     fun Position.isValid() = row in heatLoss.indices && col in heatLoss[row].indices
-    // TODO:
-    // - If moved 0, any direction but backwards (that's valid on the map)
-    // - If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
-    // - If moved 4 through 9, any direction on the map except backwards
-    // - If moved 10, must turn left or right
-    //
-    // v End nodes must also have a move count of at least 4
     return leastPathCost(
         start = Node(
             position = Position(0, 0),
@@ -94,53 +88,20 @@ fun part2(input: List<String>): Int {
             when (straightMoveCount) {
                 // If moved 0, any direction but backwards (that's valid on the map)
                 0 -> Direction.entries
-                    // .filter { it != direction?.opposite }
-                    .mapNotNull { direction ->
-                        (this move direction)
-                            .takeIf { it.position.isValid() }
-                            ?.let { destination ->
-                                Edge(
-                                    destination = destination,
-                                    cost = heatLoss[destination.position.row][destination.position.col]
-                                )
-                            }
-                    }
-                // - If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
-                in 0 ..< minStraightMoves -> listOfNotNull(
-                    (this move direction!!)
-                        .takeIf { it.position.isValid() }
-                        ?.let { destination ->
-                            Edge(
-                                destination = destination,
-                                cost = heatLoss[destination.position.row][destination.position.col]
-                            )
-                        }
-                )
+                // If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
+                in 0..<minStraightMoves -> listOf(direction!!)
                 // If moved 4 through 9, any direction on the map except backwards
-                in minStraightMoves ..< maxStraightMoves -> Direction.entries
-                    .filter { it != direction?.opposite }
-                    .mapNotNull { direction ->
-                        (this move direction)
-                            .takeIf { it.position.isValid() }
-                            ?.let { destination ->
-                                Edge(
-                                    destination = destination,
-                                    cost = heatLoss[destination.position.row][destination.position.col]
-                                )
-                            }
-                    }
+                in minStraightMoves..<maxStraightMoves -> Direction.entries.filter { it != direction?.opposite }
                 // If moved 10, must turn left or right
-                else -> Direction.entries
-                    .filter { it != direction && it != direction?.opposite }
-                    .mapNotNull { direction ->
-                        (this move direction)
-                            .takeIf { it.position.isValid() }
-                            ?.let { destination ->
-                                Edge(
-                                    destination = destination,
-                                    cost = heatLoss[destination.position.row][destination.position.col]
-                                )
-                            }
+                else -> Direction.entries.filter { it != direction && it != direction?.opposite }
+            }.mapNotNull { direction ->
+                (this move direction)
+                    .takeIf { it.position.isValid() }
+                    ?.let { destination ->
+                        Edge(
+                            destination = destination,
+                            cost = heatLoss[destination.position.row][destination.position.col]
+                        )
                     }
             }
         },
@@ -241,8 +202,8 @@ fun <T> leastPathCost(
     // Return min cost among all "endish" nodes
     val endNodes = leastKnownDistance.filter { it.key.isEnd() }
     val leastCostEndNode = endNodes.minBy { it.value }
-    val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
-    pathBack.reversed().joinToString(separator = "\n").println()
+    // val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
+    // pathBack.reversed().joinToString(separator = "\n").println()
     return leastCostEndNode.value
 }
 
