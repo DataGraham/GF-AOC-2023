@@ -3,6 +3,7 @@ package day17
 import println
 import readInput
 import java.util.PriorityQueue
+import kotlin.math.min
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -18,11 +19,11 @@ fun main() {
     )
 
     check(part1(testInput).also { it.println() } == 102)
-    //check(part2(testInput).also { it.println() } == 1)
+    check(part2(testInput).also { it.println() } == 94)
 
     val input = readInput("day17/Day17")
     println("Part 1 Answer: ${part1(input)}")
-    // println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun heatLoss(solution: List<String>, input: List<String>): Int {
@@ -38,6 +39,7 @@ fun heatLoss(solution: List<String>, input: List<String>): Int {
 }
 
 fun part1(input: List<String>): Int {
+    val maxStraightMoves = 3
     val heatLoss = input.map { line ->
         line.map { char -> char.digitToInt() }
     }
@@ -54,7 +56,7 @@ fun part1(input: List<String>): Int {
                 .filter { it != direction?.opposite }
                 .mapNotNull { direction ->
                     (this move direction)
-                        .takeIf { it.position.isValid() && it.straightMoveCount <= MAX_STRAIGHT_MOVES }
+                        .takeIf { it.position.isValid() && it.straightMoveCount <= maxStraightMoves }
                         ?.let { destination ->
                             Edge(
                                 destination = destination,
@@ -68,8 +70,117 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    return input.size
+    val minStraightMoves = 4
+    val maxStraightMoves = 10
+    val heatLoss = input.map { line ->
+        line.map { char -> char.digitToInt() }
+    }
+    val endPosition = Position(row = heatLoss.lastIndex, col = heatLoss.last().lastIndex)
+    fun Position.isValid() = row in heatLoss.indices && col in heatLoss[row].indices
+    // TODO:
+    // - If moved 0, any direction but backwards (that's valid on the map)
+    // - If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
+    // - If moved 4 through 9, any direction on the map except backwards
+    // - If moved 10, must turn left or right
+    //
+    // v End nodes must also have a move count of at least 4
+    return leastPathCost(
+        start = Node(
+            position = Position(0, 0),
+            direction = null,
+            straightMoveCount = 0
+        ),
+        edges = {
+            when (straightMoveCount) {
+                // If moved 0, any direction but backwards (that's valid on the map)
+                0 -> Direction.entries
+                    // .filter { it != direction?.opposite }
+                    .mapNotNull { direction ->
+                        (this move direction)
+                            .takeIf { it.position.isValid() }
+                            ?.let { destination ->
+                                Edge(
+                                    destination = destination,
+                                    cost = heatLoss[destination.position.row][destination.position.col]
+                                )
+                            }
+                    }
+                // - If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
+                in 0 ..< minStraightMoves -> listOfNotNull(
+                    (this move direction!!)
+                        .takeIf { it.position.isValid() }
+                        ?.let { destination ->
+                            Edge(
+                                destination = destination,
+                                cost = heatLoss[destination.position.row][destination.position.col]
+                            )
+                        }
+                )
+                // If moved 4 through 9, any direction on the map except backwards
+                in minStraightMoves ..< maxStraightMoves -> Direction.entries
+                    .filter { it != direction?.opposite }
+                    .mapNotNull { direction ->
+                        (this move direction)
+                            .takeIf { it.position.isValid() }
+                            ?.let { destination ->
+                                Edge(
+                                    destination = destination,
+                                    cost = heatLoss[destination.position.row][destination.position.col]
+                                )
+                            }
+                    }
+                // If moved 10, must turn left or right
+                else -> Direction.entries
+                    .filter { it != direction && it != direction?.opposite }
+                    .mapNotNull { direction ->
+                        (this move direction)
+                            .takeIf { it.position.isValid() }
+                            ?.let { destination ->
+                                Edge(
+                                    destination = destination,
+                                    cost = heatLoss[destination.position.row][destination.position.col]
+                                )
+                            }
+                    }
+            }
+        },
+        isEnd = { position == endPosition && straightMoveCount >= minStraightMoves }
+    )
 }
+
+data class Node(
+    val position: Position,
+    val direction: Direction?,
+    val straightMoveCount: Int
+)
+
+infix fun Node.move(moveDirection: Direction) = Node(
+    position = position move moveDirection,
+    direction = moveDirection,
+    straightMoveCount = if (moveDirection == direction) straightMoveCount + 1 else 1
+)
+
+data class Position(val row: Int, val col: Int)
+
+enum class Direction(val rowDelta: Int, val colDelta: Int) {
+    North(rowDelta = -1, colDelta = 0),
+    South(rowDelta = 1, colDelta = 0),
+    East(rowDelta = 0, colDelta = 1),
+    West(rowDelta = 0, colDelta = -1);
+}
+
+val Direction.opposite
+    get() = when (this) {
+        Direction.North -> Direction.South
+        Direction.South -> Direction.North
+        Direction.East -> Direction.West
+        Direction.West -> Direction.East
+    }
+
+infix fun Position.move(direction: Direction) = Position(
+    row = row + direction.rowDelta,
+    col = col + direction.colDelta
+)
 
 /**
  * @param start Starting "node".
@@ -141,39 +252,3 @@ data class NodeToVisit<T>(
 )
 
 data class Edge<T>(val destination: T, val cost: Int)
-
-const val MAX_STRAIGHT_MOVES = 3
-
-data class Node(
-    val position: Position,
-    val direction: Direction?,
-    val straightMoveCount: Int
-)
-
-infix fun Node.move(moveDirection: Direction) = Node(
-    position = position move moveDirection,
-    direction = moveDirection,
-    straightMoveCount = if (moveDirection == direction) straightMoveCount + 1 else 1
-)
-
-data class Position(val row: Int, val col: Int)
-
-enum class Direction(val rowDelta: Int, val colDelta: Int) {
-    North(rowDelta = -1, colDelta = 0),
-    South(rowDelta = 1, colDelta = 0),
-    East(rowDelta = 0, colDelta = 1),
-    West(rowDelta = 0, colDelta = -1);
-}
-
-val Direction.opposite
-    get() = when (this) {
-        Direction.North -> Direction.South
-        Direction.South -> Direction.North
-        Direction.East -> Direction.West
-        Direction.West -> Direction.East
-    }
-
-infix fun Position.move(direction: Direction) = Position(
-    row = row + direction.rowDelta,
-    col = col + direction.colDelta
-)
