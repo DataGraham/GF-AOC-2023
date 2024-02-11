@@ -1,10 +1,8 @@
 package day17
 
-import day01.anyDigitRegex
 import println
 import readInput
-import java.util.PriorityQueue
-import kotlin.math.min
+import java.util.*
 
 fun main() {
     // test if implementation meets criteria from the description, like:
