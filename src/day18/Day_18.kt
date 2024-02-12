@@ -26,16 +26,30 @@ fun part1(input: List<String>): Int {
     }.toSet()
     val width = dugBorderPositions.maxOf { it.col } + 1
     val height = dugBorderPositions.maxOf { it.row } + 1
-    val dug = List(height) { row ->
-        List(width) { col ->
-            Position(row = row, col = col) in dugBorderPositions
+    //    val dug = List(height) { row ->
+    //        List(width) { col ->
+    //            Position(row = row, col = col) in dugBorderPositions
+    //        }
+    //    }
+    //    dug.joinToString(separator = "\n") { line ->
+    //        line.map { if (it) '#' else '.' }.joinToString(separator = "")
+    //    }.println()
+    val dugBorderColumnsByLine = dugBorderPositions
+        .groupBy { it.row }
+        .values
+        .map {
+            it.map { it.col }.sorted()
         }
-    }
-    dug.joinToString(separator = "\n") { line ->
-        line.map { if (it) '#' else '.' }.joinToString(separator = "")
-    }.println()
+    dugBorderColumnsByLine.joinToString(separator = "\n").println()
     return input.size
 }
+
+/*
+######  #####
+#    #  #   #
+#    ####   #
+#############
+*/
 
 fun part2(input: List<String>): Int {
     return input.size
@@ -49,7 +63,7 @@ fun String.parseMovement() = movementRegex
     .find(this)!!
     .let { matchResult ->
         Movement(
-            direction = when(matchResult.groups[1]!!.value) {
+            direction = when (matchResult.groups[1]!!.value) {
                 "U" -> Direction.North
                 "D" -> Direction.South
                 "L" -> Direction.West
