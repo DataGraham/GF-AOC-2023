@@ -45,10 +45,10 @@ fun part1(input: List<String>): Int {
 }
 
 /*
-######  #####
-#    #  #   #
-#    ####   #
-#############
+EEEEES  EEEES
+N    S  N   S
+N    EEEN   S
+NWWWWWWWWWWWW
 */
 
 fun part2(input: List<String>): Int {
