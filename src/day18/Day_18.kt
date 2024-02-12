@@ -6,7 +6,7 @@ import readInput
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day18/Day18_test")
-    check(part1(testInput).also { it.println() } == 1)
+    check(part1(testInput).also { it.println() } == 62)
     //check(part2(testInput).also { it.println() } == 1)
 
     val input = readInput("day18/Day18")
@@ -15,9 +15,44 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
+    val movements = input.map { it.parseMovement() }
+    movements.joinToString(separator = "\n").println()
     return input.size
 }
 
 fun part2(input: List<String>): Int {
     return input.size
 }
+
+data class Movement(val direction: Direction, val moveCount: Int)
+
+val movementRegex = Regex("^([UDLR]) ([0-9])")
+
+fun String.parseMovement() = movementRegex
+    .find(this)!!
+    .let { matchResult ->
+        Movement(
+            direction = when(matchResult.groups[1]!!.value) {
+                "U" -> Direction.North
+                "D" -> Direction.South
+                "L" -> Direction.West
+                "R" -> Direction.East
+                else -> throw IllegalArgumentException()
+            },
+            moveCount = matchResult.groups[2]!!.value.toInt()
+        )
+    }
+
+data class Position(val row: Int, val col: Int)
+
+enum class Direction(val rowDelta: Int, val colDelta: Int) {
+    North(rowDelta = -1, colDelta = 0),
+    South(rowDelta = 1, colDelta = 0),
+    East(rowDelta = 0, colDelta = 1),
+    West(rowDelta = 0, colDelta = -1);
+}
+
+infix fun Position.move(direction: Direction) = Position(
+    row = row + direction.rowDelta,
+    col = col + direction.colDelta
+)
