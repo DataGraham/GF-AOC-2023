@@ -23,8 +23,17 @@ fun part1(input: List<String>): Int {
             generateSequence(dugPositions.last()) { it move movement.direction }
                 .drop(1)
                 .take(movement.moveCount)
+    }.toSet()
+    val width = dugBorderPositions.maxOf { it.col } + 1
+    val height = dugBorderPositions.maxOf { it.row } + 1
+    val dug = List(height) { row ->
+        List(width) { col ->
+            Position(row = row, col = col) in dugBorderPositions
+        }
     }
-    dugBorderPositions.joinToString(separator = "\n").println()
+    dug.joinToString(separator = "\n") { line ->
+        line.map { if (it) '#' else '.' }.joinToString(separator = "")
+    }.println()
     return input.size
 }
 
