@@ -16,7 +16,15 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     val movements = input.map { it.parseMovement() }
-    movements.joinToString(separator = "\n").println()
+    val dugBorderPositions = movements.fold(
+        listOf(Position(0, 0))
+    ) { dugPositions, movement ->
+        dugPositions +
+            generateSequence(dugPositions.last()) { it move movement.direction }
+                .drop(1)
+                .take(movement.moveCount)
+    }
+    dugBorderPositions.joinToString(separator = "\n").println()
     return input.size
 }
 
