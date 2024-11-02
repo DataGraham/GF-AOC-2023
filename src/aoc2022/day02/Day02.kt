@@ -14,6 +14,28 @@ fun main() {
     //println("Part 2 Answer: ${day02.part2(input)}")
 }
 
+fun checkBeats() = Hand.entries.forEach { hand ->
+    Hand.entries.forEach { other ->
+        println("$hand beats $other is ${hand beats other}")
+    }
+}
+
+enum class Hand() {
+    Rock {
+        override val beats get() = Scissors
+    },
+    Paper {
+        override val beats get() = Rock
+    },
+    Scissors {
+        override val beats get() = Paper
+    };
+
+    abstract val beats: Hand
+
+    infix fun beats(other: Hand) = other == beats
+}
+
 fun part1(input: List<String>): Int {
     return input.size
 }
