@@ -1,6 +1,7 @@
 package aoc2022.day02
 
 import aoc2022.day02.Hand.*
+import aoc2022.day02.RoundResult.*
 import aoc2022.day02.StrategyDecoder.toRound
 import println
 import readInput
@@ -17,17 +18,28 @@ fun main() {
     //println("Part 2 Answer: ${day02.part2(input)}")
 }
 
-
-fun part1(input: List<String>): Int {
-    val rounds = input.map{ it.toRound() }.apply { println() }
-    return input.size
-}
+fun part1(input: List<String>) = input.sumOf { it.toRound().score }
 
 fun part2(input: List<String>): Int {
     return input.size
 }
 
 data class Round(val opponentHand: Hand, val selfHand: Hand)
+
+val Round.score get() = selfHand.intrinsicScore + result.score
+
+val Round.result
+    get() = when {
+        selfHand beats opponentHand -> Win
+        selfHand == opponentHand -> Tie
+        else -> Lose.require { opponentHand beats selfHand }
+    }
+
+enum class RoundResult(val score: Int) {
+    Win(score = 6),
+    Lose(score = 0),
+    Tie(score = 3)
+}
 
 object StrategyDecoder {
     fun String.toRound(): Round {
