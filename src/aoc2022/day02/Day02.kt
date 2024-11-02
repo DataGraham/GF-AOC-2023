@@ -13,8 +13,8 @@ fun main() {
     check(part1(testInput).also { it.println() } == 15)
     //check(part2(testInput).also { it.println() } == 1)
 
-    //val input = readInput("day02/Day02")
-    //println("Part 1 Answer: ${day02.part1(input)}")
+    val input = readInput("aoc2022/day02/Day02")
+    println("Part 1 Answer: ${part1(input)}")
     //println("Part 2 Answer: ${day02.part2(input)}")
 }
 
