@@ -21,6 +21,8 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  */
 fun Any?.println() = println(this)
 
+fun <T> T.require(predicate: T.() -> Boolean) = apply { require(predicate()) }
+
 inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
     val totalDuration = measureTime { repeat(reps) { function() } }
     println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")

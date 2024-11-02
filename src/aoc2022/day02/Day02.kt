@@ -1,7 +1,10 @@
 package aoc2022.day02
 
+import aoc2022.day02.Hand.*
+import aoc2022.day02.StrategyDecoder.toRound
 import println
 import readInput
+import require
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -14,20 +17,55 @@ fun main() {
     //println("Part 2 Answer: ${day02.part2(input)}")
 }
 
-fun checkBeats() = Hand.entries.forEach { hand ->
-    Hand.entries.forEach { other ->
-        println("$hand beats $other is ${hand beats other}")
-    }
+
+fun part1(input: List<String>): Int {
+    val rounds = input.map{ it.toRound() }.apply { println() }
+    return input.size
 }
 
-enum class Hand() {
-    Rock {
+fun part2(input: List<String>): Int {
+    return input.size
+}
+
+data class Round(val opponentHand: Hand, val selfHand: Hand)
+
+object StrategyDecoder {
+    fun String.toRound(): Round {
+        val (opponentCode, selfCode) = split(' ')
+            .require { size == 2 }
+            .require { all { it.length == 1 } }
+            .map { it.first() }
+        return Round(
+            opponentHand = opponentCode.toOpponentHand(),
+            selfHand = selfCode.toSelfHand()
+        )
+    }
+
+    private fun Char.toOpponentHand() = opponentHandsByCode[this]!!
+    private fun Char.toSelfHand() = selfHandsByCode[this]!!
+
+    private val opponentHandsByCode = mapOf(
+        'A' to Rock,
+        'B' to Paper,
+        'C' to Scissors
+    )
+
+    private val selfHandsByCode = mapOf(
+        'X' to Rock,
+        'Y' to Paper,
+        'Z' to Scissors
+    )
+
+}
+
+enum class Hand(val intrinsicScore: Int) {
+    Rock(intrinsicScore = 1) {
         override val beats get() = Scissors
     },
-    Paper {
+    Paper(intrinsicScore = 2) {
         override val beats get() = Rock
     },
-    Scissors {
+    Scissors(intrinsicScore = 3) {
         override val beats get() = Paper
     };
 
@@ -36,10 +74,8 @@ enum class Hand() {
     infix fun beats(other: Hand) = other == beats
 }
 
-fun part1(input: List<String>): Int {
-    return input.size
-}
-
-fun part2(input: List<String>): Int {
-    return input.size
+fun checkBeats() = Hand.entries.forEach { hand ->
+    Hand.entries.forEach { other ->
+        println("$hand beats $other is ${hand beats other}")
+    }
 }
