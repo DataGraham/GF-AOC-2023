@@ -15,15 +15,22 @@ fun main() {
     //    println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    return input.sumOf { bag ->
-        val compartmentSize = bag.length / 2
-        val compartment1 = bag.substring(0..<compartmentSize)
-        val compartment2 = bag.substring(startIndex = compartmentSize)
-        val common = compartment1.toSet() intersect compartment2.toSet()
-        common.require { size == 1 }.first().priority
+fun part1(input: List<String>) = input.sumOf { bag -> bag.commonCharacter.priority }
+
+private val String.commonCharacter
+    get() = compartments
+        .run { first intersect second }
+        .require { size == 1 }
+        .first()
+
+val String.compartments: Pair<Set<Char>, Set<Char>>
+    get() {
+        val (compartmentA, compartmentB) =
+            chunked(length / 2)
+                .require { size == 2 }
+                .map { compartment -> compartment.toSet() }
+        return compartmentA to compartmentB
     }
-}
 
 val Char.priority get() = if (isLowerCase()) this - 'a' + 1 else this - 'A' + 27
 
