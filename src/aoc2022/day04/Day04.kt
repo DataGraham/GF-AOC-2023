@@ -17,15 +17,15 @@ fun main() {
 
 fun part1(input: List<String>) =
     input
-        .map { line -> line.toSectionIdRanges() }
+        .map { line -> line.toSectionIdRangePair() }
         .count { sectionIdRangePair -> sectionIdRangePair.oneContainsTheOther() }
 
 fun part2(input: List<String>) =
     input
-        .map { line -> line.toSectionIdRanges() }
+        .map { line -> line.toSectionIdRangePair() }
         .count { sectionIdRangePair -> sectionIdRangePair.first overlaps sectionIdRangePair.second }
 
-fun String.toSectionIdRanges(): Pair<IntRange, IntRange> =
+fun String.toSectionIdRangePair(): Pair<IntRange, IntRange> =
     split(',')
         .require { size == 2 }
         .map { elfRangeString -> elfRangeString.toSectionIdRange() }
