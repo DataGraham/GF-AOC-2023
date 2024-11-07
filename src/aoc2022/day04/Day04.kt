@@ -15,30 +15,28 @@ fun main() {
     //    println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    return input
-        .map { it.toRanges }
-        .count {
-            it.first in it.second || it.second in it.first
-        }
-}
+fun part1(input: List<String>) =
+    input
+        .map { line -> line.toSectionIdRanges() }
+        .count { sectionIdRanges -> sectionIdRanges.oneContainsTheOther() }
 
-infix operator fun IntRange.contains(other: IntRange) =
+fun String.toSectionIdRanges(): Pair<IntRange, IntRange> =
+    split(',')
+        .require { size == 2 }
+        .map { elfRangeString -> elfRangeString.toSectionIdRange() }
+        .let { sectionIdRanges -> sectionIdRanges[0] to sectionIdRanges[1] }
+
+private fun String.toSectionIdRange() =
+    split('-')
+        .require { size == 2 }
+        .map { sectionIdString -> sectionIdString.toInt() }
+        .let { sectionIds -> sectionIds[0]..sectionIds[1] }
+
+private fun Pair<IntRange, IntRange>.oneContainsTheOther() =
+    first in second || second in first
+
+operator fun IntRange.contains(other: IntRange) =
     first <= other.first && last >= other.last
-
-val String.toRanges: Pair<IntRange, IntRange>
-    get() {
-        return split(',')
-            .require { size == 2 }
-            .map { elfRangeString ->
-                elfRangeString
-                    .split('-')
-                    .require { size == 2 }
-                    .map { it.toInt() }
-                    .let { it[0]..it[1] }
-            }
-            .let { it[0] to it[1] }
-    }
 
 fun part2(input: List<String>): Int {
     return input.size
