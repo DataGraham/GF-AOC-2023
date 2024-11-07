@@ -6,12 +6,12 @@ import require
 
 fun main() {
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("day04/Day04_test")
+    val testInput = readInput("aoc2022/day04/Day04_test")
     check(part1(testInput).also { it.println() } == 2)
     //check(part2(testInput).also { it.println() } == 1)
 
-    //    val input = readInput("day04/Day04")
-    //    println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("aoc2022/day04/Day04")
+    println("Part 1 Answer: ${part1(input)}")
     //    println("Part 2 Answer: ${part2(input)}")
 }
 
