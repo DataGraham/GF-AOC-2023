@@ -1,5 +1,6 @@
 package aoc2022.day05
 
+import aoc2022.day05.CrateFinder.crateLabels
 import println
 import readInput
 
@@ -15,13 +16,23 @@ fun main() {
 }
 
 fun part1(input: List<String>): String {
-    val regex = Regex("""( {3}|\[\p{Upper}])""")
-    input.forEach { line ->
-        val matchResults = regex.findAll(line)
-        println("For line: $line")
-        println("Found matches: ${matchResults.map { it.value }.toList()}")
-    }
+    val crateRows = input.crateRows
     return ""
+}
+
+private val List<String>.crateRows
+    get() = map { line -> line.crateLabels() }
+        .takeWhile { crateLabels -> crateLabels.any { it != null } }
+        .also { println("Crate rows: $it") }
+
+private object CrateFinder {
+    private val crateSpaceRegex = Regex(""" {3}|\[(\p{Upper})]""")
+
+    fun String.crateLabels() =
+        crateSpaceRegex
+            .findAll(this)
+            .map { it.groups[1]?.value }
+            .toList()
 }
 
 fun part2(input: List<String>): String {
