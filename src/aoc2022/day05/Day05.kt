@@ -15,6 +15,12 @@ fun main() {
 }
 
 fun part1(input: List<String>): String {
+    val regex = Regex("""( {3}|\[\p{Upper}])""")
+    input.forEach { line ->
+        val matchResults = regex.findAll(line)
+        println("For line: $line")
+        println("Found matches: ${matchResults.map { it.value }.toList()}")
+    }
     return ""
 }
 
