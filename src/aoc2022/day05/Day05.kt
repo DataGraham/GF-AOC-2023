@@ -16,17 +16,22 @@ fun main() {
 }
 
 fun part1(input: List<String>): String {
-    val crateRows = input.crateRows
+    val crateColumns = input
+        .crateRows.also { println("Crate rows: $it") }
+        .transposed()
+        .map { crateStack -> crateStack.filterNotNull() }
+        .also { println("Crate columns: $it") }
     return ""
 }
 
 private val List<String>.crateRows
     get() = map { line -> line.crateLabels() }
         .takeWhile { crateLabels -> crateLabels.any { it != null } }
-        .also { println("Crate rows: $it") }
 
 private object CrateFinder {
-    private val crateSpaceRegex = Regex(""" {3}|\[(\p{Upper})]""")
+    private val crateSpaceRegex by lazy {
+        Regex(""" {3}|\[(\p{Upper})]""")
+    }
 
     fun String.crateLabels() =
         crateSpaceRegex
@@ -34,6 +39,9 @@ private object CrateFinder {
             .map { it.groups[1]?.value }
             .toList()
 }
+
+fun <T> List<List<T?>>.transposed() =
+    List(maxOf { it.size }) { i -> map { it.getOrNull(i) } }
 
 fun part2(input: List<String>): String {
     return ""
