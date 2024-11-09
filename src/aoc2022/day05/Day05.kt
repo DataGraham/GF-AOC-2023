@@ -11,16 +11,28 @@ fun main() {
     check(part1(testInput).also { it.println() } == "CMZ")
     //check(part2(testInput).also { it.println() } == 4)
 
-    //val input = readInput("aoc2022/day05/Day05")
-    //println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("aoc2022/day05/Day05")
+    println("Part 1 Answer: ${part1(input)}")
     //println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): String {
+    /** Stacks from left ("1") to right,
+    each with crates from top to bottom. */
     val crateStacks = input.crateStacks
-    val moves = input.mapNotNull { line -> line.move }
-        .also { println("Moves: $it") }
-    return ""
+    val moves = input.mapNotNull { line ->
+        line.move?.apply { println() }
+    }
+    moves.forEach { move ->
+        with(move) {
+            repeat(count) {
+                crateStacks[destinationIndex].addFirst(
+                    crateStacks[sourceIndex].removeFirst()
+                )
+            }
+        }
+    }
+    return String(crateStacks.map { it.first() }.toCharArray())
 }
 
 private val List<String>.crateStacks
