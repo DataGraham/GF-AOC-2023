@@ -1,6 +1,7 @@
 package aoc2022.day05
 
 import aoc2022.day05.CrateFinder.crateLabels
+import aoc2022.day05.MoveFinder.move
 import println
 import readInput
 
@@ -16,16 +17,25 @@ fun main() {
 }
 
 fun part1(input: List<String>): String {
-    val crateColumns = input
-        .crateRows.also { println("Crate rows: $it") }
-        .transposed()
-        .map { crateStack -> crateStack.filterNotNull() }
-        .also { println("Crate columns: $it") }
+    val crateStacks = input.crateStacks
+    val moves = input.mapNotNull { line -> line.move }
+        .also { println("Moves: $it") }
     return ""
 }
 
+private val List<String>.crateStacks
+    get() = crateRows
+        .also { println("Crate rows: $it") }
+        .transposed()
+        .map { crateStack ->
+            crateStack
+                .filterNotNull()
+                .toMutableList()
+        }
+        .also { println("Crate stacks: $it") }
+
 private val List<String>.crateRows
-    get() = map { line -> line.crateLabels() }
+    get() = map { line -> line.crateLabels }
         .takeWhile { crateLabels -> crateLabels.any { it != null } }
 
 private object CrateFinder {
@@ -33,15 +43,38 @@ private object CrateFinder {
         Regex(""" {3}|\[(\p{Upper})]""")
     }
 
-    fun String.crateLabels() =
-        crateSpaceRegex
+    val String.crateLabels
+        get() = crateSpaceRegex
             .findAll(this)
-            .map { it.groups[1]?.value }
+            .map { it.groups[1]?.value?.first() }
             .toList()
 }
 
 fun <T> List<List<T?>>.transposed() =
     List(maxOf { it.size }) { i -> map { it.getOrNull(i) } }
+
+data class Move(val sourceIndex: Int, val destinationIndex: Int, val count: Int) {
+    override fun toString() = "Move $count from stack[$sourceIndex] to stack[$destinationIndex]"
+}
+
+private object MoveFinder {
+    private val moveRegex by lazy {
+        Regex("""^move (\d+) from (\d+) to (\d+)$""")
+    }
+
+    val String.move
+        get() = moveRegex.find(this)
+            ?.groupValues
+            ?.drop(1)
+            ?.map { it.toInt() }
+            ?.let {
+                Move(
+                    count = it[0],
+                    sourceIndex = it[1] - 1,
+                    destinationIndex = it[2] - 1
+                )
+            }
+}
 
 fun part2(input: List<String>): String {
     return ""
