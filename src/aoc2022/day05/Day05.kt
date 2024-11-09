@@ -52,7 +52,7 @@ private val List<String>.crateRows
 
 private object CrateFinder {
     private val crateSpaceRegex by lazy {
-        Regex(""" {3}|\[(\p{Upper})]""")
+        Regex(""" {4}|\[(\p{Upper})] ?""")
     }
 
     val String.crateLabels
