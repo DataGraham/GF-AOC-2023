@@ -9,20 +9,18 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day05/Day05_test")
     check(part1(testInput).also { it.println() } == "CMZ")
-    //check(part2(testInput).also { it.println() } == 4)
+    check(part2(testInput).also { it.println() } == "MCD")
 
     val input = readInput("aoc2022/day05/Day05")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): String {
     /** Stacks from left ("1") to right,
     each with crates from top to bottom. */
     val crateStacks = input.crateStacks
-    val moves = input.mapNotNull { line ->
-        line.move?.apply { println() }
-    }
+    val moves = input.mapNotNull { it.move }
     moves.forEach { move ->
         with(move) {
             repeat(count) {
@@ -32,7 +30,19 @@ fun part1(input: List<String>): String {
             }
         }
     }
-    return String(crateStacks.map { it.first() }.toCharArray())
+    return crateStacks.crateStackTops
+}
+
+fun part2(input: List<String>): String {
+    val crateStacks = input.crateStacks
+    val moves = input.mapNotNull { it.move }
+    moves.forEach { move ->
+        with(move) {
+            val cratesToMove = List(count) { crateStacks[sourceIndex].removeFirst() }
+            crateStacks[destinationIndex].addAll(0, cratesToMove)
+        }
+    }
+    return crateStacks.crateStackTops
 }
 
 private val List<String>.crateStacks
@@ -88,6 +98,5 @@ private object MoveFinder {
             }
 }
 
-fun part2(input: List<String>): String {
-    return ""
-}
+private val List<List<Char>>.crateStackTops get() = String(map { it.first() }.toCharArray())
+
