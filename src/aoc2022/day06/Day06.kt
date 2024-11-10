@@ -73,10 +73,9 @@ class CharacterFrequencyTracker {
     }
 
     fun remove(charToRemove: Char) {
-        charFreq[charToRemove] = charFreq[charToRemove]!! - 1
-        if (charFreq[charToRemove] == 0) {
-            charFreq.remove(charToRemove)
-        }
+        val newFrequency = charFreq[charToRemove]!! - 1
+        if (newFrequency > 0) charFreq[charToRemove] = newFrequency
+        else charFreq.remove(charToRemove)
     }
 
     val uniqueCharacterCount get() = charFreq.size
