@@ -4,6 +4,7 @@ import aoc2022.day05.CrateFinder.crateLabels
 import aoc2022.day05.MoveFinder.move
 import println
 import readInput
+import removeFirst
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -22,12 +23,8 @@ fun part1(input: List<String>): String {
     val crateStacks = input.crateStacks
     val moves = input.mapNotNull { it.move }
     moves.forEach { move ->
-        with(move) {
-            repeat(count) {
-                crateStacks[destinationIndex].addFirst(
-                    crateStacks[sourceIndex].removeFirst()
-                )
-            }
+        repeat(move.count) {
+            crateStacks.perform(move.copy(count = 1))
         }
     }
     return crateStacks.crateStackTops
@@ -36,13 +33,15 @@ fun part1(input: List<String>): String {
 fun part2(input: List<String>): String {
     val crateStacks = input.crateStacks
     val moves = input.mapNotNull { it.move }
-    moves.forEach { move ->
-        with(move) {
-            val cratesToMove = List(count) { crateStacks[sourceIndex].removeFirst() }
-            crateStacks[destinationIndex].addAll(0, cratesToMove)
-        }
-    }
+    moves.forEach { move -> crateStacks.perform(move) }
     return crateStacks.crateStackTops
+}
+
+fun List<MutableList<Char>>.perform(move: Move) {
+    this[move.destinationIndex].addAll(
+        0,
+        this[move.sourceIndex].removeFirst(move.count)
+    )
 }
 
 private val List<String>.crateStacks

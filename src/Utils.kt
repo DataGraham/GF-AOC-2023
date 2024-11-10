@@ -49,6 +49,8 @@ fun List<String>.transposed() = first().indices.map { col ->
     map { line -> line[col] }.joinToString(separator = "")
 }
 
+fun <T> MutableList<T>.removeFirst(count: Int) = List(count) { removeFirst() }
+
 data class CycleInfo<T>(
     val distanceToStart: Int,
     val startValue: T,
