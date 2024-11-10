@@ -51,26 +51,33 @@ fun part2(input: String) = indexAfterStartMarker(
     markerLength  = MESSAGE_START_MARKER_LENGTH
 )
 
-private fun indexAfterStartMarker(input: String, markerLength: Int): Int {
-    val charFreq = HashMap<Char, Int>()
-    return input.indices.first { endIndex ->
-        // Remove START_MARKER_LENGTH characters ago
-        val charToRemove = (endIndex - markerLength)
-            .takeIf { it >= 0 }
-            ?.let { input[it] }
-        if (charToRemove != null) {
-            charFreq[charToRemove] = charFreq[charToRemove]!! - 1
-            if (charFreq[charToRemove] == 0) {
-                charFreq.remove(charToRemove)
-            }
-        }
+private fun indexAfterStartMarker(input: String, markerLength: Int) =
+    with(CharacterFrequencyTracker()) {
+        input.indices.first { endIndex ->
+            // Remove markerLength characters ago
+            if (endIndex >= markerLength)
+                remove(input[endIndex - markerLength])
+            // Add this "end" character
+            add(input[endIndex])
+            // Accept this as the end of a start marker if the frequency map over the last
+            // START_MARKER_LENGTH characters has a size of START_MARKER_LENGTH unique characters.
+            uniqueCharacterCount == markerLength
+        } + 1 // Index of first character AFTER the start marker
+    }
 
-        // Add this "end" character
-        val charToAdd = input[endIndex]
+class CharacterFrequencyTracker {
+    private val charFreq = HashMap<Char, Int>()
+
+    fun add(charToAdd: Char) {
         charFreq[charToAdd] = charFreq.getOrDefault(charToAdd, 0) + 1
+    }
 
-        // Accept this as the end of a start marker if the frequency map over the last
-        // START_MARKER_LENGTH characters has a size of START_MARKER_LENGTH unique characters.
-        charFreq.size == markerLength
-    } + 1 // Index of first character AFTER the start marker
+    fun remove(charToRemove: Char) {
+        charFreq[charToRemove] = charFreq[charToRemove]!! - 1
+        if (charFreq[charToRemove] == 0) {
+            charFreq.remove(charToRemove)
+        }
+    }
+
+    val uniqueCharacterCount get() = charFreq.size
 }
