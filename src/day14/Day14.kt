@@ -3,7 +3,7 @@ package day14
 import findCycle
 import println
 import readInput
-import transposed
+import transposedStrings
 
 fun main() {
     check(
@@ -22,7 +22,7 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     // Make a string for each column
-    val columns = input.transposed()
+    val columns = input.transposedStrings()
     val tiltedColumns = columns.map { column -> column.tilted(towardsEnd = false) }
     // For each string, sum for each 'O' its index from the end + 1
     return tiltedColumns.sumOf(String::columnLoad)
@@ -37,15 +37,15 @@ fun part2(input: List<String>): Int {
     return generateSequence(input) { it.spun() }
         .take(spinsEquivalentToTotal + 1) // one more element than spins
         .last()
-        .transposed()
+        .transposedStrings()
         .sumOf { column -> column.columnLoad() }
 }
 
 private fun List<String>.spun(): List<String> {
-    val tiltedNorth = transposed().map { column -> column.tilted(towardsEnd = false) }
-    val tiltedWest = tiltedNorth.transposed().map { row -> row.tilted(towardsEnd = false) }
-    val tiltedSouth = tiltedWest.transposed().map { column -> column.tilted(towardsEnd = true) }
-    val tiltedEast = tiltedSouth.transposed().map { row -> row.tilted(towardsEnd = true) }
+    val tiltedNorth = transposedStrings().map { column -> column.tilted(towardsEnd = false) }
+    val tiltedWest = tiltedNorth.transposedStrings().map { row -> row.tilted(towardsEnd = false) }
+    val tiltedSouth = tiltedWest.transposedStrings().map { column -> column.tilted(towardsEnd = true) }
+    val tiltedEast = tiltedSouth.transposedStrings().map { row -> row.tilted(towardsEnd = true) }
     return tiltedEast
 }
 

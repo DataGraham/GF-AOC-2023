@@ -4,7 +4,7 @@ import printLines
 import println
 import readInput
 import split
-import transposed
+import transposedStrings
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -21,7 +21,7 @@ fun part1(input: List<String>): Int {
     val patterns = input.split { it.isBlank() }
     return patterns.sumOf { pattern ->
         (pattern.horizontalMirrorOffsets().firstOrNull() ?: 0) * 100 +
-            (pattern.transposed().horizontalMirrorOffsets().firstOrNull() ?: 0)
+            (pattern.transposedStrings().horizontalMirrorOffsets().firstOrNull() ?: 0)
     }
 }
 
@@ -32,7 +32,7 @@ fun part2(input: List<String>): Int {
         pattern.printLines()
         val originalMirror =
             pattern.horizontalMirrorOffsets().firstOrNull()?.let { Mirror(it, false) }
-                ?: pattern.transposed().horizontalMirrorOffsets().firstOrNull()?.let { Mirror(it, true) }
+                ?: pattern.transposedStrings().horizontalMirrorOffsets().firstOrNull()?.let { Mirror(it, true) }
                 ?: throw IllegalArgumentException("No mirror found")
         println("...has mirror $originalMirror")
         pattern.withIndex().firstNotNullOf { (rowIndex, row) ->
@@ -44,7 +44,7 @@ fun part2(input: List<String>): Int {
                     .map { Mirror(it, false) }
                     .firstOrNull { it != originalMirror }
                     ?.let { it.offset * 100 }
-                val verticalSummary = toggledPattern.transposed().horizontalMirrorOffsets()
+                val verticalSummary = toggledPattern.transposedStrings().horizontalMirrorOffsets()
                     .map { Mirror(it, true) }
                     .firstOrNull { it != originalMirror }
                     ?.offset

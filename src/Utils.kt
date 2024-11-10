@@ -45,9 +45,12 @@ fun IntRange.dropLast(n: Int) = start..last - n
 
 fun List<String>.printLines() = joinToString(separator = "\n").println()
 
-fun List<String>.transposed() = first().indices.map { col ->
+fun List<String>.transposedStrings() = first().indices.map { col ->
     map { line -> line[col] }.joinToString(separator = "")
 }
+
+fun <T> List<List<T?>>.transposed() =
+    List(maxOf { it.size }) { i -> map { it.getOrNull(i) } }
 
 fun <T> MutableList<T>.removeFirst(count: Int) = List(count) { removeFirst() }
 
