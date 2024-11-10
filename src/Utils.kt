@@ -26,6 +26,7 @@ fun <T> T.require(predicate: T.() -> Boolean) = apply { require(predicate()) }
 inline fun <T> measurePerformance(label: String = "", reps: Int, function: () -> T) {
     val totalDuration = measureTime { repeat(reps) { function() } }
     println("$label Computed ${function()} in average of ${(totalDuration / reps).inWholeMicroseconds} microseconds")
+    println("($totalDuration for $reps reps)")
 }
 
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
