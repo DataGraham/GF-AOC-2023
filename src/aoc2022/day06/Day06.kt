@@ -5,20 +5,20 @@ import println
 import readInput
 import subString
 
-private const val START_MARKER_LENGTH = 4
+private const val PACKET_START_MARKER_LENGTH = 4
+private const val MESSAGE_START_MARKER_LENGTH = 14
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day06/Day06_test")
     check(part1SubstringSets(testInput.first()).also { it.println() } == 7)
     check(part1Optimized(testInput.first()).also { it.println() } == 7)
-    // check(part2(testInput).also { it.println() } == "MCD")
+    check(part2(testInput.first()).also { it.println() } == 19)
 
     val input = readInput("aoc2022/day06/Day06")
 
     println("Part 1 Answer: ${part1SubstringSets(input.first())}")
     println("Part 1 Answer (optimized): ${part1Optimized(input.first())}")
-    //println("Part 2 Answer: ${part2(input)}")
 
     measurePerformance("Substring Sets", 10000) {
         part1SubstringSets(input.first())
@@ -26,6 +26,8 @@ fun main() {
     measurePerformance("Optimized", 10000) {
         part1Optimized(input.first())
     }
+
+    println("Part 2 Answer: ${part2(input.first())}")
 }
 
 fun part1SubstringSets(input: String) =
@@ -33,17 +35,27 @@ fun part1SubstringSets(input: String) =
         input
             .subString(
                 startIndex = startIndex,
-                length = START_MARKER_LENGTH
+                length = PACKET_START_MARKER_LENGTH
             )
             .toSet()
-            .size == START_MARKER_LENGTH
-    } + START_MARKER_LENGTH
+            .size == PACKET_START_MARKER_LENGTH
+    } + PACKET_START_MARKER_LENGTH
 
-fun part1Optimized(input: String): Int {
+fun part1Optimized(input: String) = indexAfterStartMarker(
+    input,
+    markerLength = PACKET_START_MARKER_LENGTH
+)
+
+fun part2(input: String) = indexAfterStartMarker(
+    input,
+    markerLength  = MESSAGE_START_MARKER_LENGTH
+)
+
+private fun indexAfterStartMarker(input: String, markerLength: Int): Int {
     val charFreq = HashMap<Char, Int>()
     return input.indices.first { endIndex ->
         // Remove START_MARKER_LENGTH characters ago
-        val charToRemove = (endIndex - START_MARKER_LENGTH)
+        val charToRemove = (endIndex - markerLength)
             .takeIf { it >= 0 }
             ?.let { input[it] }
         if (charToRemove != null) {
@@ -59,10 +71,6 @@ fun part1Optimized(input: String): Int {
 
         // Accept this as the end of a start marker if the frequency map over the last
         // START_MARKER_LENGTH characters has a size of START_MARKER_LENGTH unique characters.
-        charFreq.size == START_MARKER_LENGTH
+        charFreq.size == markerLength
     } + 1 // Index of first character AFTER the start marker
-}
-
-fun part2(input: String): Int {
-    return input.length
 }
