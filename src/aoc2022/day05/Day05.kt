@@ -25,25 +25,19 @@ fun part1(input: List<String>) = finalCrateStackTops(input) { move ->
 
 fun part2(input: List<String>) = finalCrateStackTops(input) { move -> perform(move) }
 
-private fun finalCrateStackTops(
-    input: List<String>,
-    perform: List<MutableList<Char>>.(Move) -> Unit
-) = input
-    .crateStacks
-    .apply { input.moves.forEach { move -> perform(move) } }
-    .crateStackTops
+private fun finalCrateStackTops(input: List<String>, performMove: Crates.(Move) -> Unit) =
+    input
+        .crateStacks
+        .apply { input.moves.forEach { move -> performMove(move) } }
+        .stackTops
 
 /** Stacks from left ("1") to right, each with crates from top to bottom. */
 private val List<String>.crateStacks
-    get() = crateRows
-        .also { println("Crate rows: $it") }
-        .transposed()
-        .map { crateStack ->
-            crateStack
-                .filterNotNull()
-                .toMutableList()
-        }
-        .also { println("Crate stacks: $it") }
+    get() = Crates(
+        initialStacks = crateRows
+            .transposed()
+            .map { crateStack -> crateStack.filterNotNull() }
+    )
 
 private val List<String>.crateRows
     get() = map { line -> line.crateLabels }
@@ -88,13 +82,3 @@ private object MoveFinder {
                 )
             }
 }
-
-fun List<MutableList<Char>>.perform(move: Move) {
-    this[move.destinationIndex].addAll(
-        0,
-        this[move.sourceIndex].removeFirst(move.count)
-    )
-}
-
-private val List<List<Char>>.crateStackTops get() = String(map { it.first() }.toCharArray())
-
