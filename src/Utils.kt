@@ -30,6 +30,9 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
 
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
 
+fun String.subString(startIndex: Int, length: Int)
+    = substring(startIndex = startIndex, endIndex = startIndex + length)
+
 fun Int.toIntRange() = this..this
 
 inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
