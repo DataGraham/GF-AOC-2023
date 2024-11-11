@@ -6,7 +6,7 @@ import kotlin.math.min
 
 fun main() {
     //val problemLine = "###?#?????#????? 6,1,1,1,1"
-    //part1(listOf(problemLine))
+    //aoc2022.day07.part1(listOf(problemLine))
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day12/Day12_test")
@@ -16,10 +16,10 @@ fun main() {
     val input = readInput("day12/Day12")
 //    input.forEach { line ->
 //        line.println()
-//        val part1 = arrangementCount(parseLine(line))
-//        val part2 = arrangementCount(unfoldAndParseLine(line))
-//        val fifthPower = List(5) { part1 }.reduce { acc, i -> acc * i }
-//        println("Part1: $part1, Part2: $part2, FifthPower: $fifthPower")
+//        val aoc2022.day07.part1 = arrangementCount(parseLine(line))
+//        val aoc2022.day07.part2 = arrangementCount(unfoldAndParseLine(line))
+//        val fifthPower = List(5) { aoc2022.day07.part1 }.reduce { acc, i -> acc * i }
+//        println("Part1: $aoc2022.day07.part1, Part2: $aoc2022.day07.part2, FifthPower: $fifthPower")
 //    }
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")

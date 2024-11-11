@@ -10,7 +10,7 @@ import kotlin.time.measureTimedValue
 fun main() {
     // test if implementation meets criteria from the description, like:
     check(part1(readInput("day11/Day11_test")).also { it.println() } == 374)
-    //check(part2(testInput) == 1)
+    //check(aoc2022.day07.part2(testInput) == 1)
 
     val input = readInput("day11/Day11")
     println("Part 1 Answer: ${part1(input)}")

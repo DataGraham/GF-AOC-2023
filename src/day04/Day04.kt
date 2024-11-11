@@ -7,7 +7,7 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("day04/Day04_test")
     check(part1(testInput) == 13)
-    //check(part2(testInput) == 1)
+    //check(aoc2022.day07.part2(testInput) == 1)
 
     val input = readInput("day04/Day04")
     println("Part 1 Answer: ${part1(input)}")
