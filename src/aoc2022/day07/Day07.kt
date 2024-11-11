@@ -26,6 +26,13 @@ private sealed class TerminalLine {
     }
 }
 
+class TerminalParser {
+    private val changeDirectoryRegex by lazy { Regex("""\$ cd (.+)""") }
+    private val listRegex by lazy { Regex("""\$ ls""")}
+    private val fileRegex by lazy { Regex("""(\d+) (.+)""") }
+    private val directoryRegex by lazy { Regex("""dir (.+)""") }
+}
+
 fun part1(input: List<String>): Int {
     return input.size
 }
