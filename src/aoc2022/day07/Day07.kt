@@ -18,6 +18,16 @@ fun main() {
     //println("Part 2 Answer: ${aoc2022.day07.part2(input)}")
 }
 
+fun part1(input: List<String>): Int {
+    val terminalLines = with(TerminalParser()) { input.map { line -> parse(line) } }
+        .apply { joinToString(separator = "\n").println() }
+    return input.size
+}
+
+fun part2(input: List<String>): Int {
+    return input.size
+}
+
 private sealed class TerminalLine {
     sealed class Command : TerminalLine() {
         data class ChangeDirectoryCommand(val directoryName: String) : Command()
@@ -30,8 +40,17 @@ private sealed class TerminalLine {
     }
 }
 
-private class TerminalParser {
-    private val directoryRegex by lazy { Regex("""dir (.+)""") }
+private class TerminalParser : TerminalLineParser {
+    private val parsers by lazy {
+        listOf(
+            ChangeDirectoryParser(),
+            ListCommandParser(),
+            FileListingParser(),
+            DirectoryListingParser()
+        )
+    }
+
+    override fun parse(line: String) = parsers.firstNotNullOf { parser -> parser.parse(line) }
 }
 
 private interface TerminalLineParser {
@@ -59,17 +78,9 @@ private class ListCommandParser : RegexTerminalLineParser("""\$ ls""") {
 
 private class FileListingParser : RegexTerminalLineParser("""(\d+) (.+)""") {
     override fun parseMatch(captures: List<String>) =
-        FileListing(size = captures[0].toInt(), name = captures[2])
+        FileListing(size = captures[0].toInt(), name = captures[1])
 }
 
 private class DirectoryListingParser : RegexTerminalLineParser("""dir (.+)""") {
     override fun parseMatch(captures: List<String>) = DirectoryListing(name = captures.first())
-}
-
-fun part1(input: List<String>): Int {
-    return input.size
-}
-
-fun part2(input: List<String>): Int {
-    return input.size
 }
