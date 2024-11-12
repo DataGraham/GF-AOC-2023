@@ -1,9 +1,6 @@
 package aoc2022.day07
 
-import aoc2022.day07.TerminalLine.Command.ChangeDirectoryCommand
-import aoc2022.day07.TerminalLine.Command.ListCommand
-import aoc2022.day07.TerminalLine.Output.DirectoryListing
-import aoc2022.day07.TerminalLine.Output.FileListing
+import aoc2022.day07.parsing.UniversalTerminalLineParser
 import println
 import readInput
 
@@ -19,7 +16,7 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val terminalLines = with(TerminalParser()) { input.map { line -> parse(line) } }
+    val terminalLines = with(UniversalTerminalLineParser()) { input.map { line -> parse(line) } }
         .apply { joinToString(separator = "\n").println() }
     return input.size
 }
@@ -28,59 +25,4 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-private sealed class TerminalLine {
-    sealed class Command : TerminalLine() {
-        data class ChangeDirectoryCommand(val directoryName: String) : Command()
-        data object ListCommand : Command()
-    }
 
-    sealed class Output : TerminalLine() {
-        data class FileListing(val name: String, val size: Int) : Output()
-        data class DirectoryListing(val name: String) : Output()
-    }
-}
-
-private class TerminalParser : TerminalLineParser {
-    private val parsers by lazy {
-        listOf(
-            ChangeDirectoryParser(),
-            ListCommandParser(),
-            FileListingParser(),
-            DirectoryListingParser()
-        )
-    }
-
-    override fun parse(line: String) = parsers.firstNotNullOf { parser -> parser.parse(line) }
-}
-
-private interface TerminalLineParser {
-    fun parse(line: String): TerminalLine?
-}
-
-private abstract class RegexTerminalLineParser(private val pattern: String) : TerminalLineParser {
-    private val regex by lazy { Regex(pattern) }
-
-    final override fun parse(line: String) = regex.matchEntire(line)?.let { match ->
-        parseMatch(captures = match.groupValues.drop(1))
-    }
-
-    protected abstract fun parseMatch(captures: List<String>): TerminalLine
-}
-
-private class ChangeDirectoryParser : RegexTerminalLineParser("""\$ cd (.+)""") {
-    override fun parseMatch(captures: List<String>) =
-        ChangeDirectoryCommand(directoryName = captures.first())
-}
-
-private class ListCommandParser : RegexTerminalLineParser("""\$ ls""") {
-    override fun parseMatch(captures: List<String>) = ListCommand
-}
-
-private class FileListingParser : RegexTerminalLineParser("""(\d+) (.+)""") {
-    override fun parseMatch(captures: List<String>) =
-        FileListing(size = captures[0].toInt(), name = captures[1])
-}
-
-private class DirectoryListingParser : RegexTerminalLineParser("""dir (.+)""") {
-    override fun parseMatch(captures: List<String>) = DirectoryListing(name = captures.first())
-}
