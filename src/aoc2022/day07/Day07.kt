@@ -2,9 +2,12 @@ package aoc2022.day07
 
 import aoc2022.day07.FileSystemItem.DirectoryItem
 import aoc2022.day07.TerminalLine.Command.ChangeDirectoryCommand
+import aoc2022.day07.TerminalLine.Listing
 import aoc2022.day07.TerminalLine.Listing.DirectoryListing
 import aoc2022.day07.TerminalLine.Listing.FileListing
 import aoc2022.day07.parsing.UniversalTerminalLineParser
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 import println
 import readInput
 
@@ -21,7 +24,21 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     val terminalLines = with(UniversalTerminalLineParser()) { input.map { line -> parse(line) } }
-        .apply { joinToString(separator = "\n").println() }
+    return runBlocking {
+        buildFileSystem(terminalLines)
+            .allDirectories
+            .map { it.sizeInBytes }
+            .filter { it <= 100000 }
+            .toList()
+            .sum()
+    }
+}
+
+fun part2(input: List<String>): Int {
+    return input.size
+}
+
+private fun buildFileSystem(terminalLines: List<TerminalLine>): DirectoryItem {
     val rootDirectory = DirectoryItem("/", parent = null)
     var currentDirectory: DirectoryItem? = null
     terminalLines.forEach { terminalLine ->
@@ -29,32 +46,40 @@ fun part1(input: List<String>): Int {
             is ChangeDirectoryCommand -> {
                 currentDirectory =
                     when (terminalLine.directoryName) {
-                        rootDirectory.directoryName -> rootDirectory
+                        rootDirectory.name -> rootDirectory
                         ".." -> currentDirectory!!.parent
                         else -> currentDirectory!!.children.filterIsInstance<DirectoryItem>().first {
-                            it.directoryName == terminalLine.directoryName
+                            it.name == terminalLine.directoryName
                         }
                     }
             }
 
             TerminalLine.Command.ListCommand -> {} // Nothing to do really
 
-            is TerminalLine.Listing -> currentDirectory!!.children += when (terminalLine) {
-                is FileListing -> FileSystemItem.FileItem(fileName = terminalLine.fileName, fileSize = terminalLine.fileSize)
-                is DirectoryListing -> DirectoryItem(directoryName = terminalLine.directoryName, parent = currentDirectory)
+            is Listing -> currentDirectory!!.children += when (terminalLine) {
+                is FileListing -> FileSystemItem.FileItem(
+                    name = terminalLine.fileName,
+                    sizeInBytes = terminalLine.fileSize
+                )
+
+                is DirectoryListing -> DirectoryItem(name = terminalLine.directoryName, parent = currentDirectory)
             }
         }
     }
-    return input.size
-}
-
-fun part2(input: List<String>): Int {
-    return input.size
+    return rootDirectory
 }
 
 sealed class FileSystemItem {
-    data class FileItem(val fileName: String, val fileSize: Int) : FileSystemItem()
-    data class DirectoryItem(val directoryName: String, val parent: DirectoryItem?) : FileSystemItem() {
+    abstract val name: String
+    abstract val sizeInBytes: Int
+
+    data class FileItem(override val name: String, override val sizeInBytes: Int) : FileSystemItem()
+    data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
         val children = mutableListOf<FileSystemItem>()
+        override val sizeInBytes get() = children.sumOf { it.sizeInBytes }
+        val allDirectories: Flow<DirectoryItem> = flow {
+            emit(this@DirectoryItem)
+            children.filterIsInstance<DirectoryItem>().forEach { emitAll(it.allDirectories) }
+        }
     }
 }
