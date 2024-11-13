@@ -4,5 +4,5 @@ import aoc2022.day07.TerminalLine.Listing.FileListing
 
 class FileListingParser : RegexTerminalLineParser("""(\d+) (.+)""") {
     override fun parseMatch(captures: List<String>) =
-        FileListing(size = captures[0].toInt(), name = captures[1])
+        FileListing(fileSize = captures[0].toInt(), fileName = captures[1])
 }

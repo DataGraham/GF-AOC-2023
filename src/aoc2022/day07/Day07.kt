@@ -28,17 +28,20 @@ fun part1(input: List<String>): Int {
         when (terminalLine) {
             is ChangeDirectoryCommand -> {
                 currentDirectory =
-                    if (terminalLine.directoryName == rootDirectory.name) rootDirectory
-                    else currentDirectory!!.children.filterIsInstance<DirectoryItem>().first {
-                        it.name == terminalLine.directoryName
+                    when (terminalLine.directoryName) {
+                        rootDirectory.directoryName -> rootDirectory
+                        ".." -> currentDirectory!!.parent
+                        else -> currentDirectory!!.children.filterIsInstance<DirectoryItem>().first {
+                            it.directoryName == terminalLine.directoryName
+                        }
                     }
             }
 
             TerminalLine.Command.ListCommand -> {} // Nothing to do really
 
             is TerminalLine.Listing -> currentDirectory!!.children += when (terminalLine) {
-                is FileListing -> FileSystemItem.FileItem(name = terminalLine.name, size = terminalLines.size)
-                is DirectoryListing -> DirectoryItem(name = terminalLine.name, parent = currentDirectory)
+                is FileListing -> FileSystemItem.FileItem(fileName = terminalLine.fileName, fileSize = terminalLine.fileSize)
+                is DirectoryListing -> DirectoryItem(directoryName = terminalLine.directoryName, parent = currentDirectory)
             }
         }
     }
@@ -50,8 +53,8 @@ fun part2(input: List<String>): Int {
 }
 
 sealed class FileSystemItem {
-    data class FileItem(val name: String, val size: Int) : FileSystemItem()
-    data class DirectoryItem(val name: String, val parent: DirectoryItem?) : FileSystemItem() {
+    data class FileItem(val fileName: String, val fileSize: Int) : FileSystemItem()
+    data class DirectoryItem(val directoryName: String, val parent: DirectoryItem?) : FileSystemItem() {
         val children = mutableListOf<FileSystemItem>()
     }
 }

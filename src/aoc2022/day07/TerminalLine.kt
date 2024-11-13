@@ -7,7 +7,7 @@ sealed class TerminalLine {
     }
 
     sealed class Listing : TerminalLine() {
-        data class FileListing(val name: String, val size: Int) : Listing()
-        data class DirectoryListing(val name: String) : Listing()
+        data class FileListing(val fileName: String, val fileSize: Int) : Listing()
+        data class DirectoryListing(val directoryName: String) : Listing()
     }
 }
