@@ -6,8 +6,8 @@ sealed class TerminalLine {
         data object ListCommand : Command()
     }
 
-    sealed class Output : TerminalLine() {
-        data class FileListing(val name: String, val size: Int) : Output()
-        data class DirectoryListing(val name: String) : Output()
+    sealed class Listing : TerminalLine() {
+        data class FileListing(val name: String, val size: Int) : Listing()
+        data class DirectoryListing(val name: String) : Listing()
     }
 }
