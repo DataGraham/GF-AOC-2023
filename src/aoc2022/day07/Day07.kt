@@ -6,6 +6,7 @@ import aoc2022.day07.TerminalLine.Listing
 import aoc2022.day07.TerminalLine.Listing.DirectoryListing
 import aoc2022.day07.TerminalLine.Listing.FileListing
 import aoc2022.day07.parsing.UniversalTerminalLineParser
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import println
@@ -29,8 +30,7 @@ fun part1(input: List<String>): Int {
             .allDirectories
             .map { it.sizeInBytes }
             .filter { it <= 100000 }
-            .toList()
-            .sum()
+            .reduce { acc, size -> acc + size }
     }
 }
 
@@ -77,9 +77,16 @@ sealed class FileSystemItem {
     data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
         val children = mutableListOf<FileSystemItem>()
         override val sizeInBytes get() = children.sumOf { it.sizeInBytes }
-        val allDirectories: Flow<DirectoryItem> = flow {
-            emit(this@DirectoryItem)
-            children.filterIsInstance<DirectoryItem>().forEach { emitAll(it.allDirectories) }
+
+        val allDirectories: Flow<DirectoryItem> = flowOf(this).onCompletion { emitAll(allSubdirectories) }
+
+        private val childDirectories by lazy { children.asFlow().filterIsInstance<DirectoryItem>() }
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private val allSubdirectories by lazy {
+            childDirectories
+                .map { childDirectory -> childDirectory.allDirectories }
+                .flattenConcat()
         }
     }
 }
