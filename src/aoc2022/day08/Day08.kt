@@ -14,6 +14,12 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int = input.size
+fun part1(input: List<String>): Int {
+    val treeRows = input.map { line ->
+        line.map { it.digitToInt() }
+    }
+
+    return input.size
+}
 
 fun part2(input: List<String>) = input.size
