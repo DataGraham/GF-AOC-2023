@@ -78,15 +78,10 @@ sealed class FileSystemItem {
         val children = mutableListOf<FileSystemItem>()
         override val sizeInBytes get() = children.sumOf { it.sizeInBytes }
 
-        val allDirectories: Flow<DirectoryItem> = flowOf(this).onCompletion { emitAll(allSubdirectories) }
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val allDirectories: Flow<DirectoryItem> = flowOf(this)
+            .onCompletion { emitAll(childDirectories.flatMapConcat { it.allDirectories }) }
 
         private val childDirectories by lazy { children.asFlow().filterIsInstance<DirectoryItem>() }
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        private val allSubdirectories by lazy {
-            childDirectories
-                .map { childDirectory -> childDirectory.allDirectories }
-                .flattenConcat()
-        }
     }
 }
