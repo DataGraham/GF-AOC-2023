@@ -6,21 +6,22 @@ import aoc2022.day07.TerminalLine.Command.ChangeDirectoryCommand
 import aoc2022.day07.TerminalLine.Command.ListCommand
 import aoc2022.day07.TerminalLine.Listing
 import aoc2022.day07.TerminalLine.Listing.FileListing
+import kotlinx.coroutines.flow.Flow
 
 class FileSystemBuilder private constructor() {
     companion object {
         private const val ROOT_DIRECTORY_NAME = "/"
         private const val PARENT_DIRECTORY_INDICATOR = ".."
 
-        fun List<TerminalLine>.buildFileSystem() =
+        suspend fun Flow<TerminalLine>.buildFileSystem() =
             FileSystemBuilder().buildFileSystem(terminalLines = this)
     }
 
     private val rootDirectory = DirectoryItem(ROOT_DIRECTORY_NAME, parent = null)
     private var currentDirectory: DirectoryItem? = null
 
-    private fun buildFileSystem(terminalLines: List<TerminalLine>): DirectoryItem {
-        terminalLines.forEach { terminalLine ->
+    private suspend fun buildFileSystem(terminalLines: Flow<TerminalLine>): DirectoryItem {
+        terminalLines.collect { terminalLine ->
             when (terminalLine) {
                 is ChangeDirectoryCommand -> changeCurrentDirectory(directoryName = terminalLine.directoryName)
                 ListCommand -> {} // Nothing to do really

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import println
 import readInput
+import kotlin.math.min
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -26,28 +27,24 @@ fun part1(input: List<String>): Int = runBlocking {
         .toFileSystem()
         .allDirectorySizes
         .filter { directorySize -> directorySize <= MAX_CANDIDATE_SIZE }
-        // TODO: Extract Flow.sum()?
         .reduce { totalSize, directorySize -> totalSize + directorySize }
 }
 
 private const val TOTAL_SPACE = 70_000_000
 private const val REQUIRED_SPACE = 30_000_000
 
-fun part2(input: List<String>): Int {
+fun part2(input: List<String>) = runBlocking {
     val root = input.toFileSystem()
     val usedSpace = root.sizeInBytes
     val unusedSpace = TOTAL_SPACE - usedSpace
     val spaceToFree = REQUIRED_SPACE - unusedSpace
-    return runBlocking {
-        root
-            .allDirectorySizes
-            .filter { directorySize -> directorySize >= spaceToFree }
-            // TODO: Do this with a...reduce?...or scan?
-            .toList().min()
-    }
+    root
+        .allDirectorySizes
+        .filter { directorySize -> directorySize >= spaceToFree }
+        .reduce { minimumDirectorySize, directorySize -> min(minimumDirectorySize, directorySize) }
 }
 
-private fun List<String>.toFileSystem() = parseTerminalLines().buildFileSystem()
+private suspend fun List<String>.toFileSystem() = asFlow().parseTerminalLines().buildFileSystem()
 
 private val DirectoryItem.allDirectorySizes
     get() = allItems
