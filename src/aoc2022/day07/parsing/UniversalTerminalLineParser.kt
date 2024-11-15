@@ -1,12 +1,15 @@
 package aoc2022.day07.parsing
 
-import aoc2022.day07.parsing.impl.*
+import aoc2022.day07.parsing.impl.ChangeDirectoryParser
+import aoc2022.day07.parsing.impl.DirectoryListingParser
+import aoc2022.day07.parsing.impl.FileListingParser
+import aoc2022.day07.parsing.impl.ListCommandParser
 
 class UniversalTerminalLineParser : TerminalLineParser {
     companion object {
-        fun parseTerminalLines(input: List<String>) =
+        fun List<String>.parseTerminalLines() =
             with(UniversalTerminalLineParser()) {
-                input.map { line -> parse(line) }
+                map { line -> parse(line) }
             }
     }
 
