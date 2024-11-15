@@ -39,9 +39,7 @@ class FileSystemBuilder private constructor() {
         }
     }
 
-    private fun addChild(child: FileSystemItem) {
-        currentDirectory!!.children += child
-    }
+    private fun addChild(child: FileSystemItem) { currentDirectory!! += child }
 
     private fun Listing.toFileSystemItem() = when (this@toFileSystemItem) {
         is FileListing -> FileItem(name = fileName, sizeInBytes = fileSize)

@@ -5,6 +5,7 @@ import aoc2022.day07.FileSystemItem.DirectoryItem
 import aoc2022.day07.parsing.UniversalTerminalLineParser.Companion.parseTerminalLines
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
+import measurePerformance
 import println
 import readInput
 import kotlin.math.min
@@ -18,6 +19,10 @@ fun main() {
     val input = readInput("aoc2022/day07/Day07")
     println("Part 1 Answer: ${part1(input)}")
     println("Part 2 Answer: ${part2(input)}")
+
+    measurePerformance(reps = 10000) {
+        part2(input)
+    }
 }
 
 private const val MAX_CANDIDATE_SIZE = 100000

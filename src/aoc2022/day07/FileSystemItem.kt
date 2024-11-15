@@ -15,8 +15,19 @@ sealed class FileSystemItem {
 
     data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
         // TODO: Store children as a map instead (efficiency and enforced unique names!)?
-        val children = mutableListOf<FileSystemItem>()
-        override val sizeInBytes get() = children.sumOf { it.sizeInBytes }
+        private val children = mutableListOf<FileSystemItem>()
+        override var sizeInBytes = 0
+            private set
+
+        operator fun plusAssign(child: FileSystemItem) {
+            children += child
+            addSize(child.sizeInBytes)
+        }
+
+        private fun addSize(bytesToAdd: Int) {
+            sizeInBytes += bytesToAdd
+            parent?.addSize(bytesToAdd)
+        }
 
         fun findChild(name: String) = children.first { it.name == name }
 
