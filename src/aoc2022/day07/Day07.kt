@@ -6,6 +6,7 @@ import aoc2022.day07.TerminalLine.Listing
 import aoc2022.day07.TerminalLine.Listing.DirectoryListing
 import aoc2022.day07.TerminalLine.Listing.FileListing
 import aoc2022.day07.parsing.UniversalTerminalLineParser
+import aoc2022.day07.parsing.UniversalTerminalLineParser.Companion.parseTerminalLines
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
@@ -23,15 +24,13 @@ fun main() {
     //println("Part 2 Answer: ${aoc2022.day07.part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    val terminalLines = with(UniversalTerminalLineParser()) { input.map { line -> parse(line) } }
-    return runBlocking {
-        buildFileSystem(terminalLines)
-            .allDirectories
-            .map { it.sizeInBytes }
-            .filter { it <= 100000 }
-            .reduce { acc, size -> acc + size }
-    }
+fun part1(input: List<String>): Int = runBlocking {
+    buildFileSystem(parseTerminalLines(input))
+        .allItems
+        .filterIsInstance<DirectoryItem>()
+        .map { directoryItem -> directoryItem.sizeInBytes }
+        .filter { directorySize -> directorySize <= 100000 }
+        .reduce { totalSize, directorySize -> totalSize + directorySize }
 }
 
 fun part2(input: List<String>): Int {
@@ -73,15 +72,19 @@ sealed class FileSystemItem {
     abstract val name: String
     abstract val sizeInBytes: Int
 
-    data class FileItem(override val name: String, override val sizeInBytes: Int) : FileSystemItem()
+    abstract val allItems: Flow<FileSystemItem>
+
+    data class FileItem(override val name: String, override val sizeInBytes: Int) : FileSystemItem() {
+        override val allItems by lazy { flowOf(this) }
+    }
+
     data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
         val children = mutableListOf<FileSystemItem>()
         override val sizeInBytes get() = children.sumOf { it.sizeInBytes }
 
         @OptIn(ExperimentalCoroutinesApi::class)
-        val allDirectories: Flow<DirectoryItem> = flowOf(this)
-            .onCompletion { emitAll(childDirectories.flatMapConcat { it.allDirectories }) }
-
-        private val childDirectories by lazy { children.asFlow().filterIsInstance<DirectoryItem>() }
+        override val allItems: Flow<FileSystemItem> =
+            flowOf<FileSystemItem>(this)
+                .onCompletion { emitAll(children.asFlow().flatMapConcat { it.allItems }) }
     }
 }
