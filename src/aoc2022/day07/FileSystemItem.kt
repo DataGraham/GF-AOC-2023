@@ -2,7 +2,6 @@ package aoc2022.day07
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 
 sealed class FileSystemItem {
     abstract val name: String
