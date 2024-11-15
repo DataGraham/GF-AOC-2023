@@ -15,15 +15,14 @@ sealed class FileSystemItem {
     }
 
     data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
-        // TODO: Store children as a map instead (efficiency and enforced unique names!)?
-        private val children = mutableListOf<FileSystemItem>()
+        private val children = mutableMapOf<String, FileSystemItem>()
 
         private var cachedSize: Int? = null
 
-        override val sizeInBytes get() = cachedSize ?: children.sumOf { it.sizeInBytes }.also { cachedSize = it }
+        override val sizeInBytes get() = cachedSize ?: children.values.sumOf { it.sizeInBytes }.also { cachedSize = it }
 
         operator fun plusAssign(child: FileSystemItem) {
-            children += child
+            children[child.name] = child
             invalidateSize()
         }
 
@@ -32,13 +31,13 @@ sealed class FileSystemItem {
             parent?.invalidateSize()
         }
 
-        fun findChild(name: String) = children.first { it.name == name }
+        fun findChild(name: String) = children[name]
 
         @OptIn(ExperimentalCoroutinesApi::class)
         override val allItems: Flow<FileSystemItem> =
             flowOf<FileSystemItem>(this)
                 .onCompletion {
-                    emitAll(children.asFlow().flatMapConcat { it.allItems })
+                    emitAll(children.values.asFlow().flatMapConcat { it.allItems })
                 }
     }
 }
