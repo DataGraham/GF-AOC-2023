@@ -1,9 +1,9 @@
 package aoc2022.day07.parsing
 
-import aoc2022.day07.parsing.impl.ChangeDirectoryParser
-import aoc2022.day07.parsing.impl.DirectoryListingParser
-import aoc2022.day07.parsing.impl.FileListingParser
-import aoc2022.day07.parsing.impl.ListCommandParser
+import aoc2022.day07.parsing.impl.changeDirectoryParser
+import aoc2022.day07.parsing.impl.directoryListingParser
+import aoc2022.day07.parsing.impl.fileListingParser
+import aoc2022.day07.parsing.impl.listCommandParser
 
 class UniversalTerminalLineParser : TerminalLineParser {
     companion object {
@@ -15,10 +15,10 @@ class UniversalTerminalLineParser : TerminalLineParser {
 
     private val parsers by lazy {
         listOf(
-            ChangeDirectoryParser(),
-            ListCommandParser(),
-            FileListingParser(),
-            DirectoryListingParser()
+            changeDirectoryParser(),
+            listCommandParser(),
+            fileListingParser(),
+            directoryListingParser()
         )
     }
 
