@@ -2,6 +2,7 @@ package aoc2022.day07
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.runBlocking
 
 sealed class FileSystemItem {
     abstract val name: String
@@ -16,17 +17,19 @@ sealed class FileSystemItem {
     data class DirectoryItem(override val name: String, val parent: DirectoryItem?) : FileSystemItem() {
         // TODO: Store children as a map instead (efficiency and enforced unique names!)?
         private val children = mutableListOf<FileSystemItem>()
-        override var sizeInBytes = 0
-            private set
+
+        private var cachedSize: Int? = null
+
+        override val sizeInBytes get() = cachedSize ?: children.sumOf { it.sizeInBytes }.also { cachedSize = it }
 
         operator fun plusAssign(child: FileSystemItem) {
             children += child
-            addSize(child.sizeInBytes)
+            invalidateSize()
         }
 
-        private fun addSize(bytesToAdd: Int) {
-            sizeInBytes += bytesToAdd
-            parent?.addSize(bytesToAdd)
+        private fun invalidateSize() {
+            cachedSize = null
+            parent?.invalidateSize()
         }
 
         fun findChild(name: String) = children.first { it.name == name }
