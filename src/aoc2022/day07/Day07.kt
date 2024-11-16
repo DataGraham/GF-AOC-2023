@@ -6,8 +6,10 @@ import aoc2022.day07.parsing.UniversalTerminalLineParser.Companion.parseTerminal
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import measurePerformance
+import min
 import println
 import readInput
+import sum
 import kotlin.math.min
 
 fun main() {
@@ -32,7 +34,7 @@ fun part1(input: List<String>): Int = runBlocking {
         .toFileSystem()
         .allDirectorySizes
         .filter { directorySize -> directorySize <= MAX_CANDIDATE_SIZE }
-        .reduce { totalSize, directorySize -> totalSize + directorySize }
+        .sum()
 }
 
 private const val TOTAL_SPACE = 70_000_000
@@ -46,7 +48,7 @@ fun part2(input: List<String>) = runBlocking {
     root
         .allDirectorySizes
         .filter { directorySize -> directorySize >= spaceToFree }
-        .reduce { minimumDirectorySize, directorySize -> min(minimumDirectorySize, directorySize) }
+        .min()
 }
 
 private suspend fun List<String>.toFileSystem() = asFlow().parseTerminalLines().buildFileSystem()

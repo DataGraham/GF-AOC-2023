@@ -28,7 +28,7 @@ fun part1(input: List<String>): Int {
     val height = dugBorderPositions.maxOf { it.row } + 1
     //    val dug = List(height) { row ->
     //        List(width) { col ->
-    //            Position(row = row, col = col) in dugBorderPositions
+    //            Position(row = row, col = col) in DUGBorderPositions
     //        }
     //    }
     //    dug.joinToString(separator = "\n") { line ->
