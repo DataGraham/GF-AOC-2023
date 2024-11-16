@@ -23,7 +23,7 @@ fun part1(input: List<String>): Int {
     return runBlocking {
         treeRows
             .allPositions
-            .count { position -> treeRows.isTreeVisible(position) }
+            .count { position -> treeRows.isTreeVisibleFromDirection(position) }
     }
 }
 
@@ -31,12 +31,19 @@ fun part2(input: List<String>) = input.size
 
 typealias Forest = List<List<Int>>
 
-private suspend fun Forest.isTreeVisible(position: Position) =
+private suspend fun Forest.isTreeVisibleFromDirection(position: Position) =
     Direction.entries.any { direction ->
-        positions(from = position, inDirection = direction)
-            .map { otherPosition -> this[otherPosition]!! < this[position]!! }
-            .firstOrNull { isShorter -> !isShorter }== null
+        isTreeVisibleFromDirection(position, direction)
     }
+
+private suspend fun Forest.isTreeVisibleFromDirection(
+    position: Position,
+    direction: Direction
+) = positions(from = position, inDirection = direction)
+    .all { otherPosition -> this[otherPosition]!! < this[position]!! }
+
+private suspend fun <T> Flow<T>.all(predicate: (T) -> Boolean) =
+    map { predicate(it) }.firstOrNull { !it } == null
 
 private fun Forest.positions(
     from: Position,
