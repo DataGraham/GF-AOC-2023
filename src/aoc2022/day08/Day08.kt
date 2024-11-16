@@ -4,11 +4,11 @@ import all
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
 import max
 import println
 import readInput
+import takeUntilInclusive
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -18,7 +18,7 @@ fun main() {
 
     val input = readInput("aoc2022/day08/Day08")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>) = runBlocking {
@@ -30,11 +30,7 @@ fun part1(input: List<String>) = runBlocking {
 fun part2(input: List<String>) = runBlocking {
     input.toForest().run {
         allPositions
-            .map { position ->
-                viewScore(position).also {
-                    println("view score at $position is $it")
-                }
-            }
+            .map { position -> viewScore(position) }
             .max()
     }
 }
@@ -52,7 +48,7 @@ private suspend fun Forest.treesVisible(from: Position, direction: Direction) =
     this[from].let { heightAtPosition ->
         positions(from, direction)
             .map { otherPosition -> this[otherPosition] }
-            .takeWhile { otherHeight -> otherHeight <= heightAtPosition }
+            .takeUntilInclusive { otherHeight -> otherHeight >= heightAtPosition }
             .count()
     }
 

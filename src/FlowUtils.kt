@@ -1,7 +1,4 @@
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.reduce
+import kotlinx.coroutines.flow.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -14,3 +11,7 @@ suspend fun Flow<Int>.min() = reduce { minimum, value -> min(minimum, value) }
 
 suspend fun Flow<Int>.max() = reduce { maximum, value -> max(maximum, value) }
 
+fun <T> Flow<T>.takeUntilInclusive(predicate: (T) -> Boolean) = transformWhile {
+    emit(it)
+    !predicate(it)
+}
