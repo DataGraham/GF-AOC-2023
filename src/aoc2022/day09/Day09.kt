@@ -23,20 +23,22 @@ fun part1(input: List<String>): Int {
         .map { it.parseMoveInstruction() }
     //.joinToString(separator = "\n").println()
     return movesInstructions.fold(RopeState()) { state, moveInstruction ->
-        state.apply {
-            repeat(moveInstruction.count) {
-                headPosition = headPosition move moveInstruction.direction
-                tailPosition = getNextTailPosition(
-                    headPosition = headPosition,
-                    tailPosition = tailPosition
-                )
-                tailVisitedPositions += tailPosition
-            }
-        }
+        state perform moveInstruction
     }.tailVisitedPositions.size
 }
 
 fun part2(input: List<String>) = input.size
+
+private infix fun RopeState.perform(moveInstruction: MoveInstruction) = apply {
+    repeat(moveInstruction.count) {
+        headPosition = headPosition move moveInstruction.direction
+        tailPosition = getNextTailPosition(
+            headPosition = headPosition,
+            tailPosition = tailPosition
+        )
+        tailVisitedPositions += tailPosition
+    }
+}
 
 private data class RopeState(
     var headPosition: Position = Position(0, 0),
@@ -44,33 +46,13 @@ private data class RopeState(
     val tailVisitedPositions: MutableSet<Position> = mutableSetOf(Position(0, 0))
 )
 
-private fun getNextTailPosition(
-    headPosition: Position,
-    tailPosition: Position
-): Position {
-    val deltaPosition = headPosition - tailPosition
-    return when {
-        max(abs(deltaPosition.deltaRow), abs(deltaPosition.deltaCol)) <= 1 ->
-            tailPosition
-
-        // TODO: Always just add to the tail position,
-        //  the "unit-ized" version of deltaPosition
-        //  (i.e. divide each component by its absolute value if it's non-zero).
-
-        deltaPosition.deltaRow == 0 -> tailPosition.copy(
-            col = tailPosition.col + (deltaPosition.deltaCol / abs(deltaPosition.deltaCol))
-        )
-
-        deltaPosition.deltaCol == 0 -> tailPosition.copy(
-            row = tailPosition.row + (deltaPosition.deltaRow / abs(deltaPosition.deltaRow))
-        )
-
-        else -> tailPosition.copy(
-            row = tailPosition.row + (deltaPosition.deltaRow / abs(deltaPosition.deltaRow)),
-            col = tailPosition.col + (deltaPosition.deltaCol / abs(deltaPosition.deltaCol))
-        )
+private fun getNextTailPosition(headPosition: Position, tailPosition: Position) =
+    (headPosition - tailPosition).let { deltaPosition ->
+        when {
+            deltaPosition.isAdjacent -> tailPosition
+            else -> tailPosition + deltaPosition.unitized()
+        }
     }
-}
 
 private fun String.parseMoveInstruction() = MoveInstruction(
     direction = this[0].toDirection(),
@@ -93,6 +75,23 @@ private data class DeltaPosition(val deltaRow: Int, val deltaCol: Int)
 
 private operator fun Position.minus(otherPosition: Position) =
     DeltaPosition(deltaRow = row - otherPosition.row, deltaCol = col - otherPosition.col)
+
+private operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
+    row = row + deltaPosition.deltaRow,
+    col = col + deltaPosition.deltaCol
+)
+
+private val DeltaPosition.isAdjacent get() = max(abs(deltaRow), abs(deltaCol)) <= 1
+
+private fun DeltaPosition.unitized() = copy(
+    deltaRow = deltaRow.unitized(),
+    deltaCol = deltaCol.unitized()
+)
+
+private fun Int.unitized() = when (this) {
+    0 -> 0
+    else -> this / abs(this)
+}
 
 private enum class Direction(val rowDelta: Int, val colDelta: Int) {
     Up(rowDelta = -1, colDelta = 0),
