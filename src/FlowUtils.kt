@@ -11,7 +11,7 @@ suspend fun Flow<Int>.min() = reduce { minimum, value -> min(minimum, value) }
 
 suspend fun Flow<Int>.max() = reduce { maximum, value -> max(maximum, value) }
 
-fun <T> Flow<T>.takeUntilInclusive(predicate: (T) -> Boolean) = transformWhile {
+fun <T> Flow<T>.takeUntilInclusive(isLast: (T) -> Boolean) = transformWhile {
     emit(it)
-    !predicate(it)
+    !isLast(it)
 }
