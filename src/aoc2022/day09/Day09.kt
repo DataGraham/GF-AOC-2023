@@ -1,6 +1,7 @@
 package aoc2022.day09
 
 import aoc2022.day09.Direction.*
+import aoc2022.day09.Position.Companion.ORIGIN
 import println
 import readInput
 import requireSubstringAfter
@@ -18,33 +19,32 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    val movesInstructions = input
-        .map { it.parseMoveInstruction() }
-    //.joinToString(separator = "\n").println()
-    return movesInstructions.fold(RopeState()) { state, moveInstruction ->
-        state perform moveInstruction
-    }.tailVisitedPositions.size
-}
+fun part1(input: List<String>) = input
+    .map { line -> line.parseMoveInstruction() }
+    .flatMap { moveInstruction -> moveInstruction.toDirections() }
+    .scan(RopePosition.DEFAULT) { rope, direction -> rope move direction }
+    .map { ropePosition -> ropePosition.tailPosition }
+    .toSet()
+    .size
 
 fun part2(input: List<String>) = input.size
 
-private infix fun RopeState.perform(moveInstruction: MoveInstruction) = apply {
-    repeat(moveInstruction.count) {
-        headPosition = headPosition move moveInstruction.direction
-        tailPosition = getNextTailPosition(
-            headPosition = headPosition,
-            tailPosition = tailPosition
-        )
-        tailVisitedPositions += tailPosition
+private data class RopePosition(val headPosition: Position, val tailPosition: Position) {
+    companion object {
+        val DEFAULT = RopePosition(headPosition = ORIGIN, tailPosition = ORIGIN)
     }
 }
 
-private data class RopeState(
-    var headPosition: Position = Position(0, 0),
-    var tailPosition: Position = Position(0, 0),
-    val tailVisitedPositions: MutableSet<Position> = mutableSetOf(Position(0, 0))
-)
+private infix fun RopePosition.move(direction: Direction) =
+    (headPosition move direction).let { newHeadPosition ->
+        RopePosition(
+            headPosition = newHeadPosition,
+            tailPosition = getNextTailPosition(
+                headPosition = newHeadPosition,
+                tailPosition = tailPosition
+            )
+        )
+    }
 
 private fun getNextTailPosition(headPosition: Position, tailPosition: Position) =
     (headPosition - tailPosition).let { deltaPosition ->
@@ -69,7 +69,13 @@ private fun Char.toDirection() = when (this) {
 
 private data class MoveInstruction(val direction: Direction, val count: Int)
 
-private data class Position(val row: Int, val col: Int)
+private fun MoveInstruction.toDirections() = List(count) { direction }
+
+private data class Position(val row: Int, val col: Int) {
+    companion object {
+        val ORIGIN = Position(row = 0, col = 0)
+    }
+}
 
 private data class DeltaPosition(val deltaRow: Int, val deltaCol: Int)
 
@@ -88,10 +94,7 @@ private fun DeltaPosition.unitized() = copy(
     deltaCol = deltaCol.unitized()
 )
 
-private fun Int.unitized() = when (this) {
-    0 -> 0
-    else -> this / abs(this)
-}
+private fun Int.unitized() = this / abs(this).coerceAtLeast(1)
 
 private enum class Direction(val rowDelta: Int, val colDelta: Int) {
     Up(rowDelta = -1, colDelta = 0),
