@@ -47,7 +47,7 @@ fun <T> Collection<T>.toInfiniteSequence() = generateSequence(this) { it }.flatt
 
 fun IntRange.dropLast(n: Int) = start..last - n
 
-fun List<String>.printLines() = joinToString(separator = "\n").println()
+fun Collection<Any>.printLines() = joinToString(separator = "\n").println()
 
 fun List<String>.transposedStrings() = first().indices.map { col ->
     map { line -> line[col] }.joinToString(separator = "")

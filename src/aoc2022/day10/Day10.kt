@@ -3,6 +3,7 @@ package aoc2022.day10
 import aoc2022.day10.Instruction.AddInstruction
 import aoc2022.day10.Instruction.NoopInstruction
 import aoc2022.day10.UniversalInstructionParser.Companion.parseInstructions
+import printLines
 import println
 import readInput
 
@@ -18,11 +19,19 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    input.parseInstructions().joinToString(separator = "\n").println()
+    val instructions = input.parseInstructions()
+    val deltas = instructions.flatMap { it.deltas() }
+    val registerValues = deltas.scan(0) { acc, delta -> acc + delta }
+    registerValues.printLines()
     return input.size
 }
 
 fun part2(input: List<String>) = input.size
+
+private fun Instruction.deltas() = when(this) {
+    is AddInstruction -> listOf(0, value)
+    NoopInstruction -> listOf(0)
+}
 
 private sealed class Instruction {
     data class AddInstruction(val value: Int) : Instruction()
