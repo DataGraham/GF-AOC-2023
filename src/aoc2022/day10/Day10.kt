@@ -18,19 +18,28 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
+private const val INITIAL_REGISTER_VALUE = 1
+
 fun part1(input: List<String>): Int {
     val instructions = input.parseInstructions()
     val deltas = instructions.flatMap { it.deltas() }
-    val registerValues = deltas.scan(0) { acc, delta -> acc + delta }
+    val registerValues = deltas.scan(INITIAL_REGISTER_VALUE) { registerValue, delta -> registerValue + delta }
     val signalStrengths = registerValues.mapIndexed { cycleIndex, registerValue ->
-        (cycleIndex + 1) * registerValue
-    }.apply { printLines() }
-    return input.size
+        (cycleIndex + INITIAL_REGISTER_VALUE) * registerValue
+    }
+    val interestingSignalStrengths = signalStrengths.filterIndexed { cycleIndex, _ ->
+        cycleIndex.isInterestingCycleIndex.also { isInteresting ->
+            println("cycleIndex $cycleIndex interesting? $isInteresting")
+        }
+    }
+    return interestingSignalStrengths.sum()
 }
 
 fun part2(input: List<String>) = input.size
 
-private fun Instruction.deltas() = when(this) {
+val Int.isInterestingCycleIndex get() = (this - 19) % 40 == 0
+
+private fun Instruction.deltas() = when (this) {
     is AddInstruction -> listOf(0, value)
     NoopInstruction -> listOf(0)
 }
@@ -72,6 +81,6 @@ private class RegexInstructionParser(
     private val regex by lazy { Regex(pattern) }
 
     override fun parse(line: String) = regex.matchEntire(line)?.let { match ->
-        processCaptures(match.groupValues.drop(1))
+        processCaptures(match.groupValues.drop(INITIAL_REGISTER_VALUE))
     }
 }
