@@ -22,7 +22,9 @@ fun part1(input: List<String>): Int {
     val instructions = input.parseInstructions()
     val deltas = instructions.flatMap { it.deltas() }
     val registerValues = deltas.scan(0) { acc, delta -> acc + delta }
-    registerValues.printLines()
+    val signalStrengths = registerValues.mapIndexed { cycleIndex, registerValue ->
+        (cycleIndex + 1) * registerValue
+    }.apply { printLines() }
     return input.size
 }
 
