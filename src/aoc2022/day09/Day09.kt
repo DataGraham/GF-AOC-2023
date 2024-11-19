@@ -41,14 +41,16 @@ private data class RopePosition(val knotPositions: List<Position>) {
 private infix fun RopePosition.move(direction: Direction) =
     RopePosition(
         knotPositions = (listOf((knotPositions.first() move direction)) + knotPositions.drop(1))
-            .runningReduce { h, t -> getNextTailPosition(h, t) }
+            .runningReduce { leadingPosition, trailingPosition ->
+                trailingPosition follow leadingPosition
+            }
     )
 
-private fun getNextTailPosition(headPosition: Position, tailPosition: Position) =
-    (headPosition - tailPosition).let { deltaPosition ->
+private infix fun Position.follow(leadingPosition: Position) =
+    (leadingPosition - this).let { deltaPosition ->
         when {
-            deltaPosition.isAdjacent -> tailPosition
-            else -> tailPosition + deltaPosition.unitized()
+            deltaPosition.isAdjacent -> this
+            else -> this + deltaPosition.unitized()
         }
     }
 
