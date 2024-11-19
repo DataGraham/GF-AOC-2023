@@ -44,11 +44,8 @@ private data class RopePosition(val knotPositions: List<Position>) {
 private infix fun RopePosition.move(direction: Direction) =
     (knotPositions.first() move direction).let { newHeadPosition ->
         RopePosition(
-            knotPositions = listOf(newHeadPosition) +
-                knotPositions
-                    .drop(1)
-                    .scan(newHeadPosition) { h, t -> getNextTailPosition(h, t) }
-                    .drop(1)
+            knotPositions = (listOf(newHeadPosition) + knotPositions.drop(1))
+                .runningReduce { h, t -> getNextTailPosition(h, t) }
         )
     }
 
