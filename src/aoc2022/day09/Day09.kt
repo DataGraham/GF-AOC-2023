@@ -12,7 +12,7 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day09/Day09_test")
     check(part1(testInput).also { it.println() } == 13)
-    // check(part2(testInput).also { it.println() } == 8)
+    check(part2(testInput).also { it.println() } == 1)
 
     val input = readInput("aoc2022/day09/Day09")
     println("Part 1 Answer: ${part1(input)}")
@@ -22,27 +22,33 @@ fun main() {
 fun part1(input: List<String>) = input
     .map { line -> line.parseMoveInstruction() }
     .flatMap { moveInstruction -> moveInstruction.toDirections() }
-    .scan(RopePosition.DEFAULT) { rope, direction -> rope move direction }
-    .map { ropePosition -> ropePosition.tailPosition }
+    .scan(RopePosition.ofLength(2)) { rope, direction -> rope move direction }
+    .map { ropePosition -> ropePosition.knotPositions.last() }
     .toSet()
     .size
 
-fun part2(input: List<String>) = input.size
+fun part2(input: List<String>) = input
+    .map { line -> line.parseMoveInstruction() }
+    .flatMap { moveInstruction -> moveInstruction.toDirections() }
+    .scan(RopePosition.ofLength(10)) { rope, direction -> rope move direction }
+    .map { ropePosition -> ropePosition.knotPositions.last() }
+    .toSet()
+    .size
 
-private data class RopePosition(val headPosition: Position, val tailPosition: Position) {
+private data class RopePosition(val knotPositions: List<Position>) {
     companion object {
-        val DEFAULT = RopePosition(headPosition = ORIGIN, tailPosition = ORIGIN)
+        fun ofLength(length: Int) = RopePosition(List(length) { ORIGIN })
     }
 }
 
 private infix fun RopePosition.move(direction: Direction) =
-    (headPosition move direction).let { newHeadPosition ->
+    (knotPositions.first() move direction).let { newHeadPosition ->
         RopePosition(
-            headPosition = newHeadPosition,
-            tailPosition = getNextTailPosition(
-                headPosition = newHeadPosition,
-                tailPosition = tailPosition
-            )
+            knotPositions = listOf(newHeadPosition) +
+                knotPositions
+                    .drop(1)
+                    .scan(newHeadPosition) { h, t -> getNextTailPosition(h, t) }
+                    .drop(1)
         )
     }
 
