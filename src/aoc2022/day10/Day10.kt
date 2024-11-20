@@ -24,7 +24,7 @@ fun part1(input: List<String>) = input
     .asSequence()
     .flatMap { instruction -> instruction.deltas() }
     .scan(INITIAL_REGISTER_VALUE) { registerValue, delta -> registerValue + delta }
-    .mapIndexed { cycleIndex, registerValue -> (cycleIndex + INITIAL_REGISTER_VALUE) * registerValue }
+    .mapIndexed { cycleIndex, registerValue -> (cycleIndex + 1) * registerValue }
     .filterIndexed { cycleIndex, _ -> cycleIndex.isInterestingCycleIndex }
     .sum()
 
