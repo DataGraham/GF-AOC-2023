@@ -3,7 +3,6 @@ package aoc2022.day10
 import aoc2022.day10.Instruction.AddInstruction
 import aoc2022.day10.Instruction.NoopInstruction
 import aoc2022.day10.UniversalInstructionParser.Companion.parseInstructions
-import printLines
 import println
 import readInput
 
@@ -20,20 +19,14 @@ fun main() {
 
 private const val INITIAL_REGISTER_VALUE = 1
 
-fun part1(input: List<String>): Int {
-    val instructions = input.parseInstructions()
-    val deltas = instructions.flatMap { it.deltas() }
-    val registerValues = deltas.scan(INITIAL_REGISTER_VALUE) { registerValue, delta -> registerValue + delta }
-    val signalStrengths = registerValues.mapIndexed { cycleIndex, registerValue ->
-        (cycleIndex + INITIAL_REGISTER_VALUE) * registerValue
-    }
-    val interestingSignalStrengths = signalStrengths.filterIndexed { cycleIndex, _ ->
-        cycleIndex.isInterestingCycleIndex.also { isInteresting ->
-            println("cycleIndex $cycleIndex interesting? $isInteresting")
-        }
-    }
-    return interestingSignalStrengths.sum()
-}
+fun part1(input: List<String>) = input
+    .parseInstructions()
+    .asSequence()
+    .flatMap { instruction -> instruction.deltas() }
+    .scan(INITIAL_REGISTER_VALUE) { registerValue, delta -> registerValue + delta }
+    .mapIndexed { cycleIndex, registerValue -> (cycleIndex + INITIAL_REGISTER_VALUE) * registerValue }
+    .filterIndexed { cycleIndex, _ -> cycleIndex.isInterestingCycleIndex }
+    .sum()
 
 fun part2(input: List<String>) = input.size
 
