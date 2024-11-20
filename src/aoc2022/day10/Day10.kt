@@ -5,6 +5,7 @@ import aoc2022.day10.Instruction.NoopInstruction
 import aoc2022.day10.UniversalInstructionParser.Companion.parseInstructions
 import println
 import readInput
+import kotlin.math.abs
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -14,21 +15,32 @@ fun main() {
 
     val input = readInput("aoc2022/day10/Day10")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer:\n${part2(input)}")
 }
 
 private const val INITIAL_REGISTER_VALUE = 1
+private const val CRT_WIDTH = 40
 
-fun part1(input: List<String>) = input
+fun part1(input: List<String>) = registerValues(input)
+    .mapIndexed { cycleIndex, registerValue -> (cycleIndex + 1) * registerValue }
+    .filterIndexed { cycleIndex, _ -> cycleIndex.isInterestingCycleIndex }
+    .sum() // TODO: Could optimize by using 1 rather than multiplying for uninteresting cycle indexes
+
+fun part2(input: List<String>) = registerValues(input)
+    .chunked(CRT_WIDTH)
+    .map { lineRegisterValues ->
+        String(
+            lineRegisterValues.mapIndexed { pixelX, spriteX ->
+                if (abs(pixelX - spriteX) <= 1) '#' else ' '
+            }.toCharArray()
+        )
+    }.joinToString(separator = "\n")
+
+private fun registerValues(input: List<String>) = input
     .parseInstructions()
     .asSequence()
     .flatMap { instruction -> instruction.deltas() }
     .scan(INITIAL_REGISTER_VALUE) { registerValue, delta -> registerValue + delta }
-    .mapIndexed { cycleIndex, registerValue -> (cycleIndex + 1) * registerValue }
-    .filterIndexed { cycleIndex, _ -> cycleIndex.isInterestingCycleIndex }
-    .sum()
-
-fun part2(input: List<String>) = input.size
 
 val Int.isInterestingCycleIndex get() = (this - 19) % 40 == 0
 
