@@ -86,6 +86,6 @@ private class RegexInstructionParser(
     private val regex by lazy { Regex(pattern) }
 
     override fun parse(line: String) = regex.matchEntire(line)?.let { match ->
-        processCaptures(match.groupValues.drop(INITIAL_REGISTER_VALUE))
+        processCaptures(match.groupValues.drop(1))
     }
 }
