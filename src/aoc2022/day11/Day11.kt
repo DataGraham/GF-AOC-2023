@@ -1,5 +1,6 @@
 package aoc2022.day11
 
+import aoc2022.day11.MonkeyParser.Companion.parseMonkeys
 import aoc2022.day11.Operand.Constant
 import aoc2022.day11.Operand.Old
 import aoc2022.day11.Operator.Addition
@@ -22,24 +23,21 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val monkeys = with(MonkeyParser()) {
-        input
-            .split { it.isBlank() }
-            .map { monkeyStrings -> parseMonkey(monkeyStrings) }
-    }
-    repeat(ROUND_COUNT) {
-        monkeys.forEach { monkey ->
-            while (monkey.hasItem) {
-                val nextThrow = monkey.getNextThrow()
-                monkeys[nextThrow.monkeyIndex].catch(nextThrow.itemWorry)
-            }
-        }
-    }
-    val inspectionCounts = monkeys
+    val monkeys = input.parseMonkeys()
+    repeat(ROUND_COUNT) { monkeys.performRound() }
+    return monkeys
         .map { monkey -> monkey.inspectionCount }
-        .sorted()
-        .reversed()
-    return inspectionCounts[0] * inspectionCounts[1]
+        .sortedDescending()
+        .let { inspectionCountsDescending ->
+            inspectionCountsDescending[0] * inspectionCountsDescending[1]
+        }
+}
+
+private fun List<Monkey>.performRound() = forEach { monkey ->
+    while (monkey.hasItem) {
+        val itemThrow = monkey.getNextThrow()
+        this[itemThrow.monkeyIndex].catch(itemThrow.itemWorry)
+    }
 }
 
 fun part2(input: List<String>) = input.size
@@ -110,6 +108,12 @@ private data class Test(
 }
 
 private class MonkeyParser {
+    companion object {
+        fun List<String>.parseMonkeys() = with(MonkeyParser()) {
+            split { line -> line.isBlank() }.map { monkeyStrings -> parseMonkey(monkeyStrings) }
+        }
+    }
+
     private val startingItemsParser = startingItemsParser()
     private val operationParser = operationParser()
     private val testParser = testParser()
