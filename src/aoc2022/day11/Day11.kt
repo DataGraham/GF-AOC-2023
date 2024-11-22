@@ -9,8 +9,6 @@ import println
 import readInput
 import split
 
-private const val ROUND_COUNT = 20
-
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day11/Day11_test")
@@ -24,7 +22,7 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     val monkeys = input.parseMonkeys()
-    repeat(ROUND_COUNT) { monkeys.performRound() }
+    repeat(20) { monkeys.performRound() }
     return monkeys
         .map { monkey -> monkey.inspectionCount }
         .sortedDescending()
@@ -33,14 +31,18 @@ fun part1(input: List<String>): Int {
         }
 }
 
+// TODO: Use the test's modulus to reduce the worry level rather than dividing by 3?
+//  But it has to be valid for all monkeys still, as if it wasn't reduced.
+//  The GCD looks like it will be 1.
+//  But what if we kept, for each item, a map from each Monkey's modulus (m) to worry % m?
+fun part2(input: List<String>) = input.size
+
 private fun List<Monkey>.performRound() = forEach { monkey ->
     while (monkey.hasItem) {
         val itemThrow = monkey.getNextThrow()
         this[itemThrow.monkeyIndex].catch(itemThrow.itemWorry)
     }
 }
-
-fun part2(input: List<String>) = input.size
 
 private class Monkey(
     startingItems: StartingItems,
