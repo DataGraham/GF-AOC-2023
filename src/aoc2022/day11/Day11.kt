@@ -7,50 +7,75 @@ import aoc2022.day11.Operator.Multiplication
 import println
 import readInput
 import split
-import java.util.regex.Pattern
+
+private const val ROUND_COUNT = 20
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day11/Day11_test")
-    check(part1(testInput).also { it.println() } == 21)
+    check(part1(testInput).also { it.println() } == 10605)
     //check(part2(testInput).also { it.println() } == 8)
 
-    //val input = readInput("aoc2022/day11/Day11")
-    //println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("aoc2022/day11/Day11")
+    println("Part 1 Answer: ${part1(input)}")
     //println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
-    val monkeyStrings = input.split { it.isBlank() }
     val monkeys = with(MonkeyParser()) {
-        monkeyStrings.map { monkeyStrings -> parseMonkey(monkeyStrings) }
+        input
+            .split { it.isBlank() }
+            .map { monkeyStrings -> parseMonkey(monkeyStrings) }
     }
-    return input.size
+    repeat(ROUND_COUNT) {
+        monkeys.forEach { monkey ->
+            while (monkey.hasItem) {
+                val nextThrow = monkey.getNextThrow()
+                monkeys[nextThrow.monkeyIndex].catch(nextThrow.itemWorry)
+            }
+        }
+    }
+    val inspectionCounts = monkeys
+        .map { monkey -> monkey.inspectionCount }
+        .sorted()
+        .reversed()
+    return inspectionCounts[0] * inspectionCounts[1]
 }
 
 fun part2(input: List<String>) = input.size
 
-private class MonkeyParser {
-    private val startingItemsParser = startingItemsParser()
-    private val operationParser = operationParser()
-    private val testParser = testParser()
+private class Monkey(
+    startingItems: StartingItems,
+    private val operation: Operation,
+    private val test: Test
+) {
+    private val itemWorryLevels = startingItems.itemWorryNumbers.toMutableList()
 
-    fun parseMonkey(monkeyStrings: List<String>) = Monkey(
-        startingItems = startingItemsParser.parse(monkeyStrings[1]),
-        operation = operationParser.parse(monkeyStrings[2]),
-        test = testParser.parse(monkeyStrings.subList(3, 6).joinToString(separator = ""))
-    )
+    val hasItem get() = itemWorryLevels.isNotEmpty()
+
+    fun getNextThrow(): Throw {
+        val originalWorryLevel = itemWorryLevels.removeFirst()
+        ++inspectionCount // Only after we didn't throw an exception trying to remove a non-existent item
+        val newWorryLevel = operation(originalWorryLevel) / 3 // TODO: Use a value class for a WorryLevel?
+        return Throw(
+            itemWorry = newWorryLevel,
+            monkeyIndex = test.nextMonkeyIndex(newWorryLevel)
+        )
+    }
+
+    fun catch(itemWorryLevel: Int) {
+        itemWorryLevels += itemWorryLevel
+    }
+
+    var inspectionCount: Int = 0
+        private set
 }
 
-private data class Monkey(
-    val startingItems: StartingItems,
-    val operation: Operation,
-    val test: Test
-)
+private data class Throw(val itemWorry: Int, val monkeyIndex: Int)
 
 private data class StartingItems(val itemWorryNumbers: List<Int>)
 
-private data class Operation(val operator: Operator, val operand: Operand) {
+private data class Operation(private val operator: Operator, private val operand: Operand) {
     operator fun invoke(worry: Int) = operator(
         worry,
         when (operand) {
@@ -72,12 +97,28 @@ private enum class Operator {
 }
 
 private sealed class Operand {
-    data class Constant(val value: Int): Operand()
-    data object Old: Operand()
+    data class Constant(val value: Int) : Operand()
+    data object Old : Operand()
 }
 
-private data class Test(val modulus: Int, val trueMonkeyIndex: Int, val falseMonkeyIndex: Int) {
+private data class Test(
+    private val modulus: Int,
+    private val trueMonkeyIndex: Int,
+    private val falseMonkeyIndex: Int
+) {
     fun nextMonkeyIndex(worry: Int) = if (worry % modulus == 0) trueMonkeyIndex else falseMonkeyIndex
+}
+
+private class MonkeyParser {
+    private val startingItemsParser = startingItemsParser()
+    private val operationParser = operationParser()
+    private val testParser = testParser()
+
+    fun parseMonkey(monkeyStrings: List<String>) = Monkey(
+        startingItems = startingItemsParser.parse(monkeyStrings[1]),
+        operation = operationParser.parse(monkeyStrings[2]),
+        test = testParser.parse(monkeyStrings.subList(3, 6).joinToString(separator = ""))
+    )
 }
 
 private fun startingItemsParser() =
