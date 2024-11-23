@@ -46,9 +46,9 @@ private fun productOf2MaxMonkeyInspections(
     getWorryReducer: List<Monkey>.() -> worryReducer
 ): Long {
     val monkeys = input.parseMonkeys()
-    val worryReducer = monkeys.getWorryReducer()
+    val reduceWorry = monkeys.getWorryReducer()
     repeat(roundCount) {
-        monkeys.performRound(reduceWorry = worryReducer)
+        monkeys.performRound(reduceWorry = reduceWorry)
     }
     return monkeys
         .map { monkey -> monkey.inspectionCount }
