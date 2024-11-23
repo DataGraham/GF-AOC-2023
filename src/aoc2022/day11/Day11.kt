@@ -149,12 +149,12 @@ private class MonkeyParser {
 
     private val startingItemsParser = startingItemsParser()
     private val operationParser = operationParser()
-    private val testParser = testParser()
+    private val testParser = TestParser()
 
     fun parseMonkey(monkeyStrings: List<String>) = Monkey(
         startingItems = startingItemsParser.parse(monkeyStrings[1]),
         operation = operationParser.parse(monkeyStrings[2]),
-        test = testParser.parse(monkeyStrings.subList(3, 6).joinToString(separator = ""))
+        test = testParser.parseTest(monkeyStrings.subList(3, 6))
     )
 }
 
@@ -182,15 +182,29 @@ private fun operationParser() =
         )
     }
 
-// TODO: Parse each line separately instead?
-private fun testParser() =
-    RegexParser("""  Test: divisible by (\d+)    If true: throw to monkey (\d+)    If false: throw to monkey (\d+)""") { captures ->
-        Test(
-            modulus = captures[0].toInt(),
-            trueMonkeyIndex = captures[1].toInt(),
-            falseMonkeyIndex = captures[2].toInt()
-        )
-    }
+private class TestParser {
+    private val testModulusParser = testModulusParser()
+    private val trueMonkeyIndexParser = trueMonkeyIndexParser()
+    private val falseMonkeyIndexParser = falseMonkeyIndexParser()
+
+    fun parseTest(testStrings: List<String>) = Test(
+        modulus = testModulusParser.parse(testStrings[0]),
+        trueMonkeyIndex = trueMonkeyIndexParser.parse(testStrings[1]),
+        falseMonkeyIndex = falseMonkeyIndexParser.parse(testStrings[2])
+    )
+}
+
+private fun testModulusParser() =
+    intParser("""  Test: divisible by (\d+)""")
+
+private fun trueMonkeyIndexParser() =
+    intParser("""    If true: throw to monkey (\d+)""")
+
+private fun falseMonkeyIndexParser() =
+    intParser("""    If false: throw to monkey (\d+)""")
+
+private fun intParser(pattern: String) =
+    RegexParser(pattern) { captures -> captures.first().toInt() }
 
 private interface Parser<T> {
     fun parse(line: String): T
@@ -198,7 +212,8 @@ private interface Parser<T> {
 
 // TODO: Use this generalized version elsewhere?
 private class UniversalParser<T>(private vararg val parsers: Parser<T>) : Parser<T> {
-    fun List<String>.parseInstructions() = map { line -> parse(line) }
+    fun parseLines(input: List<String>) = input.map { line -> parse(line) }
+
     override fun parse(line: String) = parsers.firstNotNullOf { parser ->
         try {
             parser.parse(line)
