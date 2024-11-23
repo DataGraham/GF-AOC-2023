@@ -37,11 +37,15 @@ fun part1(input: List<String>): Int {
 //  But what if we kept, for each item, a map from each Monkey's modulus (m) to worry % m?
 fun part2(input: List<String>) = input.size
 
-private fun List<Monkey>.performRound() = forEach { monkey ->
-    while (monkey.hasItem) {
-        val itemThrow = monkey.getNextThrow()
-        this[itemThrow.monkeyIndex].catch(itemThrow.itemWorry)
+private fun List<Monkey>.performRound() =
+    forEach { monkey ->
+        while (monkey.hasItem) {
+            catchItem(monkey.throwItem())
+        }
     }
+
+private fun List<Monkey>.catchItem(itemThrow: ItemThrow) {
+    this[itemThrow.monkeyIndex].catchItem(itemThrow.itemWorry)
 }
 
 private class Monkey(
@@ -53,17 +57,17 @@ private class Monkey(
 
     val hasItem get() = itemWorryLevels.isNotEmpty()
 
-    fun getNextThrow(): Throw {
+    fun throwItem(): ItemThrow {
         val originalWorryLevel = itemWorryLevels.removeFirst()
         ++inspectionCount // Only after we didn't throw an exception trying to remove a non-existent item
         val newWorryLevel = operation(originalWorryLevel) / 3 // TODO: Use a value class for a WorryLevel?
-        return Throw(
+        return ItemThrow(
             itemWorry = newWorryLevel,
             monkeyIndex = test.nextMonkeyIndex(newWorryLevel)
         )
     }
 
-    fun catch(itemWorryLevel: Int) {
+    fun catchItem(itemWorryLevel: Int) {
         itemWorryLevels += itemWorryLevel
     }
 
@@ -71,7 +75,7 @@ private class Monkey(
         private set
 }
 
-private data class Throw(val itemWorry: Int, val monkeyIndex: Int)
+private data class ItemThrow(val itemWorry: Int, val monkeyIndex: Int)
 
 private data class StartingItems(val itemWorryNumbers: List<Int>)
 
