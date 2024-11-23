@@ -35,7 +35,7 @@ fun part2(input: List<String>) = productOf2MaxMonkeyInspections(
     getWorryReducer = { modulo(testModulusLcm) }
 )
 
-private fun modulo(modulus: Long) = { worry: Long -> (worry % modulus) }
+private fun modulo(modulus: Long) = { input: Long -> (input % modulus) }
 
 private val List<Monkey>.testModulusLcm
     get() = lcm(map { monkey -> monkey.testModulus })
@@ -62,11 +62,8 @@ typealias worryReducer = (Long) -> Long
 
 private fun List<Monkey>.performRound(reduceWorry: worryReducer) =
     forEach { monkey ->
-        // TODO: Just get a list of throws instead?
-        //  That's cleaner because we don't have the leaky semantic of hasItem meaning we are allowed to call throwItem
-        while (monkey.hasItem) {
-            catchItem(monkey.throwItem(reduceWorry = reduceWorry))
-        }
+        monkey.inspectItems(reduceWorry = reduceWorry)
+            .forEach { itemThrow -> catchItem(itemThrow) }
     }
 
 private fun List<Monkey>.catchItem(itemThrow: ItemThrow) {
@@ -82,17 +79,20 @@ private class Monkey(
 
     val testModulus get() = test.modulus
 
-    val hasItem get() = itemWorryLevels.isNotEmpty()
-
-    fun throwItem(reduceWorry: worryReducer): ItemThrow {
-        val originalWorryLevel = itemWorryLevels.removeFirst()
-        ++inspectionCount // Only after we didn't throw an exception trying to remove a non-existent item
-        val newWorryLevel = reduceWorry(operation(originalWorryLevel)) // TODO: Use a value class for a WorryLevel?
-        return ItemThrow(
-            itemWorry = newWorryLevel,
-            monkeyIndex = test.nextMonkeyIndex(newWorryLevel)
-        )
+    fun inspectItems(reduceWorry: worryReducer): List<ItemThrow> {
+        val itemThrows = itemWorryLevels.map { originalWorryLevel ->
+            // TODO: Use a value class for a WorryLevel?
+            itemThrow(newWorryLevel = reduceWorry(operation(originalWorryLevel)))
+        }
+        inspectionCount += itemThrows.size
+        itemWorryLevels.clear()
+        return itemThrows
     }
+
+    private fun itemThrow(newWorryLevel: Long) = ItemThrow(
+        itemWorry = newWorryLevel,
+        monkeyIndex = test.nextMonkeyIndex(newWorryLevel)
+    )
 
     fun catchItem(itemWorryLevel: Long) {
         itemWorryLevels += itemWorryLevel
