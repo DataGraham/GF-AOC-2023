@@ -1,10 +1,12 @@
 package aoc2022.day11
 
+import RegexParser
 import aoc2022.day11.MonkeyParser.Companion.parseMonkeys
 import aoc2022.day11.Operand.Constant
 import aoc2022.day11.Operand.Old
 import aoc2022.day11.Operator.Addition
 import aoc2022.day11.Operator.Multiplication
+import intParser
 import lcm
 import println
 import readInput
@@ -202,35 +204,3 @@ private fun trueMonkeyIndexParser() =
 
 private fun falseMonkeyIndexParser() =
     intParser("""    If false: throw to monkey (\d+)""")
-
-private fun intParser(pattern: String) =
-    RegexParser(pattern) { captures -> captures.first().toInt() }
-
-private interface Parser<T> {
-    fun parse(line: String): T
-}
-
-// TODO: Use this generalized version elsewhere?
-private class UniversalParser<T>(private vararg val parsers: Parser<T>) : Parser<T> {
-    fun parseLines(input: List<String>) = input.map { line -> parse(line) }
-
-    override fun parse(line: String) = parsers.firstNotNullOf { parser ->
-        try {
-            parser.parse(line)
-        } catch (e: Exception) {
-            null
-        }
-    }
-}
-
-// TODO: Use this generalized version elsewhere?
-private class RegexParser<T>(
-    private val pattern: String,
-    private val processCaptures: (List<String>) -> T
-) : Parser<T> {
-    private val regex by lazy { Regex(pattern) }
-
-    override fun parse(line: String) = processCaptures(
-        regex.matchEntire(line)!!.groupValues.drop(1)
-    )
-}
