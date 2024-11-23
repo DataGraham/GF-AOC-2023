@@ -5,6 +5,7 @@ import aoc2022.day11.Operand.Constant
 import aoc2022.day11.Operand.Old
 import aoc2022.day11.Operator.Addition
 import aoc2022.day11.Operator.Multiplication
+import lcm
 import println
 import readInput
 import split
@@ -12,32 +13,54 @@ import split
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day11/Day11_test")
-    check(part1(testInput).also { it.println() } == 10605)
-    //check(part2(testInput).also { it.println() } == 8)
+    check(part1(testInput).also { it.println() } == 10605L)
+    check(part2(testInput).also { it.println() } == 2713310158)
 
     val input = readInput("aoc2022/day11/Day11")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
+fun part1(input: List<String>) = productOf2MaxMonkeyInspections(
+    input = input,
+    roundCount = 20,
+    getWorryReducer = {
+        { worry -> worry / 3 }
+    }
+)
+
+fun part2(input: List<String>) = productOf2MaxMonkeyInspections(
+    input = input,
+    roundCount = 10000,
+    getWorryReducer = { modulo(testModulusLcm) }
+)
+
+private fun modulo(modulus: Long) = { worry: Long -> (worry % modulus) }
+
+private val List<Monkey>.testModulusLcm
+    get() = lcm(map { monkey -> monkey.testModulus })
+
+private fun productOf2MaxMonkeyInspections(
+    input: List<String>,
+    roundCount: Int,
+    getWorryReducer: List<Monkey>.() -> worryReducer
+): Long {
     val monkeys = input.parseMonkeys()
-    repeat(20) { monkeys.performRound { worry -> worry / 3 } }
+    val worryReducer = monkeys.getWorryReducer()
+    repeat(roundCount) {
+        monkeys.performRound(reduceWorry = worryReducer)
+    }
     return monkeys
         .map { monkey -> monkey.inspectionCount }
         .sortedDescending()
         .let { inspectionCountsDescending ->
-            inspectionCountsDescending[0] * inspectionCountsDescending[1]
+            inspectionCountsDescending[0].toLong() * inspectionCountsDescending[1].toLong()
         }
 }
 
-// TODO: Use the test's modulus to reduce the worry level rather than dividing by 3?
-//  But it has to be valid for all monkeys still, as if it wasn't reduced.
-//  The GCD looks like it will be 1.
-//  But what if we kept, for each item, a map from each Monkey's modulus (m) to worry % m?
-fun part2(input: List<String>) = input.size
+typealias worryReducer = (Long) -> Long
 
-private fun List<Monkey>.performRound(reduceWorry: (Int) -> Int) =
+private fun List<Monkey>.performRound(reduceWorry: worryReducer) =
     forEach { monkey ->
         // TODO: Just get a list of throws instead?
         //  That's cleaner because we don't have the leaky semantic of hasItem meaning we are allowed to call throwItem
@@ -57,9 +80,11 @@ private class Monkey(
 ) {
     private val itemWorryLevels = startingItems.itemWorryNumbers.toMutableList()
 
+    val testModulus get() = test.modulus
+
     val hasItem get() = itemWorryLevels.isNotEmpty()
 
-    fun throwItem(reduceWorry: (Int) -> Int): ItemThrow {
+    fun throwItem(reduceWorry: worryReducer): ItemThrow {
         val originalWorryLevel = itemWorryLevels.removeFirst()
         ++inspectionCount // Only after we didn't throw an exception trying to remove a non-existent item
         val newWorryLevel = reduceWorry(operation(originalWorryLevel)) // TODO: Use a value class for a WorryLevel?
@@ -69,7 +94,7 @@ private class Monkey(
         )
     }
 
-    fun catchItem(itemWorryLevel: Int) {
+    fun catchItem(itemWorryLevel: Long) {
         itemWorryLevels += itemWorryLevel
     }
 
@@ -77,12 +102,12 @@ private class Monkey(
         private set
 }
 
-private data class ItemThrow(val itemWorry: Int, val monkeyIndex: Int)
+private data class ItemThrow(val itemWorry: Long, val monkeyIndex: Int)
 
-private data class StartingItems(val itemWorryNumbers: List<Int>)
+private data class StartingItems(val itemWorryNumbers: List<Long>)
 
 private data class Operation(private val operator: Operator, private val operand: Operand) {
-    operator fun invoke(worry: Int) = operator(
+    operator fun invoke(worry: Long) = operator(
         worry,
         when (operand) {
             is Constant -> operand.value
@@ -93,26 +118,26 @@ private data class Operation(private val operator: Operator, private val operand
 
 private enum class Operator {
     Addition {
-        override fun invoke(first: Int, second: Int) = first + second
+        override fun invoke(first: Long, second: Long) = first + second
     },
     Multiplication {
-        override fun invoke(first: Int, second: Int) = first * second
+        override fun invoke(first: Long, second: Long) = first * second
     };
 
-    abstract operator fun invoke(first: Int, second: Int): Int
+    abstract operator fun invoke(first: Long, second: Long): Long
 }
 
 private sealed class Operand {
-    data class Constant(val value: Int) : Operand()
+    data class Constant(val value: Long) : Operand()
     data object Old : Operand()
 }
 
 private data class Test(
-    private val modulus: Int,
+    val modulus: Int,
     private val trueMonkeyIndex: Int,
     private val falseMonkeyIndex: Int
 ) {
-    fun nextMonkeyIndex(worry: Int) = if (worry % modulus == 0) trueMonkeyIndex else falseMonkeyIndex
+    fun nextMonkeyIndex(worry: Long) = if (worry % modulus == 0L) trueMonkeyIndex else falseMonkeyIndex
 }
 
 private class MonkeyParser {
@@ -138,7 +163,7 @@ private fun startingItemsParser() =
         StartingItems(
             itemWorryNumbers = captures[0]
                 .split(", ")
-                .map { worryString -> worryString.toInt() }
+                .map { worryString -> worryString.toLong() }
         )
     }
 
@@ -152,7 +177,7 @@ private fun operationParser() =
             },
             operand = captures[1]
                 .takeIf { it.isNotEmpty() }
-                ?.let { constantString -> Constant(constantString.toInt()) }
+                ?.let { constantString -> Constant(constantString.toLong()) }
                 ?: Old
         )
     }
