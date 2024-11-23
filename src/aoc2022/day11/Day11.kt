@@ -22,7 +22,7 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     val monkeys = input.parseMonkeys()
-    repeat(20) { monkeys.performRound() }
+    repeat(20) { monkeys.performRound { worry -> worry / 3 } }
     return monkeys
         .map { monkey -> monkey.inspectionCount }
         .sortedDescending()
@@ -37,10 +37,12 @@ fun part1(input: List<String>): Int {
 //  But what if we kept, for each item, a map from each Monkey's modulus (m) to worry % m?
 fun part2(input: List<String>) = input.size
 
-private fun List<Monkey>.performRound() =
+private fun List<Monkey>.performRound(reduceWorry: (Int) -> Int) =
     forEach { monkey ->
+        // TODO: Just get a list of throws instead?
+        //  That's cleaner because we don't have the leaky semantic of hasItem meaning we are allowed to call throwItem
         while (monkey.hasItem) {
-            catchItem(monkey.throwItem())
+            catchItem(monkey.throwItem(reduceWorry = reduceWorry))
         }
     }
 
@@ -57,10 +59,10 @@ private class Monkey(
 
     val hasItem get() = itemWorryLevels.isNotEmpty()
 
-    fun throwItem(): ItemThrow {
+    fun throwItem(reduceWorry: (Int) -> Int): ItemThrow {
         val originalWorryLevel = itemWorryLevels.removeFirst()
         ++inspectionCount // Only after we didn't throw an exception trying to remove a non-existent item
-        val newWorryLevel = operation(originalWorryLevel) / 3 // TODO: Use a value class for a WorryLevel?
+        val newWorryLevel = reduceWorry(operation(originalWorryLevel)) // TODO: Use a value class for a WorryLevel?
         return ItemThrow(
             itemWorry = newWorryLevel,
             monkeyIndex = test.nextMonkeyIndex(newWorryLevel)
