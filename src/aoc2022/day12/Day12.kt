@@ -1,12 +1,12 @@
 package aoc2022.day12
 
 import Direction
+import Edge
 import aoc2022.day12.HeightMapEntry.EndEntry
 import aoc2022.day12.HeightMapEntry.StartEntry
-import day17.Edge
-import day17.leastPathCost
 import get
 import isPositionValid
+import leastPathCost
 import move
 import positionOf
 import println
