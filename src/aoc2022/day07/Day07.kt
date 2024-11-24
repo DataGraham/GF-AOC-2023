@@ -3,14 +3,16 @@ package aoc2022.day07
 import aoc2022.day07.FileSystemBuilder.Companion.buildFileSystem
 import aoc2022.day07.FileSystemItem.DirectoryItem
 import aoc2022.day07.parsing.UniversalTerminalLineParser.Companion.parseTerminalLines
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import measurePerformance
 import min
 import println
 import readInput
 import sum
-import kotlin.math.min
 
 fun main() {
     // test if implementation meets criteria from the description, like:
