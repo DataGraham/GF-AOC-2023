@@ -51,11 +51,11 @@ fun part1(input: List<String>): Int {
             direction = null,
             straightMoveCount = 0
         ),
-        edges = {
+        edges = { node ->
             Direction.entries
-                .filter { it != direction?.opposite }
+                .filter { it != node.direction?.opposite }
                 .mapNotNull { direction ->
-                    (this move direction)
+                    (node move direction)
                         .takeIf { it.position.isValid() && it.straightMoveCount <= maxStraightMoves }
                         ?.let { destination ->
                             Edge(
@@ -65,7 +65,7 @@ fun part1(input: List<String>): Int {
                         }
                 }
         },
-        isEnd = { position == endPosition }
+        isEnd = { node -> node.position == endPosition }
     )
 }
 
@@ -83,18 +83,18 @@ fun part2(input: List<String>): Int {
             direction = null,
             straightMoveCount = 0
         ),
-        edges = {
-            when (straightMoveCount) {
+        edges = { t ->
+            when (t.straightMoveCount) {
                 // If moved 0, any direction but backwards (that's valid on the map)
                 0 -> Direction.entries
                 // If moved 1 through 3, only straight (which maybe you can't even do if it's off the map)
-                in 0..<minStraightMoves -> listOf(direction!!)
+                in 0..<minStraightMoves -> listOf(t.direction!!)
                 // If moved 4 through 9, any direction on the map except backwards
-                in minStraightMoves..<maxStraightMoves -> Direction.entries.filter { it != direction?.opposite }
+                in minStraightMoves..<maxStraightMoves -> Direction.entries.filter { it != t.direction?.opposite }
                 // If moved 10, must turn left or right
-                else -> Direction.entries.filter { it != direction && it != direction?.opposite }
+                else -> Direction.entries.filter { it != t.direction && it != t.direction?.opposite }
             }.mapNotNull { direction ->
-                (this move direction)
+                (t move direction)
                     .takeIf { it.position.isValid() }
                     ?.let { destination ->
                         Edge(
@@ -104,7 +104,7 @@ fun part2(input: List<String>): Int {
                     }
             }
         },
-        isEnd = { position == endPosition && straightMoveCount >= minStraightMoves }
+        isEnd = { t -> t.position == endPosition && t.straightMoveCount >= minStraightMoves }
     )
 }
 

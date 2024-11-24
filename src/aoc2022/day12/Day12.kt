@@ -2,8 +2,7 @@ package aoc2022.day12
 
 import Direction
 import Edge
-import aoc2022.day12.HeightMapEntry.EndEntry
-import aoc2022.day12.HeightMapEntry.StartEntry
+import aoc2022.day12.HeightMapEntry.Type.*
 import get
 import isPositionValid
 import leastPathCost
@@ -23,46 +22,50 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-sealed class HeightMapEntry {
-    data class HeightEntry(override val height: Int) : HeightMapEntry()
-
-    data object StartEntry : HeightMapEntry() {
-        override val height: Int
-            get() = 0 // equivalent to 'a' (call it zero)
-    }
-
-    data object EndEntry : HeightMapEntry() {
-        override val height: Int
-            get() = 25 // equivalent to 'z' (25 more than 'a')
-    }
-
-    abstract val height: Int
-}
-
 fun part1(input: List<String>): Int {
     val heightMap = input.map { line ->
-        line.map { character ->
-            when (character) {
-                'S' -> StartEntry
-                'E' -> EndEntry
-                in 'a'..'z' -> HeightMapEntry.HeightEntry(character - 'a')
-                else -> throw IllegalArgumentException("Invalid height map character '$character'")
-            }
-        }
+        line.map { character -> character.toHeightMapEntry() }
     }
     return leastPathCost(
-        start = heightMap.positionOf(StartEntry)!!,
-        edges = {
+        start = heightMap.positionOf { heightMapEntry2 -> heightMapEntry2.type == Start }!!,
+        edges = { position ->
             Direction.entries
-                .map { direction -> this move direction }
+                .map { direction -> position move direction }
                 .filter { adjacentPosition -> heightMap.isPositionValid(adjacentPosition) }
                 .filter { adjacentPosition ->
-                    heightMap[adjacentPosition].height <= heightMap[this].height + 1
+                    heightMap[adjacentPosition].height <= heightMap[position].height + 1
                 }
                 .map { adjacentPosition -> Edge(adjacentPosition, 1) }
         },
-        isEnd = { heightMap[this] == EndEntry }
+        isEnd = { position -> heightMap[position].type == End }
     )
 }
 
 fun part2(input: List<String>) = input.size
+
+data class HeightMapEntry(val height: Int, val type: Type) {
+    enum class Type {
+        Normal,
+        Start,
+        End
+    }
+}
+
+private fun Char.toHeightMapEntry() = HeightMapEntry(
+    height = toHeight(),
+    type = toHeightMapEntryType()
+)
+
+private fun Char.toHeightMapEntryType() = when (this) {
+    'S' -> Start
+    'E' -> End
+    in 'a'..'z' -> Normal
+    else -> throw IllegalArgumentException("Invalid height map character '$this'")
+}
+
+private fun Char.toHeight(): Int = when (this) {
+    'S' -> 'a'.toHeight()
+    'E' -> 'z'.toHeight()
+    in 'a'..'z' -> this - 'a'
+    else -> throw IllegalArgumentException("Invalid height map character '$this'")
+}

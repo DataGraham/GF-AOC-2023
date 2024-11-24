@@ -8,8 +8,8 @@ import java.util.*
  * */
 fun <T> leastPathCost(
     start: T,
-    edges: T.() -> List<Edge<T>>,
-    isEnd: T.() -> Boolean
+    edges: (T) -> List<Edge<T>>,
+    isEnd: (T) -> Boolean
 ): Int {
     val visitedNodes = mutableSetOf<T>()
     val leastKnownDistance = mutableMapOf(start to 0)
@@ -24,9 +24,9 @@ fun <T> leastPathCost(
         val nodeToVisit = nodesToVisit.remove()
 
         // No need to explore connections leading FROM an "end" node.
-        if (nodeToVisit.node.isEnd()) continue
+        if (isEnd(nodeToVisit.node)) continue
 
-        nodeToVisit.node.edges()
+        edges(nodeToVisit.node)
             .filter { it.destination !in visitedNodes }
             .forEach { edge ->
                 leastKnownDistance.compute(edge.destination) { adjacentNode: T, previousDistance: Int? ->
@@ -57,7 +57,7 @@ fun <T> leastPathCost(
     }
 
     // Return min cost among all "endish" nodes
-    val endNodes = leastKnownDistance.filter { it.key.isEnd() }
+    val endNodes = leastKnownDistance.filter { isEnd(it.key) }
     val leastCostEndNode = endNodes.minBy { it.value }
     // val pathBack = generateSequence(leastCostEndNode.key) { nodeBefore[it] }.toList()
     // pathBack.reversed().joinToString(separator = "\n").println()

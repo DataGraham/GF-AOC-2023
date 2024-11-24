@@ -14,9 +14,11 @@ operator fun <T> List<List<T>>.get(position: Position) =
 fun <T> List<List<T>>.isPositionValid(position: Position) =
     with(position) { row in indices && col in this@isPositionValid[row].indices }
 
-fun <T> List<List<T>>.positionOf(t: T) =
+fun <T> List<List<T>>.positionOf(t: T) = positionOf { it == t }
+
+fun <T> List<List<T>>.positionOf(predicate: (T) -> Boolean) =
     withIndex().firstNotNullOfOrNull { (row, rowValues) ->
-        rowValues.indexOf(t)
+        rowValues.indexOfFirst(predicate)
             .takeIf { index -> index != -1 }
             ?.let { col -> Position(row = row, col = col) }
     }
