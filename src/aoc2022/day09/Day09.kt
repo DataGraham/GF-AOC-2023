@@ -1,12 +1,17 @@
 package aoc2022.day09
 
-import aoc2022.day09.Direction.*
-import aoc2022.day09.Position.Companion.ORIGIN
+import Direction
+import Direction.*
+import Position
+import Position.Companion.ORIGIN
+import isAdjacent
+import minus
+import move
+import plus
 import println
 import readInput
 import requireSubstringAfter
-import kotlin.math.abs
-import kotlin.math.max
+import unitized
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -71,39 +76,3 @@ private data class MoveInstruction(val direction: Direction, val count: Int)
 
 private fun MoveInstruction.toDirections() = List(count) { direction }
 
-private data class Position(val row: Int, val col: Int) {
-    companion object {
-        val ORIGIN = Position(row = 0, col = 0)
-    }
-}
-
-private data class DeltaPosition(val deltaRow: Int, val deltaCol: Int)
-
-private operator fun Position.minus(otherPosition: Position) =
-    DeltaPosition(deltaRow = row - otherPosition.row, deltaCol = col - otherPosition.col)
-
-private operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
-    row = row + deltaPosition.deltaRow,
-    col = col + deltaPosition.deltaCol
-)
-
-private val DeltaPosition.isAdjacent get() = max(abs(deltaRow), abs(deltaCol)) <= 1
-
-private fun DeltaPosition.unitized() = copy(
-    deltaRow = deltaRow.unitized(),
-    deltaCol = deltaCol.unitized()
-)
-
-private fun Int.unitized() = this / abs(this).coerceAtLeast(1)
-
-private enum class Direction(val rowDelta: Int, val colDelta: Int) {
-    Up(rowDelta = -1, colDelta = 0),
-    Down(rowDelta = 1, colDelta = 0),
-    Right(rowDelta = 0, colDelta = 1),
-    Left(rowDelta = 0, colDelta = -1);
-}
-
-private infix fun Position.move(direction: Direction) = Position(
-    row = row + direction.rowDelta,
-    col = col + direction.colDelta
-)

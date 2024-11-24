@@ -142,6 +142,7 @@ infix fun Position.move(direction: Direction) = Position(
 )
 
 /**
+ * TODO: Move this out
  * @param start Starting "node".
  * @param edges Returns list of edges leading from the given node.
  * @param isEnd Identifies whether a node qualifies as a desired destination. Need not identify a unique node.

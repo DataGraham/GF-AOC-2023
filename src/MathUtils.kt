@@ -1,4 +1,7 @@
+import kotlin.math.abs
 import kotlin.math.pow
+
+fun Int.unitized() = this / abs(this).coerceAtLeast(1)
 
 fun lcm(numbers: List<Int>) = numbers
     // Compute the prime factorization of each path length
