@@ -14,6 +14,10 @@ operator fun <T> List<List<T>>.get(position: Position) =
 fun <T> List<List<T>>.isPositionValid(position: Position) =
     with(position) { row in indices && col in this@isPositionValid[row].indices }
 
+fun <T> List<List<T>>.allPositions() = flatMapIndexed { row, rowValues ->
+    rowValues.indices.map { col -> Position(row = row, col = col) }
+}
+
 fun <T> List<List<T>>.positionOf(t: T) = positionOf { it == t }
 
 fun <T> List<List<T>>.positionOf(predicate: (T) -> Boolean) =
