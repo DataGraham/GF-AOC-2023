@@ -1,7 +1,11 @@
 package aoc2022.day13
 
+import aoc2022.day13.Element.ArrayElement
+import aoc2022.day13.Element.IntegerElement
+import printLines
 import println
 import readInput
+import kotlin.coroutines.CoroutineContext
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -14,18 +18,46 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = input.size
+fun part1(input: List<String>): Int {
+    parseElements(input)
+    return input.size
+}
 
 fun part2(input: List<String>) = input.size
 
 private fun parseElements(input: List<String>) {
-    val tokenRegex = Regex("""\[|]|(d+)""")
-    input.forEach { line ->
-        tokenRegex.findAll(line).println()
+    input
+        .filter { line -> line.isNotBlank() }
+        .map { line -> parseElement(line) }
+        .printLines()
+}
+
+private fun parseElement(line: String): Element {
+    val tokenRegex = Regex("""\[|]|\d+""")
+    val tokens = tokenRegex.findAll(line).map { match -> match.value }
+    val arrayStack = mutableListOf<MutableList<Element>>()
+    tokens.forEach { token ->
+        when (token) {
+            "[" -> arrayStack += mutableListOf<Element>()
+            "]" -> {
+                val finishedElement = ArrayElement(arrayStack.removeLast())
+                if (arrayStack.isEmpty()) return finishedElement
+                else arrayStack.last() += finishedElement
+            }
+
+            else -> arrayStack.last() += IntegerElement(token.toInt())
+        }
     }
+    throw IllegalArgumentException("Missing ']'")
 }
 
 private sealed class Element {
-    data class IntegerElement(val value: Int) : Element()
-    data class ArrayElement(val elements: List<Element>) : Element()
+    data class IntegerElement(val value: Int) : Element() {
+        override fun toString() = value.toString()
+    }
+    data class ArrayElement(val elements: List<Element>) : Element() {
+        override fun toString(): String {
+            return "[${elements.joinToString(separator = ",")}]"
+        }
+    }
 }
