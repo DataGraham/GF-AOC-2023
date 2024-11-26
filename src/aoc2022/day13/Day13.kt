@@ -30,10 +30,10 @@ fun part2(input: List<String>): Int {
         ArrayElement(ArrayElement(IntegerElement(2))),
         ArrayElement(ArrayElement(IntegerElement(6))),
     )
-    val packets = (parseElements(input) + dividerPackets).sorted()
+    val sortedPackets = (parseElements(input) + dividerPackets).sorted()
     return dividerPackets
-        .map { packets.indexOf(it) + 1 }
-        .reduce { acc, value -> acc * value}
+        .map { dividerPacket -> sortedPackets.indexOf(dividerPacket) + 1 }
+        .reduce { product, value -> product * value}
 }
 
 private fun parseElements(input: List<String>) =
