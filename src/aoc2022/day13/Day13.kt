@@ -9,11 +9,11 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day13/Day13_test")
     check(part1(testInput).also { it.println() } == 13)
-    //check(part2(testInput).also { it.println() } == 29)
+    check(part2(testInput).also { it.println() } == 140)
 
     val input = readInput("aoc2022/day13/Day13")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
@@ -25,13 +25,21 @@ fun part1(input: List<String>): Int {
         .sum()
 }
 
-fun part2(input: List<String>) = input.size
+fun part2(input: List<String>): Int {
+    val dividerPackets = listOf(
+        ArrayElement(ArrayElement(IntegerElement(2))),
+        ArrayElement(ArrayElement(IntegerElement(6))),
+    )
+    val packets = (parseElements(input) + dividerPackets).sorted()
+    return dividerPackets
+        .map { packets.indexOf(it) + 1 }
+        .reduce { acc, value -> acc * value}
+}
 
-private fun parseElements(input: List<String>): List<Element> {
-    return input
+private fun parseElements(input: List<String>) =
+    input
         .filter { line -> line.isNotBlank() }
         .map { line -> parseElement(line) }
-}
 
 private sealed class Element : Comparable<Element> {
     data class IntegerElement(val value: Int) : Element() {
