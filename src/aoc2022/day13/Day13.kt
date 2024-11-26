@@ -32,6 +32,35 @@ private fun parseElements(input: List<String>) {
         .printLines()
 }
 
+private sealed class Element : Comparable<Element> {
+    data class IntegerElement(val value: Int) : Element() {
+        override fun compareTo(other: Element) = when (other) {
+            is IntegerElement -> value.compareTo(other.value)
+            is ArrayElement -> ArrayElement(listOf(this)).compareTo(other)
+        }
+
+        override fun toString() = value.toString()
+    }
+
+    /** TODO: vararg
+     */
+    data class ArrayElement(val elements: List<Element>) : Element() {
+        override fun compareTo(other: Element): Int {
+            return when (other) {
+                is IntegerElement -> compareTo(ArrayElement(listOf(other)))
+                is ArrayElement -> {
+                    if (elements.size != other.elements.size) elements.size.compareTo(other.elements.size)
+                    else elements.zip(other.elements).map { it.first.compareTo(it.second) }.firstOrNull { it != 0 } ?: 0
+                }
+            }
+        }
+
+        override fun toString(): String {
+            return "[${elements.joinToString(separator = ",")}]"
+        }
+    }
+}
+
 private fun parseElement(line: String): Element {
     val tokenRegex = Regex("""\[|]|\d+""")
     val tokens = tokenRegex.findAll(line).map { match -> match.value }
@@ -49,15 +78,4 @@ private fun parseElement(line: String): Element {
         }
     }
     throw IllegalArgumentException("Missing ']'")
-}
-
-private sealed class Element {
-    data class IntegerElement(val value: Int) : Element() {
-        override fun toString() = value.toString()
-    }
-    data class ArrayElement(val elements: List<Element>) : Element() {
-        override fun toString(): String {
-            return "[${elements.joinToString(separator = ",")}]"
-        }
-    }
 }
