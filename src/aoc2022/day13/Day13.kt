@@ -19,17 +19,20 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    parseElements(input)
-    return input.size
+    return parseElements(input)
+        .chunked(2)
+        .mapIndexed { pairIndex, (left, right) ->
+            if (left < right) pairIndex + 1 else 0
+        }
+        .sum()
 }
 
 fun part2(input: List<String>) = input.size
 
-private fun parseElements(input: List<String>) {
-    input
+private fun parseElements(input: List<String>): List<Element> {
+    return input
         .filter { line -> line.isNotBlank() }
         .map { line -> parseElement(line) }
-        .printLines()
 }
 
 private sealed class Element : Comparable<Element> {
@@ -49,6 +52,7 @@ private sealed class Element : Comparable<Element> {
             return when (other) {
                 is IntegerElement -> compareTo(ArrayElement(listOf(other)))
                 is ArrayElement -> {
+                    // TODO: I think the size logic is only valid IFF all elements of the shorter list compare equal
                     if (elements.size != other.elements.size) elements.size.compareTo(other.elements.size)
                     else elements.zip(other.elements).map { it.first.compareTo(it.second) }.firstOrNull { it != 0 } ?: 0
                 }
