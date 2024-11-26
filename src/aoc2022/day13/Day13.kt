@@ -48,13 +48,11 @@ private sealed class Element : Comparable<Element> {
 
         override fun compareTo(other: Element): Int = when (other) {
             is IntegerElement -> compareTo(ArrayElement(other))
-            is ArrayElement -> {
-                elements
-                    .zip(other.elements)
-                    .map { (left, right) -> left.compareTo(right) }
-                    .firstOrNull { comparison -> comparison != 0 }
-                    ?: elements.size.compareTo(other.elements.size)
-            }
+            is ArrayElement -> elements
+                .zip(other.elements)
+                .map { (left, right) -> left.compareTo(right) }
+                .firstOrNull { comparison -> comparison != 0 }
+                ?: elements.size.compareTo(other.elements.size)
         }
 
         override fun toString(): String {
