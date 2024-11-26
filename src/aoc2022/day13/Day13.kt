@@ -2,10 +2,8 @@ package aoc2022.day13
 
 import aoc2022.day13.Element.ArrayElement
 import aoc2022.day13.Element.IntegerElement
-import printLines
 import println
 import readInput
-import kotlin.coroutines.CoroutineContext
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -13,8 +11,8 @@ fun main() {
     check(part1(testInput).also { it.println() } == 13)
     //check(part2(testInput).also { it.println() } == 29)
 
-    //val input = readInput("aoc2022/day13/Day13")
-    //println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("aoc2022/day13/Day13")
+    println("Part 1 Answer: ${part1(input)}")
     //println("Part 2 Answer: ${part2(input)}")
 }
 
@@ -39,23 +37,23 @@ private sealed class Element : Comparable<Element> {
     data class IntegerElement(val value: Int) : Element() {
         override fun compareTo(other: Element) = when (other) {
             is IntegerElement -> value.compareTo(other.value)
-            is ArrayElement -> ArrayElement(listOf(this)).compareTo(other)
+            is ArrayElement -> ArrayElement(this).compareTo(other)
         }
 
         override fun toString() = value.toString()
     }
 
-    /** TODO: vararg
-     */
     data class ArrayElement(val elements: List<Element>) : Element() {
-        override fun compareTo(other: Element): Int {
-            return when (other) {
-                is IntegerElement -> compareTo(ArrayElement(listOf(other)))
-                is ArrayElement -> {
-                    // TODO: I think the size logic is only valid IFF all elements of the shorter list compare equal
-                    if (elements.size != other.elements.size) elements.size.compareTo(other.elements.size)
-                    else elements.zip(other.elements).map { it.first.compareTo(it.second) }.firstOrNull { it != 0 } ?: 0
-                }
+        constructor(vararg elements: Element) : this(elements.toList())
+
+        override fun compareTo(other: Element): Int = when (other) {
+            is IntegerElement -> compareTo(ArrayElement(other))
+            is ArrayElement -> {
+                elements
+                    .zip(other.elements)
+                    .map { (left, right) -> left.compareTo(right) }
+                    .firstOrNull { comparison -> comparison != 0 }
+                    ?: elements.size.compareTo(other.elements.size)
             }
         }
 
@@ -65,13 +63,14 @@ private sealed class Element : Comparable<Element> {
     }
 }
 
-private fun parseElement(line: String): Element {
+private fun parseElement(line: String): ArrayElement {
     val tokenRegex = Regex("""\[|]|\d+""")
     val tokens = tokenRegex.findAll(line).map { match -> match.value }
     val arrayStack = mutableListOf<MutableList<Element>>()
     tokens.forEach { token ->
         when (token) {
             "[" -> arrayStack += mutableListOf<Element>()
+
             "]" -> {
                 val finishedElement = ArrayElement(arrayStack.removeLast())
                 if (arrayStack.isEmpty()) return finishedElement
