@@ -1,9 +1,9 @@
 package aoc2022.day14
 
 import Position
-import minus
 import println
 import readInput
+import relativeTo
 import kotlin.math.max
 import kotlin.math.min
 
@@ -47,14 +47,10 @@ fun part1(input: List<String>): Int {
     val isPositionFilled = List(numRows) { MutableList(numCols) { false } }
     rockFormations.forEach { rockFormation ->
         rockFormation
-            .map { position ->
-                (position - origin).let { (relativeRow, relativeCol) ->
-                    Position(row = relativeRow, col = relativeCol)
-                }
-            }
+            .map { position -> position relativeTo origin }
             .windowed(size = 2, step = 1)
-            .forEach { (start, end) ->
-                positions(from = start, to = end).forEach { position ->
+            .forEach { (relativeStart, relativeEnd) ->
+                (relativeStart lineTo relativeEnd).forEach { position ->
                     isPositionFilled[position.row][position.col] = true
                 }
             }
@@ -74,13 +70,13 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>) = input.size
 
-private fun positions(from: Position, to: Position) = when {
-    from.col == to.col ->
-        (min(from.row, to.row)..max(from.row, to.row))
-            .map { row -> Position(row = row, col = from.col) }
+private infix fun Position.lineTo(to: Position) = when {
+    col == to.col ->
+        (min(row, to.row)..max(row, to.row))
+            .map { row -> Position(row = row, col = col) }
 
-    from.row == to.row -> (min(from.col, to.col)..max(from.col, to.col))
-        .map { col -> Position(row = from.row, col = col) }
+    row == to.row -> (min(col, to.col)..max(col, to.col))
+        .map { col -> Position(row = row, col = col) }
 
-    else -> throw IllegalArgumentException("Neither row nor column values match (from: $from, to: $to)")
+    else -> throw IllegalArgumentException("Neither row nor column values match (from: ${this}, to: $to)")
 }

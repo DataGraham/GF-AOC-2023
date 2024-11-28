@@ -29,8 +29,12 @@ fun <T> List<List<T>>.positionOf(predicate: (T) -> Boolean) =
 
 data class DeltaPosition(val deltaRow: Int, val deltaCol: Int)
 
+fun DeltaPosition.toPosition() = Position(row = deltaRow, col = deltaCol)
+
 operator fun Position.minus(otherPosition: Position) =
     DeltaPosition(deltaRow = row - otherPosition.row, deltaCol = col - otherPosition.col)
+
+infix fun Position.relativeTo(other: Position) = (this - other).toPosition()
 
 operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
     row = row + deltaPosition.deltaRow,
@@ -44,6 +48,7 @@ fun DeltaPosition.unitized() = copy(
     deltaCol = deltaCol.unitized()
 )
 
+// TODO: These should each contain a deltaPosition?
 enum class Direction(val rowDelta: Int, val colDelta: Int) {
     Up(rowDelta = -1, colDelta = 0),
     Down(rowDelta = 1, colDelta = 0),
