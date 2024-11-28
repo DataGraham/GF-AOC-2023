@@ -1,8 +1,10 @@
 package aoc2022.day14
 
 import Position
+import minus
 import println
 import readInput
+import kotlin.math.max
 import kotlin.math.min
 
 fun main() {
@@ -22,7 +24,7 @@ fun part1(input: List<String>): Int {
     val rockFormations = input.map { line ->
         regex.findAll(line)
             .map { match -> match.groupValues.drop(1).map { capture -> capture.toInt() } }
-            .map { (row, col) -> Position(row = row, col = col) }
+            .map { (x, y) -> Position(row = y, col = x) }
             .toList()
     }
 
@@ -43,7 +45,26 @@ fun part1(input: List<String>): Int {
 
     // Create a grid and initialize, subtracting the minimum from each x and y.
     val isPositionFilled = List(numRows) { MutableList(numCols) { false } }
-    
+    rockFormations.forEach { rockFormation ->
+        rockFormation
+            .map { position ->
+                (position - origin).let { (relativeRow, relativeCol) ->
+                    Position(row = relativeRow, col = relativeCol)
+                }
+            }
+            .windowed(size = 2, step = 1)
+            .forEach { (start, end) ->
+                positions(from = start, to = end).forEach { position ->
+                    isPositionFilled[position.row][position.col] = true
+                }
+            }
+    }
+
+    isPositionFilled
+        .joinToString(separator = "\n") { row ->
+            String(row.map { if (it) '#' else '.' }.toCharArray())
+        }
+        .println()
 
     // Iterate each piece of sand until it rests,
     // Finally stopping just before the first piece that falls outside of the min/max grid.
@@ -52,3 +73,14 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>) = input.size
+
+private fun positions(from: Position, to: Position) = when {
+    from.col == to.col ->
+        (min(from.row, to.row)..max(from.row, to.row))
+            .map { row -> Position(row = row, col = from.col) }
+
+    from.row == to.row -> (min(from.col, to.col)..max(from.col, to.col))
+        .map { col -> Position(row = from.row, col = col) }
+
+    else -> throw IllegalArgumentException("Neither row nor column values match (from: $from, to: $to)")
+}
