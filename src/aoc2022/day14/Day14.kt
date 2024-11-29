@@ -65,10 +65,12 @@ fun part1(input: List<String>): Int {
     // Iterate each piece of sand until it rests,
     // Finally stopping just before the first piece that falls outside of the min/max grid.
     var sandCount = 0
-    while (cave.produceSand(sandStartPosition relativeTo origin) == SandResult.Rest) {
+    val relativeSandStart = sandStartPosition relativeTo origin
+    while (cave.produceSand(relativeSandStart) == SandResult.Rest) {
         //cave.println()
         ++sandCount
     }
+    cave.println()
     return sandCount
 }
 
