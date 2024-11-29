@@ -1,6 +1,9 @@
 package aoc2022.day14
 
+import DeltaPosition
 import Position
+import isPositionValid
+import plus
 import println
 import readInput
 import relativeTo
@@ -13,8 +16,8 @@ fun main() {
     check(part1(testInput).also { it.println() } == 24)
     //check(part2(testInput).also { it.println() } == 140)
 
-    //val input = readInput("aoc2022/day14/Day14")
-    //println("Part 1 Answer: ${part1(input)}")
+    val input = readInput("aoc2022/day14/Day14")
+    println("Part 1 Answer: ${part1(input)}")
     //println("Part 2 Answer: ${part2(input)}")
 }
 
@@ -44,31 +47,73 @@ fun part1(input: List<String>): Int {
     val numCols = max.col - origin.col + 1
 
     // Create a grid and initialize, subtracting the minimum from each x and y.
-    val isPositionFilled = List(numRows) { MutableList(numCols) { false } }
+    // TODO: Consider instead a set of filled positions only?
+    val cave = Cave(numRows = numRows, numCols = numCols)
     rockFormations.forEach { rockFormation ->
         rockFormation
             .map { position -> position relativeTo origin }
             .windowed(size = 2, step = 1)
             .forEach { (relativeStart, relativeEnd) ->
-                (relativeStart lineTo relativeEnd).forEach { position ->
-                    isPositionFilled[position.row][position.col] = true
+                (relativeStart lineTo relativeEnd).forEach { rockPosition ->
+                    cave.fillPosition(rockPosition)
                 }
             }
     }
 
-    isPositionFilled
-        .joinToString(separator = "\n") { row ->
-            String(row.map { if (it) '#' else '.' }.toCharArray())
-        }
-        .println()
+    cave.println()
 
     // Iterate each piece of sand until it rests,
     // Finally stopping just before the first piece that falls outside of the min/max grid.
-
-    return input.size
+    var sandCount = 0
+    while (cave.produceSand(sandStartPosition relativeTo origin) == SandResult.Rest) {
+        //cave.println()
+        ++sandCount
+    }
+    return sandCount
 }
 
 fun part2(input: List<String>) = input.size
+
+private class Cave(private val numRows: Int, private val numCols: Int) {
+    companion object {
+        private val flowDirections = listOf(
+            DeltaPosition(deltaRow = 1, deltaCol = 0),
+            DeltaPosition(deltaRow = 1, deltaCol = -1),
+            DeltaPosition(deltaRow = 1, deltaCol = 1)
+        )
+    }
+
+    private val isPositionFilled = List(numRows) { MutableList(numCols) { false } }
+
+    private val Position.isValid get() = isPositionFilled.isPositionValid(this)
+
+    fun fillPosition(position: Position) {
+        isPositionFilled[position.row][position.col] = true
+    }
+
+    fun produceSand(sandSource: Position) =
+        sandPositions(sandSource).last().let { lastSandPosition ->
+            if (lastSandPosition.isValid) SandResult.Rest.also { fillPosition(lastSandPosition) }
+            else SandResult.Abyss
+        }
+
+    private fun sandPositions(sandSource: Position) =
+        generateSequence(sandSource) { sandPosition ->
+            if (!sandPosition.isValid) null
+            else flowDirections.firstNotNullOfOrNull { delta ->
+                (sandPosition + delta).takeIf { nextPosition ->
+                    !nextPosition.isValid || !isPositionFilled[nextPosition.row][nextPosition.col]
+                }
+            }
+        }
+
+    override fun toString() =
+        isPositionFilled.joinToString(separator = "\n") { row ->
+            String(row.map { isFilled -> if (isFilled) '#' else '.' }.toCharArray())
+        }
+}
+
+enum class SandResult { Rest, Abyss }
 
 private infix fun Position.lineTo(to: Position) = when {
     col == to.col ->
