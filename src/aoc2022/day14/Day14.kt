@@ -15,12 +15,13 @@ import kotlin.math.min
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day14/Day14_test")
-    check(part1(testInput).also { it.println() } == 24)
-    //check(part2(testInput).also { it.println() } == 93)
-
     val input = readInput("aoc2022/day14/Day14")
+
+    check(part1(testInput).also { it.println() } == 24)
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+
+    check(part2(testInput).also { it.println() } == 93)
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
@@ -60,7 +61,16 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    return 1
+    val rockFormations = parseRockFormations(input)
+    val floorRow = rockFormations
+        .maxOf { rockFormation ->
+            rockFormation.maxOf { rockPosition ->
+                rockPosition.row
+            }
+        } + 2
+    val cave = Cave(floorRow = floorRow)
+    val sandCount = cave.fillWithSand(sandStartPosition)
+    return sandCount
 }
 
 private fun parseRockFormations(input: List<String>): List<List<Position>> {
@@ -86,9 +96,10 @@ private fun Cave.fillWithRockFormations(rockFormations: List<List<Position>>) {
     }
 }
 
-private fun Cave.fillWithSand(relativeSandStart: Position) = generateSequence {
-    produceSand(relativeSandStart).takeIf { it is Rest }
-}.count()
+private fun Cave.fillWithSand(relativeSandStart: Position) =
+    generateSequence {
+        produceSand(relativeSandStart).takeIf { sandResult -> sandResult is Rest }
+    }.count()
 
 val sandStartPosition = Position(row = 0, col = 500)
 
