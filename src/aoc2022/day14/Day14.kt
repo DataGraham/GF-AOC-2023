@@ -16,7 +16,7 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2022/day14/Day14_test")
     check(part1(testInput).also { it.println() } == 24)
-    //check(part2(testInput).also { it.println() } == 140)
+    //check(part2(testInput).also { it.println() } == 93)
 
     val input = readInput("aoc2022/day14/Day14")
     println("Part 1 Answer: ${part1(input)}")
@@ -25,16 +25,9 @@ fun main() {
 
 fun part1(input: List<String>): Int {
     // Read in each line as a path with a series of coordinate pairs.
-    val regex = Regex("""(\d+),(\d+)""")
-    val rockFormations = input.map { line ->
-        regex.findAll(line)
-            .map { match -> match.groupValues.drop(1).map { capture -> capture.toInt() } }
-            .map { (x, y) -> Position(row = y, col = x) }
-            .toList()
-    }
+    val rockFormations = parseRockFormations(input)
 
     // Find the min-max range (including the assumed 500, 0 sand start position).
-    val sandStartPosition = Position(row = 0, col = 500)
     val allPositions = rockFormations.flatten() + sandStartPosition
     val origin = Position(
         row = allPositions.minOf { it.row },
@@ -44,39 +37,60 @@ fun part1(input: List<String>): Int {
         row = allPositions.maxOf { it.row },
         col = allPositions.maxOf { it.col }
     )
-
     val numRows = max.row - origin.row + 1
     val numCols = max.col - origin.col + 1
 
-    // Create a grid and initialize, subtracting the minimum from each x and y.
-    // TODO: Consider instead a set of filled positions only?
-    val cave = Cave(numRows = numRows, numCols = numCols)
-    rockFormations.forEach { rockFormation ->
-        rockFormation
-            .map { position -> position relativeTo origin }
-            .windowed(size = 2, step = 1)
-            .forEach { (relativeStart, relativeEnd) ->
-                (relativeStart lineTo relativeEnd).forEach { rockPosition ->
-                    cave.fillPosition(rockPosition, Rock)
-                }
-            }
+    val relativeRockFormations = rockFormations.map { rockFormation ->
+        rockFormation.map { position ->
+            position relativeTo origin
+        }
     }
+    val relativeSandStart = sandStartPosition relativeTo origin
 
+    // Create a grid and initialize, subtracting the minimum from each x and y.
+    val cave = Cave(numRows = numRows, numCols = numCols)
+    cave.fillWithRockFormations(relativeRockFormations)
     cave.println()
 
     // Iterate each piece of sand until it rests,
     // Finally stopping just before the first piece that falls outside of the min/max grid.
-    var sandCount = 0
-    val relativeSandStart = sandStartPosition relativeTo origin
-    while (cave.produceSand(relativeSandStart) is Rest) {
-        //cave.println()
-        ++sandCount
-    }
+    val sandCount = cave.fillWithSand(relativeSandStart)
     cave.println()
     return sandCount
 }
 
-fun part2(input: List<String>) = input.size
+fun part2(input: List<String>): Int {
+    return 1
+}
+
+private fun parseRockFormations(input: List<String>): List<List<Position>> {
+    val regex = Regex("""(\d+),(\d+)""")
+    val rockFormations = input.map { line ->
+        regex.findAll(line)
+            .map { match -> match.groupValues.drop(1).map { capture -> capture.toInt() } }
+            .map { (x, y) -> Position(row = y, col = x) }
+            .toList()
+    }
+    return rockFormations
+}
+
+private fun Cave.fillWithRockFormations(rockFormations: List<List<Position>>) {
+    rockFormations.forEach { rockFormation ->
+        rockFormation
+            .windowed(size = 2, step = 1)
+            .forEach { (relativeStart, relativeEnd) ->
+                (relativeStart lineTo relativeEnd).forEach { rockPosition ->
+                    fillPosition(rockPosition, Rock)
+                }
+            }
+    }
+}
+
+private fun Cave.fillWithSand(relativeSandStart: Position) = generateSequence {
+    produceSand(relativeSandStart).takeIf { it is Rest }
+}.count()
+
+val sandStartPosition = Position(row = 0, col = 500)
 
 private class Cave(
     private val numRows: Int? = null,
