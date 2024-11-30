@@ -69,6 +69,7 @@ fun part2(input: List<String>): Int {
             }
         } + 2
     val cave = Cave(floorRow = floorRow)
+    cave.fillWithRockFormations(rockFormations)
     val sandCount = cave.fillWithSand(sandStartPosition)
     return sandCount
 }
