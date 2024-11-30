@@ -78,7 +78,11 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>) = input.size
 
-private class Cave(private val numRows: Int? = null, private val numCols: Int? = null) {
+private class Cave(
+    private val numRows: Int? = null,
+    private val numCols: Int? = null,
+    private val floorRow: Int? = null
+) {
     companion object {
         private val flowDirections = listOf(
             DeltaPosition(deltaRow = 1, deltaCol = 0),
@@ -91,7 +95,7 @@ private class Cave(private val numRows: Int? = null, private val numCols: Int? =
 
     private val caveFillings = mutableMapOf<Position, CaveFilling>()
 
-    private val Position.isFilled get() = caveFillings.containsKey(this)
+    private val Position.isFilled get() = caveFillings.containsKey(this) || row == floorRow
 
     private val Position.isValid
         get() = numRows?.let { row in 0 until numRows } != false
