@@ -4,7 +4,7 @@ import DeltaPosition
 import Position
 import aoc2022.day14.Cave.CaveFilling.Rock
 import aoc2022.day14.Cave.CaveFilling.Sand
-import aoc2022.day14.Cave.SandResult.Rest
+import aoc2022.day14.Cave.SandResult.*
 import plus
 import println
 import readInput
@@ -68,7 +68,7 @@ fun part1(input: List<String>): Int {
     // Finally stopping just before the first piece that falls outside of the min/max grid.
     var sandCount = 0
     val relativeSandStart = sandStartPosition relativeTo origin
-    while (cave.produceSand(relativeSandStart) == Rest) {
+    while (cave.produceSand(relativeSandStart) is Rest) {
         //cave.println()
         ++sandCount
     }
@@ -105,19 +105,28 @@ private class Cave(
         caveFillings[position] = caveFilling
     }
 
-    enum class SandResult { Rest, Abyss }
+    sealed class SandResult {
+        data class Rest(val restPosition: Position) : SandResult()
+        data object Abyss : SandResult()
+        data object Blocked : SandResult()
+    }
 
     fun produceSand(sandSource: Position) =
-        sandPositions(sandSource).last().let { lastSandPosition ->
-            if (lastSandPosition.isValid) Rest.also { fillPosition(lastSandPosition, Sand) }
-            else SandResult.Abyss
+        if (sandSource.isFilled) Blocked
+        else sandPositions(sandSource).last().let { lastSandPosition ->
+            if (lastSandPosition.isValid) {
+                fillPosition(lastSandPosition, Sand)
+                Rest(lastSandPosition)
+            } else Abyss
         }
 
     private fun sandPositions(sandSource: Position) =
         generateSequence(sandSource) { sandPosition ->
             if (!sandPosition.isValid) null
             else flowDirections.firstNotNullOfOrNull { delta ->
-                (sandPosition + delta).takeIf { nextPosition -> !nextPosition.isValid || !nextPosition.isFilled }
+                (sandPosition + delta).takeIf { nextPosition ->
+                    !nextPosition.isValid || !nextPosition.isFilled
+                }
             }
         }
 
@@ -131,7 +140,7 @@ private class Cave(
                 }
             }
         }?.joinToString(separator = "\n")
-            ?: "[unbounded cave]" // TODO: Find our min-max filling positions
+            ?: "[unbounded cave]" // TODO: Find our min-max filling positions (and floor too?)
 
     private val CaveFilling?.char
         get() = when (this) {
