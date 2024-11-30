@@ -2,7 +2,9 @@ package aoc2022.day14
 
 import DeltaPosition
 import Position
-import isPositionValid
+import aoc2022.day14.Cave.CaveFilling.Rock
+import aoc2022.day14.Cave.CaveFilling.Sand
+import aoc2022.day14.Cave.SandResult.Rest
 import plus
 import println
 import readInput
@@ -55,7 +57,7 @@ fun part1(input: List<String>): Int {
             .windowed(size = 2, step = 1)
             .forEach { (relativeStart, relativeEnd) ->
                 (relativeStart lineTo relativeEnd).forEach { rockPosition ->
-                    cave.fillPosition(rockPosition)
+                    cave.fillPosition(rockPosition, Rock)
                 }
             }
     }
@@ -66,7 +68,7 @@ fun part1(input: List<String>): Int {
     // Finally stopping just before the first piece that falls outside of the min/max grid.
     var sandCount = 0
     val relativeSandStart = sandStartPosition relativeTo origin
-    while (cave.produceSand(relativeSandStart) == SandResult.Rest) {
+    while (cave.produceSand(relativeSandStart) == Rest) {
         //cave.println()
         ++sandCount
     }
@@ -76,7 +78,7 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>) = input.size
 
-private class Cave(private val numRows: Int, private val numCols: Int) {
+private class Cave(private val numRows: Int? = null, private val numCols: Int? = null) {
     companion object {
         private val flowDirections = listOf(
             DeltaPosition(deltaRow = 1, deltaCol = 0),
@@ -85,17 +87,25 @@ private class Cave(private val numRows: Int, private val numCols: Int) {
         )
     }
 
-    private val isPositionFilled = List(numRows) { MutableList(numCols) { false } }
+    enum class CaveFilling { Rock, Sand }
 
-    private val Position.isValid get() = isPositionFilled.isPositionValid(this)
+    private val caveFillings = mutableMapOf<Position, CaveFilling>()
 
-    fun fillPosition(position: Position) {
-        isPositionFilled[position.row][position.col] = true
+    private val Position.isFilled get() = caveFillings.containsKey(this)
+
+    private val Position.isValid
+        get() = numRows?.let { row in 0 until numRows } != false
+            && numCols?.let { col in 0 until numCols } != false
+
+    fun fillPosition(position: Position, caveFilling: CaveFilling) {
+        caveFillings[position] = caveFilling
     }
+
+    enum class SandResult { Rest, Abyss }
 
     fun produceSand(sandSource: Position) =
         sandPositions(sandSource).last().let { lastSandPosition ->
-            if (lastSandPosition.isValid) SandResult.Rest.also { fillPosition(lastSandPosition) }
+            if (lastSandPosition.isValid) Rest.also { fillPosition(lastSandPosition, Sand) }
             else SandResult.Abyss
         }
 
@@ -103,19 +113,29 @@ private class Cave(private val numRows: Int, private val numCols: Int) {
         generateSequence(sandSource) { sandPosition ->
             if (!sandPosition.isValid) null
             else flowDirections.firstNotNullOfOrNull { delta ->
-                (sandPosition + delta).takeIf { nextPosition ->
-                    !nextPosition.isValid || !isPositionFilled[nextPosition.row][nextPosition.col]
-                }
+                (sandPosition + delta).takeIf { nextPosition -> !nextPosition.isValid || !nextPosition.isFilled }
             }
         }
 
     override fun toString() =
-        isPositionFilled.joinToString(separator = "\n") { row ->
-            String(row.map { isFilled -> if (isFilled) '#' else '.' }.toCharArray())
+        numRows?.let {
+            numCols?.let {
+                (0..numRows).map { row ->
+                    (0 until numCols).map { col ->
+                        caveFillings[Position(row = row, col = col)].char
+                    }.joinToString(separator = "")
+                }
+            }
+        }?.joinToString(separator = "\n")
+            ?: "[unbounded cave]" // TODO: Find our min-max filling positions
+
+    private val CaveFilling?.char
+        get() = when (this) {
+            Rock -> '#'
+            Sand -> 'O'
+            null -> '.'
         }
 }
-
-enum class SandResult { Rest, Abyss }
 
 private infix fun Position.lineTo(to: Position) = when {
     col == to.col ->
