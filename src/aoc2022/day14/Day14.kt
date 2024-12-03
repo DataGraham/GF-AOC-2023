@@ -5,6 +5,7 @@ import Position
 import aoc2022.day14.Cave.CaveFilling.Rock
 import aoc2022.day14.Cave.CaveFilling.Sand
 import aoc2022.day14.Cave.SandResult.*
+import aoc2022.day14.RockFormationParser.parseRockFormations
 import plus
 import println
 import readInput
@@ -62,30 +63,29 @@ fun part1(input: List<String>): Int {
 
 fun part2(input: List<String>): Int {
     val rockFormations = parseRockFormations(input)
-    val floorRow = rockFormations
-        .maxOf { rockFormation ->
-            rockFormation.maxOf { rockPosition ->
-                rockPosition.row
-            }
-        } + 2
+    val floorRow = rockFormations.flatten().maxOf { it.row } + 2
     val cave = Cave(floorRow = floorRow)
     cave.fillWithRockFormations(rockFormations)
+    cave.println()
     val sandCount = cave.fillWithSand(sandStartPosition)
+    cave.println()
     return sandCount
 }
 
-private fun parseRockFormations(input: List<String>): List<List<Position>> {
-    val regex = Regex("""(\d+),(\d+)""")
-    val rockFormations = input.map { line ->
+typealias RockFormation = List<Position>
+
+private object RockFormationParser {
+    private val regex by lazy { Regex("""(\d+),(\d+)""") }
+
+    fun parseRockFormations(input: List<String>): List<RockFormation> = input.map { line ->
         regex.findAll(line)
             .map { match -> match.groupValues.drop(1).map { capture -> capture.toInt() } }
             .map { (x, y) -> Position(row = y, col = x) }
             .toList()
     }
-    return rockFormations
 }
 
-private fun Cave.fillWithRockFormations(rockFormations: List<List<Position>>) {
+private fun Cave.fillWithRockFormations(rockFormations: List<RockFormation>) {
     rockFormations.forEach { rockFormation ->
         rockFormation
             .windowed(size = 2, step = 1)
@@ -157,18 +157,22 @@ private class Cave(
         }
 
     override fun toString() =
-        numRows?.let {
-            numCols?.let {
-                (0..numRows).map { row ->
-                    (0 until numCols).map { col ->
-                        caveFillings[Position(row = row, col = col)].char
-                    }.joinToString(separator = "")
-                }
-            }
-        }?.joinToString(separator = "\n")
-            ?: "[unbounded cave]" // TODO: Find our min-max filling positions (and floor too?)
+        rowIndices.joinToString(separator = "\n") { row ->
+            colIndices.map { col ->
+                caveFillings[Position(row = row, col = col)].char
+            }.joinToString(separator = "")
+        }
 
-    private val CaveFilling?.char
+    private val rowIndices
+        get() = numRows?.let { 0 until numRows }
+            ?: caveFillings.minOf { it.key.row }..caveFillings.maxOf { it.key.row }
+
+    private val colIndices
+        get() = numCols?.let { 0 until numCols }
+            ?: caveFillings.minOf { it.key.col }..caveFillings.maxOf { it.key.col }
+
+    private
+    val CaveFilling?.char
         get() = when (this) {
             Rock -> '#'
             Sand -> 'O'

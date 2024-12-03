@@ -27,6 +27,9 @@ fun <T> List<List<T>>.positionOf(predicate: (T) -> Boolean) =
             ?.let { col -> Position(row = row, col = col) }
     }
 
+/** TODO: Could Position and Delta both be/have an (x, y) vector
+but just with different names,
+so the math doesn't need to be repeated? */
 data class DeltaPosition(val deltaRow: Int, val deltaCol: Int)
 
 fun DeltaPosition.toPosition() = Position(row = deltaRow, col = deltaCol)
@@ -49,11 +52,13 @@ fun DeltaPosition.unitized() = copy(
 )
 
 // TODO: These should each contain a deltaPosition?
+// TODO: Could we add directions? (e.g. down + left)
 enum class Direction(val rowDelta: Int, val colDelta: Int) {
     Up(rowDelta = -1, colDelta = 0),
     Down(rowDelta = 1, colDelta = 0),
     Right(rowDelta = 0, colDelta = 1),
     Left(rowDelta = 0, colDelta = -1);
+    // TODO: Could we alias with cardinal directions too?
 }
 
 infix fun Position.move(direction: Direction) = Position(
