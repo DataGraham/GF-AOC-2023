@@ -9,7 +9,6 @@ import plus
 import println
 import readInput
 import relativeTo
-import require
 import kotlin.math.max
 import kotlin.math.min
 
@@ -123,16 +122,13 @@ private class Cave(
 
     enum class CaveFilling { Rock, Sand, Floor }
 
-    // TODO: Encapsulate these so you can't forget to check for floor?
-    private val caveFillings = mutableMapOf<Position, CaveFilling>()
-    private val Position.isFilled get() = caveFillings.containsKey(this) || row == floorRow
-    fun fillPosition(position: Position, caveFilling: CaveFilling) {
-        caveFillings[position] = caveFilling
-    }
+    private val caveFillings = CaveFillings(floorRow = floorRow)
 
-    fun caveFilling(position: Position) =
-        if (position.row == floorRow) Floor
-        else caveFillings[position]
+    private val Position.isFilled get() = caveFillings[this] != null
+
+    fun fillPosition(position: Position, caveFilling: CaveFilling) {
+        caveFillings.fillPosition(position, caveFilling)
+    }
 
     sealed class SandResult {
         data class Rest(val restPosition: Position) : SandResult()
@@ -163,17 +159,17 @@ private class Cave(
         rowIndices.joinToString(separator = "\n") { row ->
             String(
                 colIndices
-                    .map { col -> caveFilling(Position(row = row, col = col)).char }
+                    .map { col -> caveFillings[Position(row = row, col = col)].char }
                     .toCharArray()
             )
         }
 
-    private val rowIndices get() = minRowIndex .. maxRowIndex
+    private val rowIndices get() = minRowIndex..maxRowIndex
 
-    private val minRowIndex get() = numRows?.let { 0 } ?: caveFillings.minOf { it.key.row }
+    private val minRowIndex get() = numRows?.let { 0 } ?: caveFillings.minRow
 
     private val maxRowIndex
-        get() = (numRows?.let { it - 1 } ?: caveFillings.maxOf { it.key.row })
+        get() = (numRows?.let { it - 1 } ?: caveFillings.maxRow)
             .let {
                 if (floorRow == null) it
                 else it.coerceAtLeast(floorRow)
@@ -181,16 +177,32 @@ private class Cave(
 
     private val colIndices
         get() = numCols?.let { 0 until numCols }
-            ?: caveFillings.minOf { it.key.col }..caveFillings.maxOf { it.key.col }
+            ?: caveFillings.minCol..caveFillings.maxCol
 
-    private
-    val CaveFilling?.char
+    private val CaveFilling?.char
         get() = when (this) {
             Rock -> '#'
             Sand -> 'O'
             Floor -> '_'
             null -> '.'
         }
+}
+
+private class CaveFillings(private val floorRow: Int? = null) {
+    private val fillingsMap = mutableMapOf<Position, Cave.CaveFilling>()
+
+    val minRow get() = fillingsMap.minOf { it.key.row }
+    val maxRow: Int get() = fillingsMap.maxOf { it.key.row }
+    val minCol get() = fillingsMap.minOf { it.key.col }
+    val maxCol get() = fillingsMap.maxOf { it.key.col }
+
+    fun fillPosition(position: Position, caveFilling: Cave.CaveFilling) {
+        fillingsMap[position] = caveFilling
+    }
+
+    operator fun get(position: Position) =
+        if (position.row == floorRow) Floor
+        else fillingsMap[position]
 }
 
 private infix fun Position.lineTo(to: Position) = when {
