@@ -44,6 +44,9 @@ operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
     col = col + deltaPosition.deltaCol
 )
 
+infix fun Position.manhattanDistanceTo(other: Position) =
+    abs(row - other.row) + abs(col - other.col)
+
 val DeltaPosition.isAdjacent get() = max(abs(deltaRow), abs(deltaCol)) <= 1
 
 fun DeltaPosition.unitized() = copy(
