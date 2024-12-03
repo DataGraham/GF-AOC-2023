@@ -2,14 +2,14 @@ package aoc2022.day14
 
 import DeltaPosition
 import Position
-import aoc2022.day14.Cave.CaveFilling.Rock
-import aoc2022.day14.Cave.CaveFilling.Sand
+import aoc2022.day14.Cave.CaveFilling.*
 import aoc2022.day14.Cave.SandResult.*
 import aoc2022.day14.RockFormationParser.parseRockFormations
 import plus
 import println
 import readInput
 import relativeTo
+import require
 import kotlin.math.max
 import kotlin.math.min
 
@@ -117,19 +117,22 @@ private class Cave(
         )
     }
 
-    enum class CaveFilling { Rock, Sand }
-
-    private val caveFillings = mutableMapOf<Position, CaveFilling>()
-
-    private val Position.isFilled get() = caveFillings.containsKey(this) || row == floorRow
-
-    private val Position.isValid
+    private val Position.isInBounds
         get() = numRows?.let { row in 0 until numRows } != false
             && numCols?.let { col in 0 until numCols } != false
 
+    enum class CaveFilling { Rock, Sand, Floor }
+
+    // TODO: Encapsulate these so you can't forget to check for floor?
+    private val caveFillings = mutableMapOf<Position, CaveFilling>()
+    private val Position.isFilled get() = caveFillings.containsKey(this) || row == floorRow
     fun fillPosition(position: Position, caveFilling: CaveFilling) {
         caveFillings[position] = caveFilling
     }
+
+    fun caveFilling(position: Position) =
+        if (position.row == floorRow) Floor
+        else caveFillings[position]
 
     sealed class SandResult {
         data class Rest(val restPosition: Position) : SandResult()
@@ -140,7 +143,7 @@ private class Cave(
     fun produceSand(sandSource: Position) =
         if (sandSource.isFilled) Blocked
         else sandPositions(sandSource).last().let { lastSandPosition ->
-            if (lastSandPosition.isValid) {
+            if (lastSandPosition.isInBounds) {
                 fillPosition(lastSandPosition, Sand)
                 Rest(lastSandPosition)
             } else Abyss
@@ -148,24 +151,33 @@ private class Cave(
 
     private fun sandPositions(sandSource: Position) =
         generateSequence(sandSource) { sandPosition ->
-            if (!sandPosition.isValid) null
+            if (!sandPosition.isInBounds) null
             else flowDirections.firstNotNullOfOrNull { delta ->
                 (sandPosition + delta).takeIf { nextPosition ->
-                    !nextPosition.isValid || !nextPosition.isFilled
+                    !nextPosition.isInBounds || !nextPosition.isFilled
                 }
             }
         }
 
     override fun toString() =
         rowIndices.joinToString(separator = "\n") { row ->
-            colIndices.map { col ->
-                caveFillings[Position(row = row, col = col)].char
-            }.joinToString(separator = "")
+            String(
+                colIndices
+                    .map { col -> caveFilling(Position(row = row, col = col)).char }
+                    .toCharArray()
+            )
         }
 
-    private val rowIndices
-        get() = numRows?.let { 0 until numRows }
-            ?: caveFillings.minOf { it.key.row }..caveFillings.maxOf { it.key.row }
+    private val rowIndices get() = minRowIndex .. maxRowIndex
+
+    private val minRowIndex get() = numRows?.let { 0 } ?: caveFillings.minOf { it.key.row }
+
+    private val maxRowIndex
+        get() = (numRows?.let { it - 1 } ?: caveFillings.maxOf { it.key.row })
+            .let {
+                if (floorRow == null) it
+                else it.coerceAtLeast(floorRow)
+            }
 
     private val colIndices
         get() = numCols?.let { 0 until numCols }
@@ -176,6 +188,7 @@ private class Cave(
         get() = when (this) {
             Rock -> '#'
             Sand -> 'O'
+            Floor -> '_'
             null -> '.'
         }
 }
