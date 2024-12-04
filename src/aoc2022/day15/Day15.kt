@@ -24,6 +24,11 @@ fun part1(input: List<String>, row: Int): Int {
     return impossibleBeaconCount(input, row = row)
 }
 
+// TODO: Will need to optimize for part 2
+//  Using https://github.com/jonpeterson/kotlin-range-sets perhaps?!
+//  Although it's not optimized with a binary or interpolation search for the relevant overlapping range.
+//  Keep in mind that beacon positions are always within the ruled-out range
+//  and don't need to be ruled-in, as we're explicitly looking for an undetected beacon!
 fun part2(input: List<String>) = input.size
 
 data class SensorReading(
