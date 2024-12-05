@@ -36,6 +36,8 @@ fun String.subString(startIndex: Int, length: Int)
 
 fun Int.toIntRange() = this..this
 
+val ClosedRange<Int>.size get() = endInclusive - start + 1
+
 inline fun <T> Iterable<T>.split(isDelimiter: (T) -> Boolean): List<List<T>> =
     fold(mutableListOf(mutableListOf<T>())) { acc, t ->
         if (isDelimiter(t)) acc.add(mutableListOf())

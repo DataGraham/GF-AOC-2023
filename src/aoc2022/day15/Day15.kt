@@ -2,10 +2,13 @@ package aoc2022.day15
 
 import Position
 import RegexParser
+import com.github.jonpeterson.kotlin.ranges.IntRangeSet
 import manhattanDistanceTo
 import parseLines
 import println
 import readInput
+import size
+import toIntRange
 import kotlin.math.abs
 
 fun main() {
@@ -46,19 +49,22 @@ val sensorReadingParser = """(-?\d+)""".let { captureInteger ->
     }
 }
 
-fun impossibleBeaconCount(input: List<String>, row: Int): Int {
-    val sensorReadings = sensorReadingParser.parseLines(input)
-    val impossibleBeaconColumns = sensorReadings
-        .map { sensorReading -> sensorReading.beaconColumnsWithinRange(row = row) }
-        .reduce { totalSet, set -> totalSet + set } -
-        sensorReadings.beaconColumnsInRow(targetRow = row)
-    return impossibleBeaconColumns.size
-}
+fun impossibleBeaconCount(input: List<String>, row: Int) =
+    sensorReadingParser.parseLines(input).let { sensorReadings ->
+        sensorReadings
+            .map { sensorReading -> sensorReading.beaconColumnsWithinRange(row = row) }
+            .let { ranges -> IntRangeSet(ranges) }
+            .apply {
+                sensorReadings.beaconColumnsInRow(targetRow = row)
+                    .forEach { beaconColumn -> remove(beaconColumn.toIntRange()) }
+            }
+            .sumOf { range -> range.size }
+    }
 
-fun SensorReading.beaconColumnsWithinRange(row: Int): Set<Int> {
+fun SensorReading.beaconColumnsWithinRange(row: Int): IntRange {
     val delta = (sensorPosition manhattanDistanceTo closestBeacon) - abs(row - sensorPosition.row)
-    return if (delta < 0) emptySet()
-    else ((sensorPosition.col - delta)..(sensorPosition.col + delta)).toSet()
+    return if (delta < 0) IntRange.EMPTY
+    else ((sensorPosition.col - delta)..(sensorPosition.col + delta))
 }
 
 private fun List<SensorReading>.beaconColumnsInRow(targetRow: Int) =
