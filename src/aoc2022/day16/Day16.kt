@@ -19,8 +19,18 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val valves = valveParser.parseLines(input)
-    valves.printLines()
+    val valves = valveParser.parseLines(input).associateBy { it.name }
+    valves.println()
+
+    val initialNode = Node(
+        currentValveName = "AA",
+        openedValves = emptySet(),
+        elapsedMinutes = 0,
+        pressureReleased = 0
+    )
+
+    valves.nodesAfter(initialNode).println()
+
     return input.size
 }
 
@@ -33,10 +43,50 @@ private val valveParser =
         )
     }
 
-data class Valve(
+private data class Valve(
     val name: String,
     val flowRate: Int,
     val leadsTo: List<String>
 )
+
+// A node is:
+// The valve that I'm at
+// The set of open valves
+// The elapsed minutes
+// The pressure released
+private data class Node(
+    val currentValveName: String,
+    val openedValves: Set<String>,
+    val elapsedMinutes: Int,
+    val pressureReleased: Int
+)
+
+// The next nodes are:
+// IFF elapsed minutes < 30:
+//   Each of these with elapsed minutes + 1 and pressure released + flowRate of all previously opened valves
+//      IFF the current valve is closed -> the valve is open
+//      For each adjacent valve -> go to that valve
+private fun Map<String, Valve>.nodesAfter(node: Node): List<Node> {
+    if (node.elapsedMinutes >= 30) return emptyList()
+    val nextPressureReleased = node.openedValves.sumOf { openedValveName ->
+        this[openedValveName]!!.flowRate
+    }
+    val nextElapsedMinutes = node.elapsedMinutes + 1
+    return listOfNotNull(
+        if (node.currentValveName !in node.openedValves)
+            node.copy(
+                openedValves = node.openedValves + node.currentValveName,
+                elapsedMinutes = nextElapsedMinutes,
+                pressureReleased = nextPressureReleased
+            )
+        else null
+    ) + this[node.currentValveName]!!.leadsTo.map { adjacentValveName ->
+        node.copy(
+            currentValveName = adjacentValveName,
+            elapsedMinutes = nextElapsedMinutes,
+            pressureReleased = nextPressureReleased
+        )
+    }
+}
 
 fun part2(input: List<String>) = input.size
