@@ -102,6 +102,18 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
 
 // TODO: Don't go from a closed valve to a visited valve? (wait, that's not always true)
 // TODO: Just stop when you've visited all valves?
+// TODO: Well, actually, I think it's true to say that it can't be useful to revisit a valve
+//  if you haven't opened any valves since you were last there
+//  (i.e. track visited valves but reset, except maybe the current valve, when you open a valve)
+//  Because this still allows you to go through a valve without opening, to get to a valve to open,
+//  and then back-track through that valve again back to the visited valve to then go open another valve.
+
+// TODO: Or could this somehow be modelled as a least-cost path?
+//  Like imagine you could have all of the valves releasing their flow for the whole time,
+//  but then each move you make adds to the flow that is _not_ released?
+
+// TODO: Or is there some sort of graph path maximization algorithm? Like a "longest" or "most cost" path?
+//  There is! -> https://en.wikipedia.org/wiki/Longest_path_problem
 
 // The next nodes are:
 // IFF elapsed minutes < 30:
