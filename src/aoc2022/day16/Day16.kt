@@ -4,6 +4,7 @@ import RegexParser
 import parseLines
 import printLines
 import println
+import readInput
 import kotlin.math.max
 
 fun main() {
@@ -23,7 +24,7 @@ fun main() {
 private fun test() {
     testCase(
         0,
-            Valve("A", 0, emptyList())
+        Valve("A", 0, emptyList())
     )
     testCase(
         28,
@@ -99,6 +100,9 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
         )
 )
 
+// TODO: Don't go from a closed valve to a visited valve? (wait, that's not always true)
+// TODO: Just stop when you've visited all valves?
+
 // The next nodes are:
 // IFF elapsed minutes < 30:
 //   Each of these with elapsed minutes + 1 and pressure released + flowRate of all previously opened valves
@@ -106,13 +110,27 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
 //      For each adjacent valve -> go to that valve
 private fun Map<String, Valve>.nodesAfter(node: Node): List<Node> {
     println("Considering nodes after $node")
-    if (node.elapsedMinutes >= 30) return emptyList()
-    val nextPressureReleased = node.openedValves.sumOf { openedValveName ->
+
+    if (node.elapsedMinutes >= 30)
+        return emptyList()
+
+    val pressureReleasePerMinute = node.openedValves.sumOf { openedValveName ->
         this[openedValveName]!!.flowRate
     }
+
+    if (node.openedValves == values.filter { it.flowRate > 0 }.map { it.name }.toSet())
+        return listOf(
+            node.copy(
+                elapsedMinutes = 30, // TODO: Extract constant for 30 minutes
+                pressureReleased = node.pressureReleased + pressureReleasePerMinute * (30 - node.elapsedMinutes)
+            )
+        )
+
+    val nextPressureReleased = node.pressureReleased + pressureReleasePerMinute
     val nextElapsedMinutes = node.elapsedMinutes + 1
+
     return listOfNotNull(
-        if (node.currentValveName !in node.openedValves)
+        if (this[node.currentValveName]!!.flowRate > 0 && node.currentValveName !in node.openedValves)
             node.copy(
                 openedValves = node.openedValves + node.currentValveName,
                 elapsedMinutes = nextElapsedMinutes,
