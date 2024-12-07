@@ -4,23 +4,52 @@ import RegexParser
 import parseLines
 import printLines
 import println
-import readInput
+import kotlin.math.max
 
 fun main() {
+    test()
+
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("aoc2022/day16/Day16_test")
+    //val testInput = readInput("aoc2022/day16/Day16_test")
     //val input = readInput("aoc2022/day16/Day16")
 
-    check(part1(testInput).also { it.println() } == 26)
+    //check(part1(testInput).also { it.println() } == 26)
     //println("Part 1 Answer: ${part1(input)}")
 
     //check(part2(testInput).also { it.println() } == 1)
     //println("Part 2 Answer: ${part2(input)}")
 }
 
+private fun test() {
+    testCase(
+        0,
+            Valve("A", 0, emptyList())
+    )
+    testCase(
+        28,
+        Valve("A", 0, listOf("B")),
+        Valve("B", 1, listOf("A"))
+    )
+}
+
+private fun testCase(expected: Int, vararg valves: Valve) = check(
+    valves
+        .associateBy { it.name }
+        .maximumReleasablePressure(
+            startNode = Node(
+                currentValveName = valves.first().name,
+                openedValves = emptySet(),
+                elapsedMinutes = 0,
+                pressureReleased = 0
+            )
+        )
+        .also { it.println() }
+        == expected
+)
+
 fun part1(input: List<String>): Int {
     val valves = valveParser.parseLines(input).associateBy { it.name }
-    valves.println()
+    valves.entries.printLines()
 
     val initialNode = Node(
         currentValveName = "AA",
@@ -29,9 +58,7 @@ fun part1(input: List<String>): Int {
         pressureReleased = 0
     )
 
-    valves.nodesAfter(initialNode).println()
-
-    return input.size
+    return valves.maximumReleasablePressure(initialNode)
 }
 
 private val valveParser =
@@ -61,12 +88,24 @@ private data class Node(
     val pressureReleased: Int
 )
 
+private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int = max(
+    startNode.pressureReleased,
+    startNode.pressureReleased + (
+        nodesAfter(startNode)
+            .takeIf { it.isNotEmpty() }
+            ?.maxOf { nextNode ->
+                maximumReleasablePressure(nextNode)
+            } ?: 0
+        )
+)
+
 // The next nodes are:
 // IFF elapsed minutes < 30:
 //   Each of these with elapsed minutes + 1 and pressure released + flowRate of all previously opened valves
 //      IFF the current valve is closed -> the valve is open
 //      For each adjacent valve -> go to that valve
 private fun Map<String, Valve>.nodesAfter(node: Node): List<Node> {
+    println("Considering nodes after $node")
     if (node.elapsedMinutes >= 30) return emptyList()
     val nextPressureReleased = node.openedValves.sumOf { openedValveName ->
         this[openedValveName]!!.flowRate
