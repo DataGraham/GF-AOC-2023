@@ -211,6 +211,8 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
 //
 //  But for V valves that's O(V!)
 //
+
+// (Yes, but it's not optimal):
 //  Is there a greedy algorithm somehow, like can I somehow, at each step, pick the best available trade-off
 //  for any next valve, between the time it takes to get there, vs. the total pressure that will then be released
 //  in the rest of the time?
@@ -227,6 +229,8 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
 //  https://www.quantamagazine.org/finally-a-fast-algorithm-for-shortest-paths-on-negative-graphs-20230118/
 //  OR, is it worth making a modified version so that we don't have to add time to the graph and thus blowing it up?
 
+// TODO: Or just let it run for a while to at least see that maybe after an hour
+//  it does actually produce the correct answer?
 
 private fun Map<String, Valve>.nodesAfter(node: Node): List<Node> {
     println("Considering nodes after $node")
