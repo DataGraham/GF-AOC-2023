@@ -57,6 +57,7 @@ fun part1(input: List<String>): Int {
         elapsedMinutes = 0,
         pressureReleased = 0
     )
+    // TODO: What if we ran this on the simplified graph of direct, weighted edges between non-zero-flow valves?
     return valves.maximumReleasablePressure(initialNode)
 }
 
