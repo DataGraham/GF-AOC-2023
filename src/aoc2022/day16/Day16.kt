@@ -220,6 +220,14 @@ private fun Map<String, Valve>.maximumReleasablePressure(startNode: Node): Int =
 //   Each of these with elapsed minutes + 1 and pressure released + flowRate of all previously opened valves
 //      IFF the current valve is closed -> the valve is open
 //      For each adjacent valve -> go to that valve
+
+// TODO: Do this on the simplified graph?
+//  https://cp-algorithms.com/graph/bellman_ford.html
+//  Or this fancy new one?
+//  https://www.quantamagazine.org/finally-a-fast-algorithm-for-shortest-paths-on-negative-graphs-20230118/
+//  OR, is it worth making a modified version so that we don't have to add time to the graph and thus blowing it up?
+
+
 private fun Map<String, Valve>.nodesAfter(node: Node): List<Node> {
     println("Considering nodes after $node")
 
