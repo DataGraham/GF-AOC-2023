@@ -46,6 +46,7 @@ class Chamber {
     private val rockPositions = mutableSetOf<Position>()
 
     fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
+        // TODO: Extract dynamic property for initial rock offset
         var movingRock = rock + DeltaPosition(deltaRow = -3 - towerHeight, deltaCol = 2)
         // TODO: implement rock falling/blowing as a sequence
         var done = false
