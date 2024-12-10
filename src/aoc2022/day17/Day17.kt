@@ -7,6 +7,7 @@ import move
 import plus
 import println
 import readInput
+import toInfiniteSequence
 
 fun main() {
     // test()
@@ -23,15 +24,13 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val chamber = Chamber()
-    val jetDirections = parseDirections(input)
-    var jetIndex = 0 // TODO: generate a sequence of jet directions?
-    repeat(2022) { rockIndex ->
-        chamber.dropRock(rockSequence[rockIndex % rockSequence.size]) {
-            jetDirections[jetIndex++ % jetDirections.size]
+    val rockToDrops = rockSequence.toInfiniteSequence().iterator()
+    val jetDirections = parseDirections(input).toInfiniteSequence().iterator()
+    return Chamber().apply {
+        repeat(2022) {
+            dropRock(rockToDrops.next()) { jetDirections.next() }
         }
-    }
-    return chamber.towerHeight
+    }.towerHeight
 }
 
 fun part2(input: List<String>): Int {
@@ -47,38 +46,31 @@ class Chamber {
     private val rockPositions = mutableSetOf<Position>()
 
     fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
-        // TODO: Drop the rock until it hits the bottom
         var movingRock = rock + DeltaPosition(deltaRow = -3 - towerHeight, deltaCol = 2)
+        // TODO: implement rock falling/blowing as a sequence
         var done = false
-
-        fun blowRock() {
+        while (!done) {
             val jetDirection = nextJetDirection()
             if (movingRock canMove jetDirection) movingRock = movingRock move jetDirection
-        }
-
-        while (!done) {
-            blowRock()
-            if (movingRock canMove Direction.Down) {
-                movingRock = movingRock move Direction.Down
-            } else {
-                // blowRock()
-                done = true
-            }
+            if (movingRock canMove Direction.Down) movingRock = movingRock move Direction.Down
+            else done = true
         }
         rockPositions += movingRock
     }
 
+    // TODO: Is there a more readable way of calculating this?
     val towerHeight get() = -(rockPositions.minOfOrNull { it.row } ?: 1) + 1
 
+    // TODO: Can we make a "conditional move" so we don't have to recalculate the movement
+    //  once to check and then again to actually move?
+    //  Maybe just check for the moved rock being valid and then return it or the original
+    //  (or null I guess so we can tell? or _maybe_ throw an exception?)
     private infix fun Rock.canMove(direction: Direction) =
-        all { position ->
-            (position move direction).let { nextPosition ->
-                nextPosition.isValid && nextPosition !in rockPositions
-            }
-        }
+        all { position -> (position move direction).isAvailable }
+
+    private val Position.isAvailable get() = isValid && this !in rockPositions
 
     private val Position.isValid get() = row <= MAX_ROW && col in (0..MAX_COL)
-
 }
 
 private typealias Rock = Set<Position>
