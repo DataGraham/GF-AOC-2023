@@ -66,8 +66,7 @@ class Chamber {
         rockPositions += movingRock
     }
 
-    // TODO: Is there a more readable way of calculating this?
-    val towerHeight get() = -(rockPositions.minOfOrNull { it.row } ?: 1) + 1
+    val towerHeight get() = rockPositions.maxOfOrNull { MAX_ROW - it.row + 1 } ?: 0
 
     // TODO: Can we make a "conditional move" so we don't have to recalculate the movement
     //  once to check and then again to actually move?
