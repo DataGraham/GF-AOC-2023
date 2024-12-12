@@ -55,13 +55,20 @@ class Chamber {
 
     fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
         var movingRock = rock + initialRockOffset
+
+        fun tryMove(direction: Direction): Boolean {
+            return if (movingRock canMove direction) {
+                movingRock = movingRock move direction
+                true
+            }
+            else false
+        }
+
         // TODO: implement rock falling/blowing as a sequence
         var done = false
         while (!done) {
-            val jetDirection = nextJetDirection()
-            if (movingRock canMove jetDirection) movingRock = movingRock move jetDirection
-            if (movingRock canMove Direction.Down) movingRock = movingRock move Direction.Down
-            else done = true
+            tryMove(nextJetDirection())
+            if (!tryMove(Direction.Down)) done = true
         }
         rockPositions += movingRock
     }
