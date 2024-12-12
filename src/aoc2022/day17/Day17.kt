@@ -41,13 +41,20 @@ class Chamber {
     companion object {
         private const val MAX_COL = 6
         private const val MAX_ROW = 0
+        private const val INITIAL_ROWS_BELOW = 3
+        private const val INITIAL_COLUMNS_LEFT = 2
     }
 
     private val rockPositions = mutableSetOf<Position>()
 
+    private val initialRockOffset
+        get() = DeltaPosition(
+            deltaRow = -INITIAL_ROWS_BELOW - towerHeight,
+            deltaCol = INITIAL_COLUMNS_LEFT
+        )
+
     fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
-        // TODO: Extract dynamic property for initial rock offset
-        var movingRock = rock + DeltaPosition(deltaRow = -3 - towerHeight, deltaCol = 2)
+        var movingRock = rock + initialRockOffset
         // TODO: implement rock falling/blowing as a sequence
         var done = false
         while (!done) {
