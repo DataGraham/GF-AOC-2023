@@ -56,6 +56,10 @@ class Chamber {
     private fun Rock.restPosition(nextJetDirection: () -> Direction): Rock {
         // TODO: Can I sort-of "zip" or "reduce" or "munge" or something the initial rock position with this sequence directly?
         val moves = rockMoves(nextJetDirection).iterator()
+        // TODO: or is there a better way to define/generate this type of sequence
+        //  like in a more iterative way, so I can always pump-out the blown rock (which may be unchanged)
+        //  and then either pump-out an actually fallen rock OR null?
+        //  Like "sequence {}" instead of generateSequence?
         return generateSequence(this + initialRockOffset) { movingRock -> movingRock move moves.next() }.last()
     }
 
