@@ -47,40 +47,44 @@ class Chamber {
 
     private val rockPositions = mutableSetOf<Position>()
 
+    val towerHeight get() = rockPositions.maxOfOrNull { MAX_ROW - it.row + 1 } ?: 0
+
+    fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
+        rockPositions += rock.restPosition(nextJetDirection)
+    }
+
+    private fun Rock.restPosition(nextJetDirection: () -> Direction): Rock {
+        // TODO: Can I sort-of "zip" or "reduce" or "munge" or something the initial rock position with this sequence directly?
+        val moves = rockMoves(nextJetDirection).iterator()
+        return generateSequence(this + initialRockOffset) { movingRock -> movingRock move moves.next() }.last()
+    }
+
     private val initialRockOffset
         get() = DeltaPosition(
             deltaRow = -INITIAL_ROWS_BELOW - towerHeight,
             deltaCol = INITIAL_COLUMNS_LEFT
         )
 
-    fun dropRock(rock: Rock, nextJetDirection: () -> Direction) {
-        var movingRock = rock + initialRockOffset
+    private fun rockMoves(nextJetDirection: () -> Direction) = generateSequence {
+        listOf(RockMove.Blow(nextJetDirection()), RockMove.Fall)
+    }.flatten()
 
-        fun tryMove(direction: Direction): Boolean {
-            return if (movingRock canMove direction) {
-                movingRock = movingRock move direction
-                true
-            }
-            else false
-        }
-
-        // TODO: implement rock falling/blowing as a sequence
-        var done = false
-        while (!done) {
-            tryMove(nextJetDirection())
-            if (!tryMove(Direction.Down)) done = true
-        }
-        rockPositions += movingRock
+    private sealed class RockMove {
+        data class Blow(val direction: Direction): RockMove()
+        data object Fall : RockMove()
     }
 
-    val towerHeight get() = rockPositions.maxOfOrNull { MAX_ROW - it.row + 1 } ?: 0
+    private infix fun Rock.move(rockMove: RockMove) = when(rockMove) {
+        is RockMove.Blow -> blown(rockMove.direction)
+        RockMove.Fall -> moveOrNull(Direction.Down)
+    }
 
-    // TODO: Can we make a "conditional move" so we don't have to recalculate the movement
-    //  once to check and then again to actually move?
-    //  Maybe just check for the moved rock being valid and then return it or the original
-    //  (or null I guess so we can tell? or _maybe_ throw an exception?)
-    private infix fun Rock.canMove(direction: Direction) =
-        all { position -> (position move direction).isAvailable }
+    private infix fun Rock.blown(direction: Direction) = moveOrNull(direction) ?: this
+
+    private infix fun Rock.moveOrNull(direction: Direction) =
+        move(direction).takeIf { it.isAvailable }
+
+    private val Rock.isAvailable get() = all { position -> position.isAvailable }
 
     private val Position.isAvailable get() = isValid && this !in rockPositions
 
