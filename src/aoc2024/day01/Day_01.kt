@@ -14,7 +14,7 @@ fun main() {
 
     val input = readInput("aoc2024/day01/Day01")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>) =
