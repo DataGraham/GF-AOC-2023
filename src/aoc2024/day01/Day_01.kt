@@ -24,7 +24,7 @@ fun part1(input: List<String>) =
 
 fun part2(input: List<String>): Int {
     val (listA, listB) = input.parseLocationIdLists()
-    val frequenciesB = listB.groupBy { it }.mapValues { it.value.size }
+    val frequenciesB = listB.groupingBy { it }.eachCount()
     return listA.sumOf { a ->
         a * (frequenciesB[a] ?: 0)
     }
