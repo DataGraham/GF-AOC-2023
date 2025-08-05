@@ -1,6 +1,7 @@
 package aoc2024.day01
 
 import RegexParser
+import frequencies
 import parseLines
 import println
 import readInput
@@ -24,7 +25,7 @@ fun part1(input: List<String>) =
 
 fun part2(input: List<String>): Int {
     val (listA, listB) = input.parseLocationIdLists()
-    val frequenciesB = listB.groupingBy { it }.eachCount()
+    val frequenciesB = listB.frequencies()
     return listA.sumOf { a ->
         a * (frequenciesB[a] ?: 0)
     }
