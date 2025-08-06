@@ -24,7 +24,15 @@ private fun List<String>.parseReports() = map { line ->
     line.split(" ").map { level -> level.toInt() }
 }
 
-val List<Int>.isSafeReport: Boolean get() {
-    val deltas = zipWithNext { a, b -> b - a }
-    return deltas.all { it in (1..3) } || deltas.all { it in (-3 .. -1) }
-}
+private val List<Int>.isSafeReport get() = deltas.isSafeDeltas
+
+private val List<Int>.deltas get() = zipWithNext { a, b -> b - a }
+
+private val List<Int>.isSafeDeltas get() =
+    safeRanges.any { safeRange -> safeRange.containsAll(this) }
+
+private val smallIncrease = 1..3
+private val smallDecrease = -3..-1
+private val safeRanges = listOf(smallIncrease, smallDecrease)
+
+private fun IntRange.containsAll(values: List<Int>) = values.all { it in this }
