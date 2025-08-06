@@ -1,5 +1,6 @@
 package aoc2024.day03
 
+import RegexParser
 import println
 import readInput
 
@@ -15,7 +16,16 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    return input.size
+    // TODO: Clean this this heck up!!!
+    val regex = Regex("""mul\(\d+,\d+\)""")
+    val instructions = input.flatMap { line ->
+        regex.findAll(line).map { it.groupValues.first() }.toList()
+    }
+    val instructionParser = RegexParser("""mul\((\d+),(\d+)\)""") { captures ->
+        // TODO: Make an instruction, but don't evaluate it yet!
+        captures.first().toInt() * captures.last().toInt()
+    }
+    return instructions.sumOf { instructionString -> instructionParser.parse(instructionString) }
 }
 
 fun part2(input: List<String>): Int {
