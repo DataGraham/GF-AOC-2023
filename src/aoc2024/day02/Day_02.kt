@@ -1,5 +1,6 @@
 package aoc2024.day02
 
+import kotlinx.collections.immutable.toPersistentList
 import println
 import readInput
 
@@ -23,10 +24,9 @@ private fun List<String>.parseReports() = map { line ->
 }
 
 private val Collection<Int>.isSafeReportIfDampened
-    get() = isSafeReport ||
-        indices.any { indexToDampen ->
-            filterIndexed { index, _ -> index != indexToDampen }.isSafeReport
-        }
+    get() = isSafeReport || toPersistentList().run {
+        indices.any { indexToDampen -> removeAt(indexToDampen) .isSafeReport }
+    }
 
 private val Collection<Int>.isSafeReport get() = deltas.isSafeDeltas
 
