@@ -1,9 +1,10 @@
 package aoc2024.day03
 
-import Parser
+import FixedStringParser
 import RegexParser
 import UniversalParser
 import aoc2024.day03.Instruction.*
+import findAll
 import println
 import readInput
 
@@ -21,12 +22,10 @@ fun main() {
 
 fun part1(input: List<String>) = input
     .parseMultiplicationInstructions()
-    .sumOf { multiplicationInstruction -> multiplicationInstruction() }
+    //.sumOf { multiplicationInstruction -> multiplicationInstruction() }
+    .execute()
 
-fun part2(input: List<String>): Int {
-    val instructions = input.parseInstructions()
-    return input.size
-}
+fun part2(input: List<String>) = input.parseInstructions().execute()
 
 private fun List<String>.parseMultiplicationInstructions() =
     findAll(multiplicationInstructionRegex)
@@ -35,12 +34,6 @@ private fun List<String>.parseMultiplicationInstructions() =
 private fun List<String>.parseInstructions() =
     findAll(instructionRegex)
         .map(instructionParser::parse)
-
-private fun List<String>.findAll(regex: Regex) = flatMap { line ->
-    regex.findAll(line)
-        .map { matchResult -> matchResult.groupValues.first() }
-        .toList()
-}
 
 private val multiplicationInstructionRegex = Regex("""mul\(\d+,\d+\)""")
 
@@ -51,13 +44,11 @@ private val multiplicationInstructionParser =
         MultiplicationInstruction(captures[0].toInt(), captures[1].toInt())
     }
 
-private val doInstructionParser = object : Parser<DoInstruction> {
-    override fun parse(line: String) = DoInstruction.takeIf { line == "do()" }!!
-}
+private val doInstructionParser =
+    FixedStringParser(fixedString = "do()", result = DoInstruction)
 
-private val doNotInstructionParser = object : Parser<DoNotInstruction> {
-    override fun parse(line: String) = DoNotInstruction.takeIf { line == "don't()" }!!
-}
+private val doNotInstructionParser =
+    FixedStringParser(fixedString = "don't()", result = DoNotInstruction)
 
 private val instructionParser = UniversalParser(
     multiplicationInstructionParser,
@@ -66,12 +57,24 @@ private val instructionParser = UniversalParser(
 )
 
 private sealed class Instruction {
-
     data class MultiplicationInstruction(val x: Int, val y: Int) : Instruction() {
         operator fun invoke() = x * y
     }
 
     data object DoInstruction : Instruction()
-
     data object DoNotInstruction : Instruction()
 }
+
+private fun Collection<Instruction>.execute(): Int =
+    fold(initial = ExecutionState(accumulator = 0, enabled = true)) { state, instruction ->
+        when (instruction) {
+            is MultiplicationInstruction ->
+                if (state.enabled) state.copy(accumulator = state.accumulator + instruction())
+                else state
+
+            DoInstruction -> state.copy(enabled = true)
+            DoNotInstruction -> state.copy(enabled = false)
+        }
+    }.accumulator
+
+private data class ExecutionState(val accumulator: Int, val enabled: Boolean)

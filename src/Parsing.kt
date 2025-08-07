@@ -29,3 +29,14 @@ class RegexParser<T>(
 
 fun intParser(pattern: String) =
     RegexParser(pattern) { captures -> captures.first().toInt() }
+
+class FixedStringParser<T>(private val fixedString: String, private val result: T): Parser<T> {
+    override fun parse(line: String) = result.takeIf { line == fixedString }!!
+}
+
+fun Collection<String>.findAll(regex: Regex) = flatMap { line ->
+    regex.findAll(line)
+        .map { matchResult -> matchResult.groupValues.first() }
+        .toList()
+}
+
