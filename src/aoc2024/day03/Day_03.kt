@@ -15,19 +15,31 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    // TODO: Clean this this heck up!!!
-    val regex = Regex("""mul\(\d+,\d+\)""")
-    val instructions = input.flatMap { line ->
-        regex.findAll(line).map { it.groupValues.first() }.toList()
-    }
-    val instructionParser = RegexParser("""mul\((\d+),(\d+)\)""") { captures ->
-        // TODO: Make an instruction, but don't evaluate it yet!
-        captures.first().toInt() * captures.last().toInt()
-    }
-    return instructions.sumOf { instructionString -> instructionParser.parse(instructionString) }
-}
+fun part1(input: List<String>) = input
+    .parseInstructions()
+    .sumOf { instruction -> instruction() }
 
 fun part2(input: List<String>): Int {
     return input.size
+}
+
+private fun List<String>.parseInstructions() =
+    instructionStrings.map { instructionString -> instructionParser.parse(instructionString) }
+
+private val List<String>.instructionStrings
+    get() = flatMap { line ->
+        instructionRegex.findAll(line)
+            .map { matchResult -> matchResult.groupValues.first() }
+            .toList()
+    }
+
+private val instructionRegex = Regex("""mul\(\d+,\d+\)""")
+
+private val instructionParser =
+    RegexParser("""mul\((\d+),(\d+)\)""") { captures ->
+        MultiplicationInstruction(captures[0].toInt(), captures[1].toInt())
+    }
+
+private data class MultiplicationInstruction(val x: Int, val y: Int) {
+    operator fun invoke() = x * y
 }
