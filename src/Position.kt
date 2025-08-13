@@ -68,3 +68,6 @@ infix fun Position.move(direction: Direction) = Position(
     row = row + direction.rowDelta,
     col = col + direction.colDelta
 )
+
+fun Position.path(direction: Direction) =
+    generateSequence(this) { position -> position move direction }
