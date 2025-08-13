@@ -1,6 +1,6 @@
 package aoc2024.day04
 
-import Direction
+import DeltaPosition
 import Position
 import allPositions
 import get
@@ -28,10 +28,10 @@ fun part1(input: List<String>): Int {
             grid
                 .allPositions()
                 .sumOf { startPosition ->
-                    Direction.entries.count { direction ->
+                    allDirectionDeltas.count { deltaPosition ->
                         grid.word(
                             startPosition = startPosition,
-                            direction = direction,
+                            deltaPosition = deltaPosition,
                             length = targetWord.length
                         ) == targetWord
                     }
@@ -43,9 +43,17 @@ fun part2(input: List<String>): Int {
     return input.size
 }
 
-private fun List<List<Char>>.word(startPosition: Position, direction: Direction, length: Int) =
+private val allDirectionDeltas by lazy {
+    (-1..1).flatMap { deltaRow ->
+        (-1..1).mapNotNull { deltaCol ->
+            DeltaPosition(deltaRow = deltaRow, deltaCol = deltaCol)
+        }
+    }.filter { it != DeltaPosition(0, 0) }
+}
+
+private fun List<List<Char>>.word(startPosition: Position, deltaPosition: DeltaPosition, length: Int) =
     startPosition
-        .path(direction)
+        .path(deltaPosition)
         .take(length)
         .mapNotNull { position -> if (isPositionValid(position)) this[position] else null }
         .let { chars -> String(chars.toList().toCharArray()) }
