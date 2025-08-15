@@ -14,6 +14,11 @@ operator fun <T> List<List<T>>.get(position: Position) =
 fun <T> List<List<T>>.isPositionValid(position: Position) =
     with(position) { row in indices && col in this@isPositionValid[row].indices }
 
+fun <T> List<List<T>>.isEdgePosition(position: Position) =
+    with(position) {
+        row == 0 || row == lastIndex || col == 0 || col == first().lastIndex
+    }
+
 fun <T> List<List<T>>.allPositions() = flatMapIndexed { row, rowValues ->
     rowValues.indices.map { col -> Position(row = row, col = col) }
 }
