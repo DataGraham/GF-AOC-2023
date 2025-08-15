@@ -28,13 +28,12 @@ fun part1(input: List<String>): Int {
             grid
                 .allPositions()
                 .sumOf { startPosition ->
-                    Direction.all.count { direction ->
-                        grid.word(
+                    grid
+                        .wordsStartingAt(
                             startPosition = startPosition,
-                            direction = direction,
                             length = targetWord.length
-                        ) == targetWord
-                    }
+                        )
+                        .count { it == targetWord }
                 }
         }
 }
@@ -42,6 +41,15 @@ fun part1(input: List<String>): Int {
 fun part2(input: List<String>): Int {
     return input.size
 }
+
+private fun List<List<Char>>.wordsStartingAt(startPosition: Position, length: Int) =
+    Direction.all.map { direction ->
+        word(
+            startPosition = startPosition,
+            direction = direction,
+            length = length
+        )
+    }
 
 private fun List<List<Char>>.word(startPosition: Position, direction: Direction, length: Int) =
     startPosition
