@@ -54,20 +54,35 @@ fun DeltaPosition.unitized() = copy(
     deltaCol = deltaCol.unitized()
 )
 
-// TODO: These should each contain a deltaPosition?
 // TODO: Could we add directions? (e.g. down + left)
-enum class Direction(val rowDelta: Int, val colDelta: Int) {
-    Up(rowDelta = -1, colDelta = 0),
-    Down(rowDelta = 1, colDelta = 0),
-    Right(rowDelta = 0, colDelta = 1),
-    Left(rowDelta = 0, colDelta = -1);
+sealed class Direction(val deltaPosition: DeltaPosition) {
+
+    constructor(deltaRow: Int, deltaCol: Int)
+        : this(DeltaPosition(deltaRow = deltaRow, deltaCol = deltaCol))
+
     // TODO: Could we alias with cardinal directions too?
+    data object Up : Direction(deltaRow = -1, deltaCol = 0)
+    data object Down : Direction(deltaRow = 1, deltaCol = 0)
+    data object Right : Direction(deltaRow = 0, deltaCol = 1)
+    data object Left : Direction(deltaRow = 0, deltaCol = -1)
+
+    data object UpRight : Direction(deltaRow = -1, deltaCol = 1)
+    data object UpLeft : Direction(deltaRow = -1, deltaCol = -1)
+    data object DownRight : Direction(deltaRow = 1, deltaCol = 1)
+    data object DownLeft : Direction(deltaRow = 1, deltaCol = -1)
+
+    companion object {
+        val orthogonal = listOf(Up, Down, Right, Left)
+        val diagonal = listOf(UpRight, UpLeft, DownRight, DownLeft)
+        val all = orthogonal + diagonal
+    }
 }
 
-infix fun Position.move(direction: Direction) = Position(
-    row = row + direction.rowDelta,
-    col = col + direction.colDelta
-)
+infix fun Position.move(direction: Direction) =
+    this + direction.deltaPosition
+
+fun Position.path(direction: Direction) =
+    path(deltaPosition = direction.deltaPosition)
 
 fun Position.path(deltaPosition: DeltaPosition) =
     generateSequence(this) { position -> position + deltaPosition }

@@ -66,7 +66,7 @@ private fun shortestPath(heightMap: List<List<HeightMapEntry>>, startPosition: P
 private fun nextPositions(
     heightMap: List<List<HeightMapEntry>>,
     position: Position
-) = Direction.entries
+) = Direction.orthogonal
     .map { direction -> position move direction }
     .filter { adjacentPosition -> heightMap.isPositionValid(adjacentPosition) }
     .filter { adjacentPosition -> heightMap[adjacentPosition].height <= heightMap[position].height + 1 }
