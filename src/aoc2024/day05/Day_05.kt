@@ -15,19 +15,19 @@ fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/day05/Day05_test")
     check(part1(testInput).also { it.println() } == 143)
-    //check(part2(testInput).also { it.println() } == 1)
+    check(part2(testInput).also { it.println() } == 123)
 
     val input = readInput("aoc2024/day05/Day05")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>): Int {
     val lines = printingLineParser
         .parseLines(input)
-        .apply { printLines() }
-    val rules = lines.mapNotNull { it as? Rule }
-    val updates = lines.mapNotNull { it as? Update }
+    //.apply { printLines() }
+    val rules = lines.filterIsInstance<Rule>()
+    val updates = lines.filterIsInstance<Update>()
     return updates
         .filter { update -> update.followsRules(rules) }
         .sumOf { correctUpdate -> correctUpdate.pageNumbers.middleElement() }
@@ -47,8 +47,30 @@ fun part2(input: List<String>): Int {
         Then, when comparing for sort, we find whether there is a rule chain that includes both page numbers
         and compare there indices within that rule chain?!
      */
-    return input.size
+    val lines = printingLineParser
+        .parseLines(input)
+    //.apply { printLines() }
+    val rules = lines.filterIsInstance<Rule>()
+    val updates = lines.filterIsInstance<Update>()
+    return updates
+        .filter { update -> !update.followsRules(rules) }
+        .map { incorrectUpdate ->
+            Update(pageNumbers = incorrectUpdate.pageNumbers.sortedWith(RuleComparator(rules)))
+        }
+        .sumOf { correctedUpdates -> correctedUpdates.pageNumbers.middleElement() }
 }
+
+class RuleComparator(private val rules: List<Rule>) : Comparator<Int> {
+    override fun compare(o1: Int, o2: Int): Int {
+        val applicableRule = rules.firstOrNull { rule ->
+            rule appliesToPage o1 && rule appliesToPage o2
+        } ?: return 0 // equivalent if no rule applies
+        return if (applicableRule.earlierPageNumber == o1) -1 else 1
+    }
+}
+
+infix fun Rule.appliesToPage(pageNumber: Int) =
+    earlierPageNumber == pageNumber || laterPageNumber == pageNumber
 
 sealed class PrintingLine {
     data class Rule(val earlierPageNumber: Int, val laterPageNumber: Int) : PrintingLine()
