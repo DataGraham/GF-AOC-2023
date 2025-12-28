@@ -6,7 +6,6 @@ import UniversalParser
 import aoc2024.day05.PrintingLine.*
 import middleElement
 import parseLines
-import printLines
 import println
 import readInput
 import require
@@ -23,20 +22,18 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val lines = printingLineParser
-        .parseLines(input)
-    //.apply { printLines() }
-    val rules = lines.filterIsInstance<Rule>()
-    val updates = lines.filterIsInstance<Update>()
+    val (rules, updates) = parse(input)
     return updates
         .filter { update -> update.followsRules(rules) }
         .sumOf { correctUpdate -> correctUpdate.pageNumbers.middleElement() }
 }
 
-private fun Update.followsRules(rules: List<Rule>) =
-    rules.none { rule -> breaks(rule) }
-
 fun part2(input: List<String>): Int {
+    // Turns out this isn't necessary (which TBH isn't surprising given that it's only day 5),
+    //  which suggests that all transitive rules that arise from explicit rules are given explicitly.
+    // By count, I see that in both the test and "real" inputs, when there are 'N' page numbers included
+    //  in any rule, then there are exactly 'N choose 2' (N(N-1)/2) rules, which is the exact number of rules
+    //  expected if all transitive rules are given explicitly.
     /* TODO: Sum middle-elements of rule-breaking updates, AFTER having corrected each of their page orders.
         If A|B and B|C, but not explicitly A|C, then we might not be giving enough of an "order" for sorting,
         because we'd claim A and C are equivalent, when they actually aren't (well, IF B appears).
@@ -46,18 +43,31 @@ fun part2(input: List<String>): Int {
         labelling them -1, -2... and 1, 2...
         Then, when comparing for sort, we find whether there is a rule chain that includes both page numbers
         and compare there indices within that rule chain?!
-     */
-    val lines = printingLineParser
-        .parseLines(input)
-    //.apply { printLines() }
-    val rules = lines.filterIsInstance<Rule>()
-    val updates = lines.filterIsInstance<Update>()
+
+        FWIW, bedtime afterthoughts from Keep:
+        A rule is not a node, a number is a node
+        A rule links two number nodes
+        Once all are linked:
+        Find all nodes with empty lists of nodes that come before and add 0 to their 'weight'.
+        Adding N to a weight also adds N+1 to all nodes that come after (recursively).
+        Now we should be able to sort by just comparing weights.
+    */
+    val (rules, updates) = parse(input)
+    //    val ruledPageNumbers =
+    //        rules.flatMap { listOf(it.earlierPageNumber, it.laterPageNumber) }.toSet()
+    val ruleComparator = RuleComparator(rules)
     return updates
         .filter { update -> !update.followsRules(rules) }
-        .map { incorrectUpdate ->
-            Update(pageNumbers = incorrectUpdate.pageNumbers.sortedWith(RuleComparator(rules)))
-        }
+        .map { incorrectUpdate -> Update(pageNumbers = incorrectUpdate.pageNumbers.sortedWith(ruleComparator)) }
         .sumOf { correctedUpdates -> correctedUpdates.pageNumbers.middleElement() }
+}
+
+private fun parse(input: List<String>): Pair<List<Rule>, List<Update>> {
+    val lines = printingLineParser
+        .parseLines(input)
+    val rules = lines.filterIsInstance<Rule>()
+    val updates = lines.filterIsInstance<Update>()
+    return Pair(rules, updates)
 }
 
 class RuleComparator(private val rules: List<Rule>) : Comparator<Int> {
@@ -69,20 +79,23 @@ class RuleComparator(private val rules: List<Rule>) : Comparator<Int> {
     }
 }
 
-infix fun Rule.appliesToPage(pageNumber: Int) =
-    earlierPageNumber == pageNumber || laterPageNumber == pageNumber
-
 sealed class PrintingLine {
     data class Rule(val earlierPageNumber: Int, val laterPageNumber: Int) : PrintingLine()
     data class Update(val pageNumbers: List<Int>) : PrintingLine()
     data object Blank : PrintingLine()
 }
 
+private fun Update.followsRules(rules: List<Rule>) =
+    rules.none { rule -> breaks(rule) }
+
 fun Update.breaks(rule: Rule): Boolean {
     val earlierPageIndex = pageNumbers.indexOf(rule.earlierPageNumber)
     val laterPageIndex = pageNumbers.indexOf(rule.laterPageNumber)
     return earlierPageIndex != -1 && laterPageIndex != -1 && earlierPageIndex > laterPageIndex
 }
+
+infix fun Rule.appliesToPage(pageNumber: Int) =
+    earlierPageNumber == pageNumber || laterPageNumber == pageNumber
 
 val printingLineParser by lazy {
     UniversalParser(ruleParser, updateParser, blankParser)
