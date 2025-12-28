@@ -4,6 +4,7 @@ import Parser
 import RegexParser
 import UniversalParser
 import aoc2024.day05.PrintingLine.*
+import middleElement
 import parseLines
 import printLines
 import println
@@ -25,8 +26,15 @@ fun part1(input: List<String>): Int {
     val lines = printingLineParser
         .parseLines(input)
         .apply { printLines() }
-    return input.size
+    val rules = lines.mapNotNull { it as? Rule }
+    val updates = lines.mapNotNull { it as? Update }
+    return updates
+        .filter { update -> update.followsRules(rules) }
+        .sumOf { correctUpdate -> correctUpdate.pageNumbers.middleElement() }
 }
+
+private fun Update.followsRules(rules: List<Rule>) =
+    rules.none { rule -> breaks(rule) }
 
 fun part2(input: List<String>): Int {
     return input.size
@@ -36,6 +44,12 @@ sealed class PrintingLine {
     data class Rule(val earlierPageNumber: Int, val laterPageNumber: Int) : PrintingLine()
     data class Update(val pageNumbers: List<Int>) : PrintingLine()
     data object Blank : PrintingLine()
+}
+
+fun Update.breaks(rule: Rule): Boolean {
+    val earlierPageIndex = pageNumbers.indexOf(rule.earlierPageNumber)
+    val laterPageIndex = pageNumbers.indexOf(rule.laterPageNumber)
+    return earlierPageIndex != -1 && laterPageIndex != -1 && earlierPageIndex > laterPageIndex
 }
 
 val printingLineParser by lazy {

@@ -99,3 +99,5 @@ fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
 }
 
 fun <T> Collection<T>.frequencies() = groupingBy { it }.eachCount()
+
+fun <T> List<T>.middleElement() = this[size.require { this % 2 == 1 } / 2]
