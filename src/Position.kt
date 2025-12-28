@@ -1,3 +1,4 @@
+import Direction.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -81,6 +82,18 @@ sealed class Direction(val deltaPosition: DeltaPosition) {
         val diagonal = listOf(UpRight, UpLeft, DownRight, DownLeft)
         val all = orthogonal + diagonal
     }
+}
+
+/* TODO: Just list these in order and to math on the indicies instead? */
+val Direction.turnRight90Degrees get() = when (this) {
+    Up -> Right
+    Down -> Left
+    Left -> Up
+    Right -> Down
+    UpRight -> DownRight
+    UpLeft -> UpRight
+    DownRight -> DownLeft
+    DownLeft -> UpLeft
 }
 
 infix fun Position.move(direction: Direction) =
