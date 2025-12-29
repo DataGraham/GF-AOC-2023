@@ -29,7 +29,7 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
-    val cycle = findCycle(input) { spun() }
+    val cycle = findCycle(input) { spun() }!!
     //  then I can figure out a (hopefully much lower) number of spins
     //  that will put us in a state identical to the state after 1 billion spins.
     //  <distance-to-cycle-x> + (1 billion - x) % cycle_length (I think)

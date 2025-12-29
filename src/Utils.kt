@@ -67,19 +67,19 @@ data class CycleInfo<T>(
 )
 
 /** See: [YouTube](https://www.youtube.com/watch?v=PvrxZaH_eZ4) */
-fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
+fun <T> findCycle(initial: T, next: T.() -> T?): CycleInfo<T>? {
     var slow = initial
     var fast = initial
     do {
-        slow = slow.next()
-        fast = fast.next().next()
+        slow = slow.next() ?: return null
+        fast = fast.next()?.next() ?: return null
     } while (slow != fast)
 
     slow = initial
     var distanceToStart = 0
     while (slow != fast) {
-        slow = slow.next()
-        fast = fast.next()
+        slow = slow.next()!!
+        fast = fast.next()!!
         ++distanceToStart
     }
     val startValue = slow
@@ -87,7 +87,7 @@ fun <T> findCycle(initial: T, next: T.() -> T): CycleInfo<T> {
     var lengthFinder = startValue
     var length = 0
     do {
-        lengthFinder = lengthFinder.next()
+        lengthFinder = lengthFinder.next()!!
         ++length
     } while (lengthFinder != startValue)
 
