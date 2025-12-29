@@ -23,41 +23,75 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = Lab.fromInput(input).getGuardPositionCount()
+fun part1(input: List<String>) = parseLab(input).getGuardPositionCount()
 
-fun part2(input: List<String>) = Lab.fromInput(input).getLoopCausingAddedObstaclePositionCount()
+fun part2(input: List<String>) = parseLab(input).getLoopCausingAddedObstaclePositionCount()
 
-class Lab(
-    // TODO: Use a sealed class instead of char
-    private val grid: List<List<Char>>
-) {
+fun parseLab(input: List<String>) = Lab(
+    grid = input.map { line ->
+        line.map { char ->
+            char.toLabState()
+        }
+    }
+)
+
+sealed class LabState {
+    data object Empty : LabState()
+    data object Obstacle : LabState()
+    data class Guard(val direction: Direction) : LabState()
+}
+
+private fun Char.toLabState() = when (this) {
+    '.' -> LabState.Empty
+    '#' -> LabState.Obstacle
+    else -> LabState.Guard(direction = guardDirections[this]!!)
+}
+
+private val guardDirections = mapOf(
+    '^' to Up,
+    'v' to Down,
+    '<' to Left,
+    '>' to Right
+)
+
+class Lab(private val grid: List<List<LabState>>) {
     fun getGuardPositionCount() = getGuardPath().map { it.position }.toSet().size
 
     fun getLoopCausingAddedObstaclePositionCount() =
+        possibleAddedObstacleLocations.count { addedObstaclePosition ->
+            addedObstaclePosition.addingObstacleCausesGuardLoop()
+        }
+
+    private fun Position.addingObstacleCausesGuardLoop() = findCycle(
+        initial = initialGuardState,
+        next = {
+            nextGuardState(
+                guardState = this,
+                addedObstaclePosition = this@addingObstacleCausesGuardLoop
+            )
+        }
+    ) != null
+
+    private val initialGuardState = grid
+        .allPositions()
+        .firstNotNullOf { position ->
+            (grid[position] as? LabState.Guard)?.let { guard ->
+                GuardState(
+                    position = position,
+                    direction = guard.direction
+                )
+            }
+        }
+
+    private val possibleAddedObstacleLocations by lazy {
         grid
             .allPositions()
             .filter { !it.isObstacle }
-            .filter { it != guardStartPosition }
-            .filter { it != guardStartPosition move guardStartDirection }
-            .count { addedObstaclePosition ->
-                findCycle(
-                    initial = initialGuardState,
-                    next = {
-                        nextGuardState(
-                            guardState = this,
-                            addedObstaclePosition = addedObstaclePosition
-                        )
-                    }
-                ) != null
-            }
+            .filter { it != initialGuardState.position }
+            .filter { it != initialGuardState.position move initialGuardState.direction }
+    }
 
-    private val guardStartPosition = grid
-        .allPositions()
-        .first { position -> grid[position] in guardDirections.keys }
-    private val guardStartDirection = guardDirections[grid[guardStartPosition]]!!
-    private val initialGuardState = GuardState(position = guardStartPosition, direction = guardStartDirection)
-
-    private val Position.isObstacle get() = grid[this] == OBSTACLE
+    private val Position.isObstacle get() = grid[this] is LabState.Obstacle
 
     private fun getGuardPath() =
         generateSequence(seed = initialGuardState) { guardState ->
@@ -78,23 +112,8 @@ class Lab(
         }
     }
 
-    data class GuardState(
+    private data class GuardState(
         val position: Position,
         val direction: Direction
     )
-
-    companion object {
-        private const val OBSTACLE = '#'
-
-        private val guardDirections = mapOf(
-            '^' to Up,
-            'v' to Down,
-            '<' to Left,
-            '>' to Right
-        )
-    }
 }
-
-fun Lab.Companion.fromInput(input: List<String>) = Lab(
-    grid = input.map { line -> line.toCharArray().toList() }
-)
