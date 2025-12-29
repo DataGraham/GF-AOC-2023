@@ -10,7 +10,6 @@ import move
 import println
 import readInput
 import turnRight90Degrees
-import java.security.Guard
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -23,47 +22,53 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-const val OBSTACLE = '#'
+fun part1(input: List<String>) = Lab.fromInput(input).getGuardPositionCount()
 
-fun part1(input: List<String>): Int {
-    val grid = input.map { it.toCharArray().toList() }
+class Lab(
+    // TODO: Use a sealed class instead of char
+    private val grid: List<List<Char>>
+) {
+    fun getGuardPositionCount() = getGuardPath().map { it.position }.toSet().size
 
-    //    val obstaclePositions = grid
-    //        .allPositions()
-    //        .filter { position -> grid[position] == OBSTACLE }
-    //        .toSet()
-    fun Position.isObstacle() = grid[this] == OBSTACLE
-    val guardDirections = mapOf(
-        '^' to Up,
-        'v' to Down,
-        '<' to Left,
-        '>' to Right
-    )
-    val guardStarPosition = grid
+    private val guardStarPosition = grid
         .allPositions()
         .first { position -> grid[position] in guardDirections.keys }
-    val guardStartDirection = guardDirections[grid[guardStarPosition]]!!
+    private val guardStartDirection = guardDirections[grid[guardStarPosition]]!!
 
-    val guardPath = generateSequence(
-        GuardState(
-            position = guardStarPosition,
-            direction = guardStartDirection
-        )
-    ) { guardState ->
-        val nextPosition = guardState.position move guardState.direction
-        when {
-            !grid.isPositionValid(nextPosition) -> null
-            nextPosition.isObstacle() -> guardState.copy(direction = guardState.direction.turnRight90Degrees)
-            else -> guardState.copy(position = nextPosition)
+    private val Position.isObstacle get() = grid[this] == OBSTACLE
+
+    private fun getGuardPath(addedObstaclePosition: Position? = null) =
+        generateSequence(
+            seed = GuardState(position = guardStarPosition, direction = guardStartDirection)
+        ) { guardState ->
+            val nextPosition = guardState.position move guardState.direction
+            when {
+                !grid.isPositionValid(nextPosition) -> null
+                nextPosition.isObstacle || nextPosition == addedObstaclePosition ->
+                    guardState.copy(direction = guardState.direction.turnRight90Degrees)
+                else -> guardState.copy(position = nextPosition)
+            }
         }
-    }
 
-    return guardPath.map { it.position }.toSet().size
+    data class GuardState(
+        val position: Position,
+        val direction: Direction
+    )
+
+    companion object {
+        private const val OBSTACLE = '#'
+
+        private val guardDirections = mapOf(
+            '^' to Up,
+            'v' to Down,
+            '<' to Left,
+            '>' to Right
+        )
+    }
 }
 
-data class GuardState(
-    val position: Position,
-    val direction: Direction
+fun Lab.Companion.fromInput(input: List<String>) = Lab(
+    grid = input.map { line -> line.toCharArray().toList() }
 )
 
 fun part2(input: List<String>): Int {
