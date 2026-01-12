@@ -5,7 +5,6 @@ import parseLines
 import printLines
 import println
 import readInput
-import java.util.regex.Pattern
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -22,6 +21,7 @@ fun part1(input: List<String>): Int {
     val calibrationEquations = calibrationParser
         .parseLines(input)
         .printLines()
+    operatorSets(length = 3).toList().printLines()
     return input.size
 }
 
@@ -33,6 +33,27 @@ data class CalibrationEquation(
     val result: Int,
     val inputs: List<Int>
 )
+
+enum class Operator(private val calculate: (Int, Int) -> Int) {
+    Addition({ a, b -> a + b }),
+    Multiplication({ a, b -> a * b });
+
+    operator fun invoke(a: Int, b: Int): Int = calculate(a, b)
+}
+
+fun operatorSets(length: Int) = generateSequence(
+    List(size = length) { Operator.entries.first() }
+) { previous ->
+    try {
+        val indexToIncrement = previous.indexOfFirst { it != Operator.entries.last() }
+        val resetPrefix = List(size = indexToIncrement) { Operator.entries.first() }
+        val incrementedOperator = listOf(Operator.entries[previous[indexToIncrement].ordinal + 1])
+        val untouchedRemainder = previous.subList(fromIndex = indexToIncrement + 1, toIndex = previous.size)
+        resetPrefix + incrementedOperator + untouchedRemainder
+    } catch (e: Exception) {
+        null
+    }
+}
 
 val calibrationParser by lazy {
     RegexParser("""(\d+): (.*)""") { captures ->
