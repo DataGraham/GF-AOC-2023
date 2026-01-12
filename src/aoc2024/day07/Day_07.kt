@@ -8,7 +8,7 @@ import readInput
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/day07/Day07_test")
-    check(part1(testInput).also { it.println() } == 3749)
+    check(part1(testInput).also { it.println() } == 3749L)
     //check(part2(testInput).also { it.println() } == 1)
 
     val input = readInput("aoc2024/day07/Day07")
@@ -30,28 +30,28 @@ fun part2(input: List<String>): Int {
 }
 
 data class CalibrationEquation(
-    val result: Int,
-    val inputs: List<Int>
+    val result: Long,
+    val inputs: List<Long>
 )
 
 val calibrationEquationParser by lazy {
     RegexParser("""(\d+):(( \d+)+)""") { captures ->
         val (resultString, inputsString) = captures
         CalibrationEquation(
-            result = resultString.toInt(),
+            result = resultString.toLong(),
             inputs = inputsString
                 .trim()
                 .split(" ")
-                .map { it.toInt() }
+                .map { it.toLong() }
         )
     }
 }
 
-enum class Operator(private val calculate: (Int, Int) -> Int) {
+enum class Operator(private val calculate: (Long, Long) -> Long) {
     Addition({ a, b -> a + b }),
     Multiplication({ a, b -> a * b });
 
-    operator fun invoke(a: Int, b: Int): Int = calculate(a, b)
+    operator fun invoke(a: Long, b: Long): Long = calculate(a, b)
 }
 
 /** TODO: Or recursively? */
@@ -69,7 +69,7 @@ fun operatorSets(length: Int) = generateSequence(
     }
 }
 
-fun List<Operator>.applyToInputs(inputs: List<Int>) =
+fun List<Operator>.applyToInputs(inputs: List<Long>) =
     zip(inputs.drop(1))
         .fold(inputs.first()) { acc, (operator, input) ->
             operator(acc, input)
