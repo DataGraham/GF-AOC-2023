@@ -18,7 +18,7 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val calibrationEquations = calibrationParser
+    val calibrationEquations = calibrationEquationParser
         .parseLines(input)
         .printLines()
     operatorSets(length = 3).toList().printLines()
@@ -41,6 +41,7 @@ enum class Operator(private val calculate: (Int, Int) -> Int) {
     operator fun invoke(a: Int, b: Int): Int = calculate(a, b)
 }
 
+/** TODO: Or recursively? */
 fun operatorSets(length: Int) = generateSequence(
     List(size = length) { Operator.entries.first() }
 ) { previous ->
@@ -55,12 +56,13 @@ fun operatorSets(length: Int) = generateSequence(
     }
 }
 
-val calibrationParser by lazy {
-    RegexParser("""(\d+): (.*)""") { captures ->
+val calibrationEquationParser by lazy {
+    RegexParser("""(\d+):(( \d+)+)""") { captures ->
         val (resultString, inputsString) = captures
         CalibrationEquation(
             result = resultString.toInt(),
             inputs = inputsString
+                .trim()
                 .split(" ")
                 .map { it.toInt() }
         )
