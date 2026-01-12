@@ -1,7 +1,11 @@
 package aoc2024.day07
 
+import RegexParser
+import parseLines
+import printLines
 import println
 import readInput
+import java.util.regex.Pattern
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -15,9 +19,29 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
+    val calibrationEquations = calibrationParser
+        .parseLines(input)
+        .printLines()
     return input.size
 }
 
 fun part2(input: List<String>): Int {
     return input.size
+}
+
+data class CalibrationEquation(
+    val result: Int,
+    val inputs: List<Int>
+)
+
+val calibrationParser by lazy {
+    RegexParser("""(\d+): (.*)""") { captures ->
+        val (resultString, inputsString) = captures
+        CalibrationEquation(
+            result = resultString.toInt(),
+            inputs = inputsString
+                .split(" ")
+                .map { it.toInt() }
+        )
+    }
 }
