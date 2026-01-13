@@ -1,43 +1,35 @@
 package aoc2024.day07
 
 import RegexParser
-import measurePerformance
 import parseLines
 import println
 import readInput
-import toInfiniteSequence
+import kotlin.enums.enumEntries
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/day07/Day07_test")
     check(part1(testInput).also { it.println() } == 3749L)
-    //check(part2(testInput).also { it.println() } == 1)
+    check(part2(testInput).also { it.println() } == 11387L)
 
     val input = readInput("aoc2024/day07/Day07")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) =
+fun part1(input: List<String>) = sumOfPossiblyTrueResults<Operator>(input)
+
+fun part2(input: List<String>) = sumOfPossiblyTrueResults<ExtendedOperator>(input)
+
+private inline fun <reified E> sumOfPossiblyTrueResults(input: List<String>) where E : Enum<E>, E : Calculable =
     calibrationEquationParser
         .parseLines(input)
-        .let { equations ->
-            measurePerformance(reps = 10) {
-                equations.filter { equation ->
-                    equation.couleBeTrue
-                }
-            }
-            equations.filter { it.couleBeTrue }
-        }
+        .filter { equation -> equation.getCouleBeTrue<E>() }
         .sumOf { equation -> equation.result }
 
-private val CalibrationEquation.couleBeTrue
-    get() = operatorSets(length = inputs.size - 1)
+private inline fun <reified E> CalibrationEquation.getCouleBeTrue() where E : Enum<E>, E : Calculable =
+    enumSets<E>(length = inputs.size - 1)
         .any { operatorSet -> operatorSet.applyToInputs(inputs) == result }
-
-fun part2(input: List<String>): Int {
-    return input.size
-}
 
 data class CalibrationEquation(
     val result: Long,
@@ -57,20 +49,32 @@ val calibrationEquationParser by lazy {
     }
 }
 
-enum class Operator(private val calculate: (Long, Long) -> Long) {
+interface Calculable {
+    operator fun invoke(a: Long, b: Long): Long
+}
+
+enum class Operator(private val calculate: (Long, Long) -> Long) : Calculable {
     Addition({ a, b -> a + b }),
     Multiplication({ a, b -> a * b });
 
-    operator fun invoke(a: Long, b: Long): Long = calculate(a, b)
+    override operator fun invoke(a: Long, b: Long): Long = calculate(a, b)
 }
 
-fun operatorSets(length: Int) = generateSequence(
-    List(size = length) { Operator.entries.first() }
+enum class ExtendedOperator(private val calculate: (Long, Long) -> Long) : Calculable {
+    Addition({ a, b -> Operator.Addition(a, b) }),
+    Multiplication({ a, b -> Operator.Multiplication(a, b) }),
+    Concatenation({ a, b -> ("$a$b").toLong() });
+
+    override operator fun invoke(a: Long, b: Long): Long = calculate(a, b)
+}
+
+inline fun <reified E : Enum<E>> enumSets(length: Int) = generateSequence(
+    List(size = length) { enumEntries<E>().first() }
 ) { previous ->
     try {
-        val indexToIncrement = previous.indexOfFirst { it != Operator.entries.last() }
-        val resetPrefix = List(size = indexToIncrement) { Operator.entries.first() }
-        val incrementedOperator = listOf(Operator.entries[previous[indexToIncrement].ordinal + 1])
+        val indexToIncrement = previous.indexOfFirst { it != enumEntries<E>().last() }
+        val resetPrefix = List(size = indexToIncrement) { enumEntries<E>().first() }
+        val incrementedOperator = listOf(enumEntries<E>()[previous[indexToIncrement].ordinal + 1])
         val untouchedRemainder = previous.subList(fromIndex = indexToIncrement + 1, toIndex = previous.size)
         resetPrefix + incrementedOperator + untouchedRemainder
     } catch (e: Exception) {
@@ -91,7 +95,7 @@ fun operatorSetsRecursive(length: Int): Sequence<List<Operator>> {
     }
 }
 
-fun List<Operator>.applyToInputs(inputs: List<Long>) =
+fun List<Calculable>.applyToInputs(inputs: List<Long>) =
     zip(inputs.drop(1))
         .fold(inputs.first()) { acc, (operator, input) ->
             operator(acc, input)
