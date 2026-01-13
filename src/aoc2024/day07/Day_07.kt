@@ -1,9 +1,11 @@
 package aoc2024.day07
 
 import RegexParser
+import measurePerformance
 import parseLines
 import println
 import readInput
+import toInfiniteSequence
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -17,8 +19,16 @@ fun main() {
 }
 
 fun part1(input: List<String>) =
-    calibrationEquationParser.parseLines(input)
-        .filter { equation -> equation.couleBeTrue }
+    calibrationEquationParser
+        .parseLines(input)
+        .let { equations ->
+            measurePerformance(reps = 10) {
+                equations.filter { equation ->
+                    equation.couleBeTrue
+                }
+            }
+            equations.filter { it.couleBeTrue }
+        }
         .sumOf { equation -> equation.result }
 
 private val CalibrationEquation.couleBeTrue
@@ -54,7 +64,6 @@ enum class Operator(private val calculate: (Long, Long) -> Long) {
     operator fun invoke(a: Long, b: Long): Long = calculate(a, b)
 }
 
-/** TODO: Or recursively? */
 fun operatorSets(length: Int) = generateSequence(
     List(size = length) { Operator.entries.first() }
 ) { previous ->
@@ -66,6 +75,19 @@ fun operatorSets(length: Int) = generateSequence(
         resetPrefix + incrementedOperator + untouchedRemainder
     } catch (e: Exception) {
         null
+    }
+}
+
+/** Considerable slower than iterative */
+fun operatorSetsRecursive(length: Int): Sequence<List<Operator>> {
+    val sequenceOfSingles = Operator.entries
+        .map { operator -> listOf(operator) }
+        .asSequence()
+    return if (length == 1)
+        sequenceOfSingles
+    else sequenceOfSingles.flatMap { singleEntry ->
+        operatorSetsRecursive(length - 1)
+            .map { resetOfSequence -> singleEntry + resetOfSequence }
     }
 }
 
