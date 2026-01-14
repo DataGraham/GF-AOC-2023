@@ -50,6 +50,11 @@ operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
     col = col + deltaPosition.deltaCol
 )
 
+operator fun Position.minus(deltaPosition: DeltaPosition) = Position(
+    row = row - deltaPosition.deltaRow,
+    col = col - deltaPosition.deltaCol
+)
+
 infix fun Position.manhattanDistanceTo(other: Position) =
     abs(row - other.row) + abs(col - other.col)
 

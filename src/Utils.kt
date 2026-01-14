@@ -31,8 +31,7 @@ inline fun <T> measurePerformance(label: String = "", reps: Int, function: () ->
 
 fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = indexOf(delimiter).takeIf { it != -1 }!! + 1)
 
-fun String.subString(startIndex: Int, length: Int)
-    = substring(startIndex = startIndex, endIndex = startIndex + length)
+fun String.subString(startIndex: Int, length: Int) = substring(startIndex = startIndex, endIndex = startIndex + length)
 
 fun Int.toIntRange() = this..this
 
@@ -57,6 +56,13 @@ fun List<String>.transposedStrings() = first().indices.map { col ->
 
 fun <T> List<List<T?>>.transposed() =
     List(maxOf { it.size }) { i -> map { it.getOrNull(i) } }
+
+fun <T> List<T>.allPairs() =
+    indices.flatMap { firstIndex ->
+        indices.drop(firstIndex + 1).map { secondIndex ->
+            get(firstIndex) to get(secondIndex)
+        }
+    }
 
 fun <T> MutableList<T>.removeFirst(count: Int) = List(count) { removeFirst() }
 
