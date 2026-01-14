@@ -36,6 +36,10 @@ fun part1(input: List<String>): Int {
 }
 
 fun part2(input: List<String>): Int {
+    // TODO: Like part 1 except "unitize" the OVERALL delta
+    //  (not each component like the existing utility does),
+    //  and repeatedly add it and subtract it from one antenna
+    //  until you go off the grid.
     return input.size
 }
 
