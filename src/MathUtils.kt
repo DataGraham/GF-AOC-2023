@@ -3,6 +3,8 @@ import kotlin.math.pow
 
 fun Int.unitized() = this / abs(this).coerceAtLeast(1)
 
+tailrec fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
+
 fun lcm(numbers: List<Int>) = numbers
     // Compute the prime factorization of each path length
     .flatMap { it.primeFactorization() }

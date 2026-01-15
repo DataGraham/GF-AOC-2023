@@ -43,6 +43,8 @@ fun DeltaPosition.toPosition() = Position(row = deltaRow, col = deltaCol)
 operator fun Position.minus(otherPosition: Position) =
     DeltaPosition(deltaRow = row - otherPosition.row, deltaCol = col - otherPosition.col)
 
+operator fun DeltaPosition.unaryMinus() = DeltaPosition(deltaRow = -deltaRow, deltaCol = -deltaCol)
+
 infix fun Position.relativeTo(other: Position) = (this - other).toPosition()
 
 operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
@@ -60,10 +62,18 @@ infix fun Position.manhattanDistanceTo(other: Position) =
 
 val DeltaPosition.isAdjacent get() = max(abs(deltaRow), abs(deltaCol)) <= 1
 
-fun DeltaPosition.unitized() = copy(
+fun DeltaPosition.unitized() = DeltaPosition(
     deltaRow = deltaRow.unitized(),
     deltaCol = deltaCol.unitized()
 )
+
+fun DeltaPosition.withMinimumMagnitude() =
+    gcd(deltaRow, deltaCol).let { gcd ->
+        DeltaPosition(
+            deltaRow = deltaRow / gcd,
+            deltaCol = deltaCol / gcd
+        )
+    }
 
 // TODO: Could we add directions? (e.g. down + left)
 sealed class Direction(val deltaPosition: DeltaPosition) {
@@ -89,17 +99,18 @@ sealed class Direction(val deltaPosition: DeltaPosition) {
     }
 }
 
-/* TODO: Just list these in order and to math on the indicies instead? */
-val Direction.turnRight90Degrees get() = when (this) {
-    Up -> Right
-    Down -> Left
-    Left -> Up
-    Right -> Down
-    UpRight -> DownRight
-    UpLeft -> UpRight
-    DownRight -> DownLeft
-    DownLeft -> UpLeft
-}
+/* TODO: Just list these in order and to math on the indices instead? */
+val Direction.turnRight90Degrees
+    get() = when (this) {
+        Up -> Right
+        Down -> Left
+        Left -> Up
+        Right -> Down
+        UpRight -> DownRight
+        UpLeft -> UpRight
+        DownRight -> DownLeft
+        DownLeft -> UpLeft
+    }
 
 infix fun Position.move(direction: Direction) =
     this + direction.deltaPosition
