@@ -25,8 +25,20 @@ fun part1(input: List<String>): Int {
         } else {
             List(c) { null }
         }
-    }
+    }.toTypedArray()
+    defrag(disk)
     return input.size
+}
+
+private fun defrag(disk: Array<Int?>) {
+    disk.indices.reversed().forEach { moveFrom ->
+        if (disk[moveFrom] == null) return@forEach
+        val moveTo = disk.indexOf(null)
+        if (moveTo == -1 || moveTo > moveFrom) return
+        disk[moveTo] = disk[moveFrom]
+        disk[moveFrom] = null
+        // TODO: We should start at moveTo+1 when looking for the next moveTo
+    }
 }
 
 fun part2(input: List<String>): Int {
