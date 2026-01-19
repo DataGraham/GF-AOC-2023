@@ -19,7 +19,7 @@ fun part1(input: List<String>) =
         .first()
         .toDiskMapCodes()
         .decodeDiskMap()
-        .apply { defrag(this) }
+        .apply { compact(this) }
         .asIterable()
         .checksum()
 
@@ -37,7 +37,7 @@ fun List<Int>.decodeDiskMap() =
         else List(code) { null }
     }.toTypedArray()
 
-private fun defrag(disk: Array<Int?>) {
+private fun compact(disk: Array<Int?>) {
     disk.indices.reversed().forEach { moveFrom ->
         if (disk[moveFrom] == null) return@forEach
         val moveTo = disk.indexOf(null)
