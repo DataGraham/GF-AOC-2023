@@ -14,23 +14,28 @@ fun main() {
     //println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Long {
-    val codes = input.first().toCharArray().map { it.digitToInt() }
-    val disk = codes.flatMapIndexed { index, code ->
-        if (index % 2 == 0)
-            // Start with a file of length <code> containing the file id (index)
-            List(code) { index / 2 }
-        else
-            // Next is empty space of length <code>
-            List(code) { null }
-    }.toTypedArray()
-    defrag(disk)
-    return disk.asIterable().checksum()
-}
+fun part1(input: List<String>) =
+    input
+        .first()
+        .toDiskMapCodes()
+        .decodeDiskMap()
+        .apply { defrag(this) }
+        .asIterable()
+        .checksum()
 
 fun part2(input: List<String>): Int {
     return input.size
 }
+
+fun String.toDiskMapCodes() = map { it.digitToInt() }
+
+fun List<Int>.decodeDiskMap() =
+    flatMapIndexed { index, code ->
+        // Start with a file of length <code> containing the file id (index)
+        if (index % 2 == 0) List(code) { index / 2 }
+        // Next is empty space of length <code>
+        else List(code) { null }
+    }.toTypedArray()
 
 private fun defrag(disk: Array<Int?>) {
     disk.indices.reversed().forEach { moveFrom ->
