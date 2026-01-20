@@ -32,10 +32,14 @@ fun String.toDiskMapCodes() = map { it.digitToInt() }
 fun List<Int>.decodeDiskMap() =
     flatMapIndexed { index, code ->
         // Start with a file of length <code> containing the file id (index)
-        if (index % 2 == 0) List(code) { index / 2 }
+        if (index % 2 == 0) file(id = index / 2, size = code)
         // Next is empty space of length <code>
-        else List(code) { null }
+        else emptySpace(size = code)
     }.toTypedArray()
+
+private fun file(id: Int, size: Int) = List(size) { id }
+
+private fun emptySpace(size: Int) = List(size) { null }
 
 private fun compact(disk: Array<Int?>) {
     disk.indices.reversed().forEach { moveFrom ->
