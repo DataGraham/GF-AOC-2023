@@ -79,7 +79,11 @@ private fun compact(disk: Array<Int?>) {
 
 /** Avoid scanning the LinkedList too many times? */
 private fun compactWholeFiles(disk: LinkedList<EfficientDiskMapEntry>) {
-    // TODO: Concurrent modification?!
+    // TODO: Concurrent modification!
+    //  Would it make more sense to just NOT be "efficient"
+    //  and just decode to one disk unit at a time
+    //  so we only have to assign elements in the list
+    //  and never insert or remove?!
     disk.descendingIterator().withIndex().forEach { (reversedEntryIndex, entryToMove) ->
         val entryIndex = disk.lastIndex - reversedEntryIndex
         if (entryToMove.fileId == null) return@forEach
