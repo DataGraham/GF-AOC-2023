@@ -2,13 +2,14 @@ package aoc2024.day09
 
 import println
 import readInput
+import split
 import java.util.*
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/day09/Day09_test")
     check(part1(testInput).also { it.println() } == 1928L)
-    check(part2(testInput).also { it.println() } == Unit)
+    check(part2(testInput).also { it.println() } == 2858L)
 
     val input = readInput("aoc2024/day09/Day09")
     println("Part 1 Answer: ${part1(input)}")
@@ -29,13 +30,18 @@ fun part2(input: List<String>) =
         .first()
         .toDiskMapCodes()
         .decodeEfficientDiskMap()
-        .apply { compactWholeFiles(this) }
-        .println()
-//.checksum()
+        //.apply { compactWholeFiles(this) }
+        .let { efficientDiskMapEntries ->
+            compactWholeFiles(efficientDiskMapEntries.toList())
+        }
+        //.println()
+        .asIterable()
+        .checksum()
 
 data class EfficientDiskMapEntry(
     /** Null for empty space **/
     val fileId: Int?,
+    val start: Int,
     val size: Int
 )
 
@@ -50,17 +56,20 @@ fun List<Int>.decodeDiskMap() =
     }.toTypedArray()
 
 /** TODO: De-dupe with the original version */
-fun List<Int>.decodeEfficientDiskMap() =
-    LinkedList(
+fun List<Int>.decodeEfficientDiskMap(): LinkedList<EfficientDiskMapEntry> {
+    var cumulativeSize = 0
+    return LinkedList(
         mapIndexed { index, code ->
             EfficientDiskMapEntry(
                 size = code,
                 // Start with a file of length <code> containing the file id (index of the file)
                 // Next is empty space of length <code>
-                fileId = if (index % 2 == 0) index / 2 else null
+                fileId = if (index % 2 == 0) index / 2 else null,
+                start = cumulativeSize.also { cumulativeSize += code }
             )
         }
     )
+}
 
 private fun file(id: Int, size: Int) = List(size) { id }
 
@@ -103,6 +112,58 @@ private fun compactWholeFiles(disk: LinkedList<EfficientDiskMapEntry>) {
             disk.add(index = moveTo, entryToMove)
         }
     }
+}
+
+private fun compactWholeFiles(disk: List<EfficientDiskMapEntry>): Array<Int?> {
+    val diskBlocks = disk.unpack()
+    disk.reversed().filter { it.fileId != null }.forEach { fileToMove ->
+        val moveTo = diskBlocks.emptySpaces().firstOrNull { it.size >= fileToMove.size }
+        if (moveTo != null) diskBlocks.moveBlocks(
+            source = fileToMove.start,
+            destination = moveTo.start,
+            size = fileToMove.size
+        )
+    }
+    return diskBlocks
+}
+
+private fun Array<Int?>.emptySpaces(): List<EmptySpace> =
+    withIndex().split { it.value != null }.map {
+        EmptySpace(
+            start = it.first().index,
+            size = it.size
+        )
+    }
+
+private data class EmptySpace(
+    val start: Int,
+    val size: Int
+)
+
+private fun Array<Int?>.moveBlocks(source: Int, destination: Int, size: Int) {
+    (0..<size).forEach { offset ->
+        this[destination + offset] = this[source + offset]
+        this[source + offset] = null
+    }
+}
+
+private fun List<EfficientDiskMapEntry>.unpack() =
+    flatMap { entry -> List(entry.size) { entry.fileId } }.toTypedArray()
+
+data class FileToMove(
+    val startIndex: Int,
+    val size: Int
+)
+
+private fun List<Int?>.firstFileToMove(): FileToMove? {
+    val start = indexOfFirst { it != null }.takeIf { it != -1 } ?: return null
+    val id = this[start]
+    val size = drop(start).run {
+        indexOfFirst { it != id }
+            .takeIf { it != -1 }
+            ?: size
+    }
+    return FileToMove(startIndex = start, size = size)
 }
 
 private fun Iterable<Int?>.checksum() =
