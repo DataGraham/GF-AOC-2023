@@ -29,6 +29,7 @@ fun part2(input: List<String>) =
     input
         .first()
         .toDiskMapCodes()
+        // TODO: This makes a list internally, so expose that so we don't go to LinkedList and back!
         .decodeEfficientDiskMap()
         //.apply { compactWholeFiles(this) }
         .let { efficientDiskMapEntries ->
@@ -57,7 +58,7 @@ fun List<Int>.decodeDiskMap() =
 
 /** TODO: De-dupe with the original version */
 fun List<Int>.decodeEfficientDiskMap(): LinkedList<EfficientDiskMapEntry> {
-    var cumulativeSize = 0
+    var cumulativeSize = 0 // TODO: Could we fold or reduce or something to make this not a var and be more functional?
     return LinkedList(
         mapIndexed { index, code ->
             EfficientDiskMapEntry(
@@ -118,7 +119,7 @@ private fun compactWholeFiles(disk: List<EfficientDiskMapEntry>): Array<Int?> {
     val diskBlocks = disk.unpack()
     disk.reversed().filter { it.fileId != null }.forEach { fileToMove ->
         val moveTo = diskBlocks
-            .emptySpaces()
+            .emptySpaces()// TODO: Can we make this a sequence or iterable so that we can stop when we find a big enough space?
             .firstOrNull { it.size >= fileToMove.size }
             ?.takeIf { it.start < fileToMove.start }
         if (moveTo != null) diskBlocks.moveBlocks(
