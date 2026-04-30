@@ -13,7 +13,7 @@ fun main() {
 
     val input = readInput("aoc2024/day09/Day09")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
 fun part1(input: List<String>) =
@@ -117,7 +117,10 @@ private fun compactWholeFiles(disk: LinkedList<EfficientDiskMapEntry>) {
 private fun compactWholeFiles(disk: List<EfficientDiskMapEntry>): Array<Int?> {
     val diskBlocks = disk.unpack()
     disk.reversed().filter { it.fileId != null }.forEach { fileToMove ->
-        val moveTo = diskBlocks.emptySpaces().firstOrNull { it.size >= fileToMove.size }
+        val moveTo = diskBlocks
+            .emptySpaces()
+            .firstOrNull { it.size >= fileToMove.size }
+            ?.takeIf { it.start < fileToMove.start }
         if (moveTo != null) diskBlocks.moveBlocks(
             source = fileToMove.start,
             destination = moveTo.start,
