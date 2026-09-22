@@ -1,5 +1,6 @@
 package aoc2024.day09
 
+import measurePerformance
 import println
 import readInput
 import split
@@ -33,7 +34,12 @@ fun part2(input: List<String>) =
         .decodeEfficientDiskMap()
         //.apply { compactWholeFiles(this) }
         .let { efficientDiskMapEntries ->
-            //compactWholeFiles(efficientDiskMapEntries.toList())
+            measurePerformance("compactWholeFiles", 10) {
+                compactWholeFiles(efficientDiskMapEntries.toList())
+            }
+            measurePerformance("compactWholeFilesEfficient", 10) {
+                compactWholeFilesEfficient(efficientDiskMapEntries.toList())
+            }
             compactWholeFilesEfficient(efficientDiskMapEntries.toList())
         }
         //.println()
