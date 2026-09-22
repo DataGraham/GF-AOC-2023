@@ -33,7 +33,8 @@ fun part2(input: List<String>) =
         .decodeEfficientDiskMap()
         //.apply { compactWholeFiles(this) }
         .let { efficientDiskMapEntries ->
-            compactWholeFiles(efficientDiskMapEntries.toList())
+            //compactWholeFiles(efficientDiskMapEntries.toList())
+            compactWholeFilesEfficient(efficientDiskMapEntries.toList())
         }
         //.println()
         .asIterable()
@@ -127,6 +128,40 @@ private fun compactWholeFiles(disk: List<EfficientDiskMapEntry>): Array<Int?> {
             destination = moveTo.start,
             size = fileToMove.size
         )
+    }
+    return diskBlocks
+}
+
+private fun compactWholeFilesEfficient(disk: List<EfficientDiskMapEntry>): Array<Int?> {
+    val diskBlocks = disk.unpack()
+    val emptySpaces = LinkedList(disk.filterIsInstance<EmptySpace>())
+    // TODO: Don't make copies!!!
+    disk.reversed().filter { it.fileId != null }.forEach { fileToMove ->
+        val moveTo = emptySpaces
+            // Find the earliest space that is either big enough, or past the file,
+            // (i.e. don't keep looking past a big enough space NOR past the file).
+            .withIndex()
+            .firstOrNull { it.value.size >= fileToMove.size || it.value.start > fileToMove.start }
+            ?.takeIf { it.value.start < fileToMove.start } // If we accepted a space before the file, it's big enough
+        if (moveTo != null) {
+            diskBlocks.moveBlocks(
+                source = fileToMove.start,
+                destination = moveTo.value.start,
+                size = fileToMove.size
+            )
+            // TODO: Extract function to consume free space
+            val leftover = moveTo.value.size - fileToMove.size
+            if (leftover == 0) {
+                emptySpaces.removeAt(moveTo.index)
+            } else {
+                emptySpaces[moveTo.index] = moveTo.value.run {
+                    copy(
+                        start = start + fileToMove.size,
+                        size = leftover
+                    )
+                }
+            }
+        }
     }
     return diskBlocks
 }
