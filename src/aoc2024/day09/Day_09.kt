@@ -45,7 +45,9 @@ data class EfficientDiskMapEntry(
     val fileId: Int?,
     val start: Int,
     val size: Int
-)
+) {
+    val isEmptySpace get() = fileId == null
+}
 
 fun String.toDiskMapCodes() = map { it.digitToInt() }
 
@@ -134,7 +136,7 @@ private fun compactWholeFiles(disk: List<EfficientDiskMapEntry>): Array<Int?> {
 
 private fun compactWholeFilesEfficient(disk: List<EfficientDiskMapEntry>): Array<Int?> {
     val diskBlocks = disk.unpack()
-    val emptySpaces = LinkedList(disk.filterIsInstance<EmptySpace>())
+    val emptySpaces = LinkedList(disk.filter(EfficientDiskMapEntry::isEmptySpace))
     // TODO: Don't make copies!!!
     disk.reversed().filter { it.fileId != null }.forEach { fileToMove ->
         val moveTo = emptySpaces
