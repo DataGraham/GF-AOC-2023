@@ -3,6 +3,7 @@ package aoc2024.day11
 import println
 import readInput
 import subString
+import java.math.BigInteger
 
 private const val EVOLUTION_COUNT = 25
 
@@ -30,15 +31,15 @@ fun part2(input: List<String>): Int {
 }
 
 fun List<String>.parseStoneNumbers() =
-    first().split(' ').map { it.toInt() }
+    first().split(' ').map { it.toBigInteger() }
 
-fun List<Int>.stoneEvolution() =
+fun List<BigInteger>.stoneEvolution() =
     generateSequence(this) { stones ->
         stones.flatMap { stone -> stone.evolve() }
     }
 
-fun Int.evolve(): List<Int> =
-    if (this == 0) listOf(1)
+fun BigInteger.evolve(): List<BigInteger> =
+    if (this == BigInteger.ZERO) listOf(BigInteger.ONE)
     else {
         val digits = toString()
         if (digits.length % 2 == 0) (digits.length / 2)
@@ -47,7 +48,7 @@ fun Int.evolve(): List<Int> =
                     .map { (start, length) ->
                         digits.subString(startIndex = start, length = length)
                     }
-                    .map(String::toInt)
+                    .map(String::toBigInteger)
             }
-        else listOf(this * 2024)
+        else listOf(this * BigInteger.valueOf(2024L))
     }
