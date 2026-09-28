@@ -20,32 +20,24 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    val heights = input.map { line -> line.map { it.digitToInt() } }
-    val trailheads = heights
-        .allPositions()
-        .filter { position -> heights[position] == 0 }
-    return trailheads.sumOf { trailhead -> heights.trailScoreBySummitCount(trailhead = trailhead) }
-}
+fun part1(input: List<String>) =
+    input.sumTrailheadsBy { trailhead -> reachableNines(startPosition = trailhead).toSet().size }
 
-fun part2(input: List<String>): Int {
-    val heights = input.map { line -> line.map { it.digitToInt() } }
-    val trailheads = heights
-        .allPositions()
-        .filter { position -> heights[position] == 0 }
-    return trailheads.sumOf { trailhead -> heights.trailScoreByPathCount(trailhead = trailhead) }
-}
+fun part2(input: List<String>) =
+    input.sumTrailheadsBy { trailhead -> reachableNines(startPosition = trailhead).size }
 
-fun List<List<Int>>.trailScoreBySummitCount(trailhead: Position): Int {
-    require(this[trailhead] == 0)
-    return reachableNines(trailhead)
-        .toSet()
-        .size
-}
+private fun List<String>.sumTrailheadsBy(score: List<List<Int>>.(Position) -> Int) =
+    parseHeights().run {
+        trailheads().sumOf { trailhead -> score(trailhead) }
+    }
 
-fun List<List<Int>>.trailScoreByPathCount(trailhead: Position): Int {
-    require(this[trailhead] == 0)
-    return reachableNines(trailhead).size
+private fun List<String>.parseHeights() =
+    map { line -> line.map { it.digitToInt() } }
+
+private fun List<List<Int>>.trailheads(): List<Position> {
+    val trailheads = allPositions()
+        .filter { position -> this[position] == 0 }
+    return trailheads
 }
 
 fun List<List<Int>>.reachableNines(startPosition: Position): List<Position> {
