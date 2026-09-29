@@ -3,7 +3,6 @@ package aoc2024.day11
 import println
 import readInput
 import subString
-import java.math.BigInteger
 
 fun main() {
     // test if implementation meets criteria from the description, like:
@@ -20,15 +19,15 @@ fun part1(input: List<String>) = input.parseStoneNumbers().evolvedStoneCount(evo
 
 fun part2(input: List<String>) = input.parseStoneNumbers().evolvedStoneCount(evolutionCount = 75)
 
-private fun List<BigInteger>.evolvedStoneCount(evolutionCount: Int): Long =
+private fun List<Long>.evolvedStoneCount(evolutionCount: Int): Long =
     sumOf { it.evolvedStoneCount(evolutionCount = evolutionCount) }
 
 fun List<String>.parseStoneNumbers() =
-    first().split(' ').map { it.toBigInteger() }
+    first().split(' ').map { it.toLong() }
 
-val memoizedEvolvedStoneCountsByStone = mutableMapOf<BigInteger, MutableMap<Int, Long>>()
+val memoizedEvolvedStoneCountsByStone = mutableMapOf<Long, MutableMap<Int, Long>>()
 
-fun BigInteger.evolvedStoneCount(evolutionCount: Int) =
+fun Long.evolvedStoneCount(evolutionCount: Int) =
     getMemoizedEvolvedStoneCount(evolutionCount = evolutionCount)
         ?: computeEvolvedStoneCount(evolutionCount = evolutionCount)
             .also { evolvedStoneCount ->
@@ -38,16 +37,16 @@ fun BigInteger.evolvedStoneCount(evolutionCount: Int) =
                 )
             }
 
-private fun BigInteger.getMemoizedEvolvedStoneCount(evolutionCount: Int) =
+private fun Long.getMemoizedEvolvedStoneCount(evolutionCount: Int) =
     memoizedEvolvedStoneCountsByStone[this]?.get(evolutionCount)
 
-private fun BigInteger.memoizeEvolvedStoneCount(evolutionCount: Int, evolvedStoneCount: Long) {
+private fun Long.memoizeEvolvedStoneCount(evolutionCount: Int, evolvedStoneCount: Long) {
     memoizedEvolvedStoneCountsByStone
         .getOrPut(this) { mutableMapOf() }
         .putIfAbsent(evolutionCount, evolvedStoneCount)
 }
 
-private fun BigInteger.computeEvolvedStoneCount(evolutionCount: Int) = (
+private fun Long.computeEvolvedStoneCount(evolutionCount: Int) = (
     if (evolutionCount == 1)
     // TODO: In theory, I actually only need to know the count here, not the actual number(s)!
         evolve().size.toLong()
@@ -55,8 +54,8 @@ private fun BigInteger.computeEvolvedStoneCount(evolutionCount: Int) = (
         evolve().evolvedStoneCount(evolutionCount = evolutionCount - 1)
     )
 
-fun BigInteger.evolve(): List<BigInteger> {
-    return if (this == BigInteger.ZERO) listOf(BigInteger.ONE)
+fun Long.evolve(): List<Long> {
+    return if (this == 0L) listOf(1L)
     else {
         val digits = toString()
         if (digits.length % 2 == 0) (digits.length / 2)
@@ -65,8 +64,8 @@ fun BigInteger.evolve(): List<BigInteger> {
                     .map { (start, length) ->
                         digits.subString(startIndex = start, length = length)
                     }
-                    .map(String::toBigInteger)
+                    .map(String::toLong)
             }
-        else listOf(this * BigInteger.valueOf(2024L))
+        else listOf(this * 2024L)
     }
 }
