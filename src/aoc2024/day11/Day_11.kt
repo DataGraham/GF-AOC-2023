@@ -16,67 +16,46 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountIterativeRecursion(evolutionCount = 25)
+fun part1(input: List<String>) = input.parseStoneNumbers().evolvedStoneCount(evolutionCount = 25)
 
-fun part2(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountIterativeRecursion(evolutionCount = 75)
+fun part2(input: List<String>) = input.parseStoneNumbers().evolvedStoneCount(evolutionCount = 75)
 
-private fun List<String>.evolvedStoneCount(evolutionCount: Int) =
-    parseStoneNumbers()
-        .stoneEvolution()
-        .take(evolutionCount + 1)
-        .last()
-        .size
-
-private fun List<BigInteger>.evolvedStoneCountRecursive(evolutionCount: Int): Int {
-    return if (size == 1) {
-        if (evolutionCount == 1)
-            first().evolve().size
-        else
-            first().evolve().evolvedStoneCountRecursive(evolutionCount = evolutionCount - 1)
-    } else listOf(first()).evolvedStoneCountRecursive(evolutionCount = evolutionCount) +
-        drop(1).evolvedStoneCountRecursive(evolutionCount = evolutionCount)
-}
-
-private fun List<BigInteger>.evolvedStoneCountIterativeRecursion(evolutionCount: Int): Long =
+private fun List<BigInteger>.evolvedStoneCount(evolutionCount: Int): Long =
     sumOf { it.evolvedStoneCount(evolutionCount = evolutionCount) }
-//        if (evolutionCount == 1)
-//    // TODO: In theory, I actually only need to know the count here, not the actual number(s)!
-//        sumOf { it.evolve().size }
-//    else
-//        sumOf { it.evolve().evolvedStoneCountIterativeRecursion(evolutionCount = evolutionCount - 1) }
 
 fun List<String>.parseStoneNumbers() =
     first().split(' ').map { it.toBigInteger() }
 
-fun List<BigInteger>.stoneEvolution() =
-    generateSequence(this) { stones ->
-        stones.flatMap { stone -> stone.evolve() }
-    }
-
-// val hitCount = mutableMapOf<BigInteger, Int>()
-// val evolutionCountRequestsByStone = mutableMapOf<BigInteger, MutableList<Int>>()
 val memoizedEvolvedStoneCountsByStone = mutableMapOf<BigInteger, MutableMap<Int, Long>>()
 
-fun BigInteger.evolvedStoneCount(evolutionCount: Int): Long {
-    //    evolutionCountRequestsByStone
-    //        .getOrPut(this) { mutableListOf() }
-    //        .add(evolutionCount)
-    return memoizedEvolvedStoneCountsByStone[this]?.get(evolutionCount) ?: (
-        if (evolutionCount == 1)
-        // TODO: In theory, I actually only need to know the count here, not the actual number(s)!
-            evolve().size.toLong()
-        else
-            evolve().evolvedStoneCountIterativeRecursion(evolutionCount = evolutionCount - 1)
-        ).also { result ->
-            memoizedEvolvedStoneCountsByStone
-                .getOrPut(this) { mutableMapOf() }
-                .putIfAbsent(evolutionCount, result)
-        }
+fun BigInteger.evolvedStoneCount(evolutionCount: Int) =
+    getMemoizedEvolvedStoneCount(evolutionCount = evolutionCount)
+        ?: computeEvolvedStoneCount(evolutionCount = evolutionCount)
+            .also { evolvedStoneCount ->
+                memoizeEvolvedStoneCount(
+                    evolutionCount = evolutionCount,
+                    evolvedStoneCount = evolvedStoneCount
+                )
+            }
+
+private fun BigInteger.getMemoizedEvolvedStoneCount(evolutionCount: Int) =
+    memoizedEvolvedStoneCountsByStone[this]?.get(evolutionCount)
+
+private fun BigInteger.memoizeEvolvedStoneCount(evolutionCount: Int, evolvedStoneCount: Long) {
+    memoizedEvolvedStoneCountsByStone
+        .getOrPut(this) { mutableMapOf() }
+        .putIfAbsent(evolutionCount, evolvedStoneCount)
 }
 
+private fun BigInteger.computeEvolvedStoneCount(evolutionCount: Int) = (
+    if (evolutionCount == 1)
+    // TODO: In theory, I actually only need to know the count here, not the actual number(s)!
+        evolve().size.toLong()
+    else
+        evolve().evolvedStoneCount(evolutionCount = evolutionCount - 1)
+    )
+
 fun BigInteger.evolve(): List<BigInteger> {
-    // hitCount.merge(this, 1) { a, b -> a + b }
-    // hitCount.compute(this) { _, count -> if (count == null) 1 else count + 1 }
     return if (this == BigInteger.ZERO) listOf(BigInteger.ONE)
     else {
         val digits = toString()
