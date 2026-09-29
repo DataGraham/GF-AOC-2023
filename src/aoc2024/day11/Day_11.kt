@@ -16,9 +16,9 @@ fun main() {
     println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountRecursive(evolutionCount = 25)
+fun part1(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountIterativeRecursion(evolutionCount = 25)
 
-fun part2(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountRecursive(evolutionCount = 75)
+fun part2(input: List<String>) = input.parseStoneNumbers().evolvedStoneCountIterativeRecursion(evolutionCount = 75)
 
 private fun List<String>.evolvedStoneCount(evolutionCount: Int) =
     parseStoneNumbers()
@@ -36,6 +36,13 @@ private fun List<BigInteger>.evolvedStoneCountRecursive(evolutionCount: Int): In
     } else listOf(first()).evolvedStoneCountRecursive(evolutionCount = evolutionCount) +
         drop(1).evolvedStoneCountRecursive(evolutionCount = evolutionCount)
 }
+
+private fun List<BigInteger>.evolvedStoneCountIterativeRecursion(evolutionCount: Int): Int =
+    if (evolutionCount == 1)
+    // TODO: In theory, I actually only need to know the count here, not the actual number(s)!
+        sumOf { it.evolve().size }
+    else
+        sumOf { it.evolve().evolvedStoneCountIterativeRecursion(evolutionCount = evolutionCount - 1) }
 
 fun List<String>.parseStoneNumbers() =
     first().split(' ').map { it.toBigInteger() }
