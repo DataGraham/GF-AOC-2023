@@ -33,6 +33,14 @@ fun String.requireSubstringAfter(delimiter: Char) = substring(startIndex = index
 
 fun String.subString(startIndex: Int, length: Int) = substring(startIndex = startIndex, endIndex = startIndex + length)
 
+fun String.bifurcate(): List<String> =
+    (length / 2).let { half ->
+        listOf(0 to half, half to half)
+            .map { (start, length) ->
+                subString(startIndex = start, length = length)
+            }
+    }
+
 fun Int.toIntRange() = this..this
 
 val ClosedRange<Int>.size get() = endInclusive - start + 1
