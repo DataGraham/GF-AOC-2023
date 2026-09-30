@@ -12,6 +12,10 @@ data class Position(val row: Int, val col: Int) {
 operator fun <T> List<List<T>>.get(position: Position) =
     this[position.row][position.col]
 
+operator fun <T> MutableList<MutableList<T>>.set(position: Position, value: T) {
+    this[position.row][position.col] = value
+}
+
 fun <T> List<List<T>>.isPositionValid(position: Position) =
     with(position) { row in indices && col in this@isPositionValid[row].indices }
 
