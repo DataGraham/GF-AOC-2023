@@ -77,6 +77,10 @@ private fun List<List<Char>>.perimeter(region: Set<Position>) =
             .orthogonal
             .map { direction -> position move direction }
             .count { nextPosition ->
+                // TODO: Technically we're assuming how regions are built here,
+                //  and we should actually check whether the next position is in the region
+                //  which actually might mean we don't need the plots since invalid positions
+                //  are also NOT in the region!
                 !isPositionValid(nextPosition) || this[nextPosition] != this[position]
             }
     }
