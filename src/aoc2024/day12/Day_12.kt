@@ -18,18 +18,22 @@ fun main() {
 
     val input = readInput("aoc2024/day12/Day12")
     println("Part 1 Answer: ${part1(input)}")
-    println("Part 2 Answer: ${part2(input)}")
+    //println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>): Int {
-    val plots = input.map { it.toCharArray().toList() }
-    val regions = RegionFinder.findRegions(plots)
-    return input.size
-}
+fun part1(input: List<String>) = input.toPlots().fenceCost()
 
 fun part2(input: List<String>): Int {
     return input.size
 }
+
+private fun List<String>.toPlots() =
+    map { line -> line.toCharArray().toList() }
+
+private fun List<List<Char>>.fenceCost() =
+    RegionFinder
+        .findRegions(this)
+        .sumOf { region -> fenceCost(region) }
 
 private class RegionFinder private constructor(
     private val plots: List<List<Char>>
@@ -58,10 +62,21 @@ private class RegionFinder private constructor(
             .asSequence()
             .map { direction -> startPosition move direction }
             .filter { nextPosition -> plots.isPositionValid(nextPosition) && plots[nextPosition] == regionLabel }
-            .mapNotNull { validNextPosition ->
-                findNewRegionFrom(validNextPosition)
-            }
+            .mapNotNull { validNextPosition -> findNewRegionFrom(validNextPosition) }
             .flatten()
             .toSet() + startPosition
     }
 }
+
+private fun List<List<Char>>.fenceCost(region: Set<Position>) =
+    region.size * perimeter(region)
+
+private fun List<List<Char>>.perimeter(region: Set<Position>) =
+    region.sumOf { position ->
+        Direction
+            .orthogonal
+            .map { direction -> position move direction }
+            .count { nextPosition ->
+                !isPositionValid(nextPosition) || this[nextPosition] != this[position]
+            }
+    }
