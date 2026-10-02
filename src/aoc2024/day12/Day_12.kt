@@ -33,7 +33,7 @@ private fun List<String>.toPlots() =
 private fun List<List<Char>>.fenceCost() =
     RegionFinder
         .findRegions(this)
-        .sumOf { region -> fenceCost(region) }
+        .sumOf { region -> region.fenceCost() }
 
 private class RegionFinder private constructor(
     private val plots: List<List<Char>>
@@ -68,19 +68,12 @@ private class RegionFinder private constructor(
     }
 }
 
-private fun List<List<Char>>.fenceCost(region: Set<Position>) =
-    region.size * perimeter(region)
+private fun Set<Position>.fenceCost() = size * perimeter()
 
-private fun List<List<Char>>.perimeter(region: Set<Position>) =
-    region.sumOf { position ->
+private fun Set<Position>.perimeter() =
+    sumOf { position ->
         Direction
             .orthogonal
             .map { direction -> position move direction }
-            .count { nextPosition ->
-                // TODO: Technically we're assuming how regions are built here,
-                //  and we should actually check whether the next position is in the region
-                //  which actually might mean we don't need the plots since invalid positions
-                //  are also NOT in the region!
-                !isPositionValid(nextPosition) || this[nextPosition] != this[position]
-            }
+            .count { adjacentPosition -> adjacentPosition !in this }
     }
