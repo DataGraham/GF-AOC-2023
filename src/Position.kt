@@ -12,7 +12,7 @@ data class Position(val row: Int, val col: Int) {
 operator fun <T> List<List<T>>.get(position: Position) =
     this[position.row][position.col]
 
-operator fun <T> MutableList<MutableList<T>>.set(position: Position, value: T) {
+operator fun <T> List<MutableList<T>>.set(position: Position, value: T) {
     this[position.row][position.col] = value
 }
 
@@ -114,6 +114,18 @@ val Direction.turnRight90Degrees
         UpLeft -> UpRight
         DownRight -> DownLeft
         DownLeft -> UpLeft
+    }
+
+val Direction.turnLeft90Degrees
+    get() = when (this) {
+        Up -> Left
+        Down -> Right
+        Left -> Down
+        Right -> Up
+        UpRight -> UpLeft
+        UpLeft -> DownLeft
+        DownRight -> UpRight
+        DownLeft -> DownRight
     }
 
 infix fun Position.move(direction: Direction) =

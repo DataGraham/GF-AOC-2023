@@ -6,34 +6,35 @@ import allPositions
 import get
 import isPositionValid
 import move
+import path
 import println
 import readInput
 import set
+import turnLeft90Degrees
+import turnRight90Degrees
 
 fun main() {
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/day12/Day12_test")
     check(part1(testInput).also { it.println() } == 1930)
-    //check(part2(testInput).also { it.println() } == 1)
+    check(part2(testInput).also { it.println() } == 1206)
 
     val input = readInput("aoc2024/day12/Day12")
     println("Part 1 Answer: ${part1(input)}")
-    //println("Part 2 Answer: ${part2(input)}")
+    println("Part 2 Answer: ${part2(input)}")
 }
 
-fun part1(input: List<String>) = input.toPlots().fenceCost()
+fun part1(input: List<String>) = input.toPlots().fenceCost { region -> region.fenceCost() }
 
-fun part2(input: List<String>): Int {
-    return input.size
-}
+fun part2(input: List<String>) = input.toPlots().fenceCost { region -> region.bulkFenceCost() }
 
 private fun List<String>.toPlots() =
     map { line -> line.toCharArray().toList() }
 
-private fun List<List<Char>>.fenceCost() =
+private fun List<List<Char>>.fenceCost(regionCost: (Set<Position>) -> Int) =
     RegionFinder
         .findRegions(this)
-        .sumOf { region -> region.fenceCost() }
+        .sumOf(regionCost)
 
 private class RegionFinder private constructor(
     private val plots: List<List<Char>>
@@ -44,7 +45,7 @@ private class RegionFinder private constructor(
     }
 
     private val visited =
-        MutableList(plots.size) {
+        List(plots.size) {
             MutableList(plots.first().size) { false }
         }
 
@@ -77,3 +78,49 @@ private fun Set<Position>.perimeter() =
             .map { direction -> position move direction }
             .count { adjacentPosition -> adjacentPosition !in this }
     }
+
+private fun Set<Position>.bulkFenceCost() = size * SideFinder.sideCount(this)
+
+private class SideFinder private constructor(private val region: Set<Position>) {
+    companion object {
+        fun sideCount(region: Set<Position>) = SideFinder(region).sideCount()
+    }
+
+    private val visited =
+        Direction
+            .orthogonal
+            .associateWith { mutableSetOf<Position>() }
+
+    fun sideCount(): Int {
+        return region.sumOf { position ->
+            println("Counting new sides from $position")
+            Direction.orthogonal.sumOf { sideDirection ->
+                println("Considering side from $position in the $sideDirection direction")
+                if (visited[sideDirection]?.contains(position) == true ||
+                    position move sideDirection in region
+                ) 0
+                else 1.also { /* this position here itself */
+                    visited[sideDirection]!! += position
+                    listOf(
+                        sideDirection.turnLeft90Degrees,
+                        sideDirection.turnRight90Degrees
+                    ).forEach { traverseDirection ->
+                        println("Traversing $traverseDirection from $position")
+                        position
+                            .path(traverseDirection)
+                            .drop(1)
+                            .takeWhile { traversedPosition ->
+                                traversedPosition in region && traversedPosition move sideDirection !in region
+                            }.forEach { discoveredSidePosition ->
+                                println("Discovered $position")
+                                visited[sideDirection]!! += discoveredSidePosition
+                            }
+                    }
+                }
+            }
+        }.also {
+            println("Side count of this region is $it")
+        }
+    }
+}
+
