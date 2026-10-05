@@ -86,41 +86,52 @@ private class SideFinder private constructor(private val region: Set<Position>) 
         fun sideCount(region: Set<Position>) = SideFinder(region).sideCount()
     }
 
-    private val visited =
-        Direction
-            .orthogonal
-            .associateWith { mutableSetOf<Position>() }
+    // region visitation
+    private val visited = mutableMapOf<Direction, MutableSet<Position>>()
 
-    fun sideCount(): Int {
-        return region.sumOf { position ->
-            println("Counting new sides from $position")
-            Direction.orthogonal.sumOf { sideDirection ->
-                println("Considering side from $position in the $sideDirection direction")
-                if (visited[sideDirection]?.contains(position) == true ||
-                    position move sideDirection in region
-                ) 0
-                else 1.also { /* this position here itself */
-                    visited[sideDirection]!! += position
-                    listOf(
-                        sideDirection.turnLeft90Degrees,
-                        sideDirection.turnRight90Degrees
-                    ).forEach { traverseDirection ->
-                        println("Traversing $traverseDirection from $position")
-                        position
-                            .path(traverseDirection)
-                            .drop(1)
-                            .takeWhile { traversedPosition ->
-                                traversedPosition in region && traversedPosition move sideDirection !in region
-                            }.forEach { discoveredSidePosition ->
-                                println("Discovered $position")
-                                visited[sideDirection]!! += discoveredSidePosition
-                            }
-                    }
-                }
+    private fun visited(direction: Direction) =
+        visited.getOrPut(direction) { mutableSetOf() }
+
+    private fun Position.visit(direction: Direction) {
+        visited(direction) += this
+    }
+
+    private fun Position.isVisited(sideDirection: Direction) = this in visited(sideDirection)
+    // endregion
+
+    private infix fun Position.hasEdge(sideDirection: Direction) =
+        this move sideDirection !in region
+
+    fun sideCount() = region.sumOf { position -> newSideCount(position) }
+
+    private fun newSideCount(position: Position) =
+        Direction.orthogonal.count { sideDirection ->
+            position.hasNewSide(sideDirection)
+        }
+
+    private fun Position.hasNewSide(sideDirection: Direction) =
+        (this hasEdge sideDirection && !isVisited(sideDirection))
+            .also { hasNewSide -> if (hasNewSide) visitSide(sideDirection) }
+
+    private fun Position.visitSide(sideDirection: Direction) {
+        visit(sideDirection)
+        listOf(
+            sideDirection.turnLeft90Degrees,
+            sideDirection.turnRight90Degrees
+        ).forEach { traverseDirection ->
+            remainderOfSide(
+                sideDirection = sideDirection,
+                traverseDirection = traverseDirection
+            ).forEach { discoveredSidePosition ->
+                discoveredSidePosition.visit(sideDirection)
             }
-        }.also {
-            println("Side count of this region is $it")
         }
     }
-}
 
+    private fun Position.remainderOfSide(sideDirection: Direction, traverseDirection: Direction) =
+        path(traverseDirection)
+            .drop(1)
+            .takeWhile { traversedPosition ->
+                traversedPosition in region && traversedPosition hasEdge sideDirection
+            }
+}
