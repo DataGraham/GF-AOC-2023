@@ -49,6 +49,11 @@ operator fun Position.minus(otherPosition: Position) =
 
 operator fun DeltaPosition.unaryMinus() = DeltaPosition(deltaRow = -deltaRow, deltaCol = -deltaCol)
 
+operator fun DeltaPosition.times(factor: Int) = DeltaPosition(
+    deltaRow = deltaRow * factor,
+    deltaCol = deltaCol * factor
+)
+
 infix fun Position.relativeTo(other: Position) = (this - other).toPosition()
 
 operator fun Position.plus(deltaPosition: DeltaPosition) = Position(
